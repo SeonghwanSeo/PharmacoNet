@@ -12,15 +12,15 @@ from numpy.typing import NDArray, ArrayLike
 
 from molvoxel import create_voxelizer, BaseVoxelizer
 
-from .model import build_model
-from .model.detector import PharmacoFormer
+from .network import build_model
+from .network.detector import PharmacoFormer
 from .data import token_inference, pointcloud
-from .data.object import Protein
 from .data import constant as C
 from .data import INTERACTION_LIST
+from .data.objects import Protein
 from .data.extract_pocket import extract_pocket
 
-from .graph.pharmacophore_model import PharmacophoreModel
+from .scoring import PharmacophoreModel
 from . import utils
 from .utils.smoothing import GaussianSmoothing
 
@@ -41,7 +41,7 @@ DEFAULT_SCORE_THRESHOLD = {
 }
 
 
-class InferenceModule():
+class ModelingModule():
     def __init__(
         self,
         model_path: str,

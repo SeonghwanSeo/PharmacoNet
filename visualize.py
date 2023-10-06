@@ -1,4 +1,6 @@
 import os
+import argparse
+
 import pymol
 from pymol import cmd
 
@@ -7,10 +9,15 @@ sys.path.append(".")
 sys.path.append("..")
 from src.graph.pharmacophore_model import PharmacophoreModel
 
-PHARMACOPHORE_MODEL_PATH = sys.argv[1]
-PROTEIN_PATH = sys.argv[2]
-LIGAND_PATH = sys.argv[3]
-SAVE_PATH = sys.argv[4]
+
+class Visualize_ArgParser(argparse.ArgumentParser):
+    def __init__(self):
+        super().__init__('scoring')
+        self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
+        self.add_argument('-p', '--pharmacophore_model', type=str, help='path to save pharmacophore model (.pkl)', required=True)
+        self.add_argument('-r', '--receptor', type=str, help='path of receptor file')
+        self.add_argument('-l', '--ligand', type=str, help='path of ligand file')
+        self.add_argument('-o', '--out', type=str, help='path of pymol session file (.pse)', required=True)
 
 
 PHARMACOPHORE_COLOR_DICT = {
@@ -36,54 +43,70 @@ INTERACTION_COLOR_DICT = {
     'XBond': 'yellow',
 }
 
-pymol.pymol_argv = ['pymol', '-pcq']
-pymol.finish_launching(args=['pymol', '-pcq', '-K'])
-cmd.reinitialize()
-cmd.feedback('disable', 'all', 'everything')
 
-# NOTE: Draw Molecule
-cmd.load(LIGAND_PATH)
-cmd.load(PROTEIN_PATH)
-cmd.set_name(os.path.splitext(os.path.basename(LIGAND_PATH))[0], 'Ligand')
-cmd.set_name(os.path.splitext(os.path.basename(PROTEIN_PATH))[0], 'Protein')
-cmd.color('green', 'Ligand')
-cmd.color('gray90', 'Protein')
+if __name__ == '__main__':
+    parser = Visualize_ArgParser()
+    args = parser.parse_args()
+    RECEPTOR_PATH = args.receptor
+    LIGAND_PATH = args.ligand
+    PHARMACOPHORE_MODEL_PATH = args.pharmacophore_model
+    SAVE_PATH = args.out
 
-# NOTE: Pharmacophore Model
-model = PharmacophoreModel.load(PHARMACOPHORE_MODEL_PATH)
-for node in model.nodes:
-    protein_color = INTERACTION_COLOR_DICT[node.interaction_type]
-    pharmacophore_color = PHARMACOPHORE_COLOR_DICT[node.type]
-    protein_id = f'spot{node.index}'
-    cmd.pseudoatom(protein_id, pos=node.hotspot_position, color=protein_color)
-    cmd.set('sphere_color', protein_color, protein_id)
-    cmd.set('sphere_scale', 0.5, protein_id)
+    pymol.pymol_argv = ['pymol', '-pcq']
+    pymol.finish_launching(args=['pymol', '-pcq', '-K'])
+    cmd.reinitialize()
+    cmd.feedback('disable', 'all', 'everything')
 
-    pharmacophore_id = f'pharmacophore{node.index}_{node.type}'
-    cmd.pseudoatom(pharmacophore_id, pos=node.center, color=protein_color)
-    cmd.set('sphere_color', pharmacophore_color, pharmacophore_id)
-    cmd.set('sphere_scale', node.radius, pharmacophore_id)
+    # NOTE: Draw Molecule
+    if RECEPTOR_PATH:
+        cmd.load(RECEPTOR_PATH)
+        cmd.set_name(os.path.splitext(os.path.basename(RECEPTOR_PATH))[0], 'Protein')
+        cmd.color('gray90', 'Protein')
+    if LIGAND_PATH:
+        cmd.load(LIGAND_PATH)
+        cmd.set_name(os.path.splitext(os.path.basename(LIGAND_PATH))[0], 'Ligand')
+        cmd.color('green', 'Ligand')
 
-    interaction_id = f'interaction{node.index}_{node.interaction_type}'
-    cmd.distance(interaction_id, protein_id, pharmacophore_id)
-    cmd.set('dash_color', pharmacophore_color, interaction_id)
-    cmd.set('dash_gap', 0.2, interaction_id)
-    cmd.set('dash_length', 0.4, interaction_id)
+    # NOTE: Pharmacophore Model
+    model = PharmacophoreModel.load(PHARMACOPHORE_MODEL_PATH)
+    for node in model.nodes:
+        protein_color = INTERACTION_COLOR_DICT[node.interaction_type]
+        pharmacophore_color = PHARMACOPHORE_COLOR_DICT[node.type]
+        protein_id = f'spot{node.index}'
+        cmd.pseudoatom(protein_id, pos=node.hotspot_position, color=protein_color)
+        cmd.set('sphere_color', protein_color, protein_id)
+        cmd.set('sphere_scale', 0.5, protein_id)
 
-    result_id = f'result{node.index}_{node.interaction_type}'
-    cmd.group(result_id, protein_id + ' ' + pharmacophore_id + ' ' + interaction_id)
+        pharmacophore_id = f'pharmacophore{node.index}_{node.type}'
+        cmd.pseudoatom(pharmacophore_id, pos=node.center, color=protein_color)
+        cmd.set('sphere_color', pharmacophore_color, pharmacophore_id)
+        cmd.set('sphere_scale', node.radius, pharmacophore_id)
 
-cmd.group('Result', 'result*')
+        interaction_id = f'interaction{node.index}_{node.interaction_type}'
+        cmd.distance(interaction_id, protein_id, pharmacophore_id)
+        cmd.set('dash_color', pharmacophore_color, interaction_id)
+        cmd.set('dash_gap', 0.2, interaction_id)
+        cmd.set('dash_length', 0.4, interaction_id)
 
-cmd.enable('all')
-cmd.hide('everything', 'all')
-cmd.show('sticks', 'Ligand')
-cmd.show('sticks', 'Protein')
-cmd.show('sphere', 'Result')
-cmd.show('dash', 'Result')
-cmd.util.cnc('all')
+        result_id = f'result{node.index}_{node.interaction_type}'
+        cmd.group(result_id, protein_id + ' ' + pharmacophore_id + ' ' + interaction_id)
 
-cmd.bg_color('white')
-cmd.set('stick_transparency', 0.5, 'Protein')
-cmd.set('sphere_transparency', 0.5, 'pharmacophore*')
-cmd.save(f'{SAVE_PATH}')
+    cmd.group('Result', 'result*')
+
+    cmd.enable('all')
+    cmd.hide('everything', 'all')
+    if RECEPTOR_PATH:
+        cmd.show('sticks', 'Protein')
+    if LIGAND_PATH:
+        cmd.show('sticks', 'Ligand')
+    cmd.show('sphere', 'Result')
+    cmd.show('dash', 'Result')
+
+    cmd.bg_color('white')
+    if RECEPTOR_PATH:
+        cmd.set('stick_transparency', 0.5, 'Protein')
+    if LIGAND_PATH:
+        cmd.set('stick_transparency', 0.5, 'Ligand')
+
+    cmd.set('sphere_transparency', 0.5, 'pharmacophore*')
+    cmd.save(f'{SAVE_PATH}')

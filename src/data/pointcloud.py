@@ -3,7 +3,7 @@ from typing import Tuple, Sequence
 from openbabel.pybel import ob
 from numpy.typing import NDArray
 
-from .object import Protein
+from .objects import Protein
 
 
 protein_atom_num_list = (6, 7, 8, 16, -1)

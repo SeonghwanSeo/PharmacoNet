@@ -6,14 +6,14 @@ from rdkit.Chem import AllChem
 import multiprocessing
 import functools
 
-from src.graph.pharmacophore_model import PharmacophoreModel
+from src.scoring import PharmacophoreModel
 
 
 class Scoring_ArgParser(argparse.ArgumentParser):
     def __init__(self):
         super().__init__('scoring')
         self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-        self.add_argument('-p', '--pm_path', type=str, help='path to save pharmacophore model (.pkl)', required=True)
+        self.add_argument('-p', '--pharmacophore_model', type=str, help='path of pharmacophore model (.pkl)', required=True)
         self.add_argument('-s', '--smiles_path', type=str, help='molecules SMILES file', required=True)
         self.add_argument('--num_conformers', type=int, help='number of RDKit conformer to use', default=10)
         self.add_argument('--num_cpus', type=int, help='number of cpu cores. default: (try to detect the number of CPUs)')
@@ -41,7 +41,7 @@ def scoring(smiles: str, model: PharmacophoreModel, num_conformers: int = 10):
 if __name__ == '__main__':
     parser = Scoring_ArgParser()
     args = parser.parse_args()
-    model = PharmacophoreModel.load(args.pm_path)
+    model = PharmacophoreModel.load(args.pharmacophore_model)
 
     with open(args.smiles_path) as f:
         lines = f.readlines()

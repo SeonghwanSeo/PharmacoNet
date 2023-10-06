@@ -70,10 +70,27 @@ class PharmacophoreModel():
         ligand_pbmol: pybel.Molecule,
         ligand_rbmol: Optional[Mol] = None,
         atom_positions: Optional[NDArray] = None,
+        conformer_axis: Optional[int] = None,
     ) -> float:
+        """Scoring Function
+
+        Args:
+            ligand_pbmol: pybel.Molecule
+            ligand_rdmol: Chem.Mol | None
+            atom_positions: List[NDArray[np.float32]] | NDArray[np.float32] | None
+            conformer_axis: Optional[int]
+
+            case: atom_positions: NDArray[np.float32]
+                i) conformer_axis is 0 or None
+                    atom_positions: (N_conformers, N_atoms, 3)
+                ii) conformer_axis is 1
+                    atom_positions: (N_atoms, N_conformers, 3)
+            case: atom_positions: None
+                Using RDKit Conformer informations
+        """
         from .ligand import Ligand
         from .graph_match import GraphMatcher
-        ligand = Ligand(ligand_pbmol, ligand_rbmol, atom_positions)
+        ligand = Ligand(ligand_pbmol, ligand_rbmol, atom_positions, conformer_axis)
         matcher = GraphMatcher(self, ligand)
         return matcher.scoring()
 

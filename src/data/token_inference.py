@@ -4,7 +4,7 @@ import math
 from typing import Tuple, List
 from numpy.typing import NDArray, ArrayLike
 
-from .object import Protein
+from .objects import Protein
 from . import constant as C
 
 
