@@ -1,2 +1,2 @@
 # PharmacoNet
-Official Github for "PharmacoNet: Accelerating Structure-based Virtual Screening by Pharmacophore Modeling"
+Official Github for "PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling"

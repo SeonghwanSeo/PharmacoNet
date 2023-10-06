@@ -73,7 +73,7 @@ class InferenceModule():
 
         in_resolution = config.VOXEL.IN.RESOLUTION
         in_size = config.VOXEL.IN.SIZE
-        self.in_voxelizer: BaseVoxelizer = create_voxelizer(in_resolution, in_size, library=molvoxel_library)
+        self.in_voxelizer: BaseVoxelizer = create_voxelizer(in_resolution, in_size, sigma=(1 / 3), library=molvoxel_library)
         self.pocket_cutoff = (in_resolution * in_size * math.sqrt(3) / 2) + 5.0
         self.out_resolution = config.VOXEL.OUT.RESOLUTION
         self.out_size = config.VOXEL.OUT.SIZE
