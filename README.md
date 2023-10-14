@@ -55,7 +55,7 @@ python scoring_file.py -p ./examples/6OIM_model.pkl -s ./examples/example.smi --
 - [PyTorch]((https://pytorch.org/)) >= 1.13
 - [OpenBabel](http://openbabel.org/wiki/Main_Page) >= 3.1.1
 - [Biopython](https://biopython.org) >= 1.81
-- [MolVoxel](https://github.com/SeonghwanSeo/molvoxel) (Available soon)
+- [MolVoxel](https://github.com/SeonghwanSeo/molvoxel) (Comming soon in November)
 
 #### Scoring
 
