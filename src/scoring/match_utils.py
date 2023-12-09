@@ -21,8 +21,7 @@ def scoring_matching_pair(
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     num_fails = np.zeros((num_conformers,), dtype=np.int16)
 
-    total_match = len(cluster_node_match_list1) * len(cluster_node_match_list2)
-    match_threshold = total_match * (1 - PASS_THRESHOLD)
+    match_threshold = len(cluster_node_match_list1) * len(cluster_node_match_list2) * (1 - PASS_THRESHOLD)
 
     num_pass = np.empty((num_conformers,), dtype=np.int16)
     likelihood = np.empty((num_conformers,), dtype=np.float32)
@@ -39,27 +38,26 @@ def scoring_matching_pair(
                 for model_node1, model_node2 in itertools.product(model_node_list1, model_node_list2)
             ],
             dtype=np.float32
-        )   # [M*N]
+        )   # [M*N, 1]
         stds = np.array(
             [
                 [model_node1.neighbor_edge_dict[model_node2].distance_std]
                 for model_node1, model_node2 in itertools.product(model_node_list1, model_node_list2)
             ],
             dtype=np.float32
-        )   # [M*N]
+        )   # [M*N, 1]
         weights = (weights1.reshape(-1, 1) * weights2.reshape(1, -1)).reshape(-1)   # [M * N]
 
         weights_sum = sum(weights)
-        normalize_coeff = 1 / (math.sqrt(2 * math.pi) * weights_sum)
+        normalize_coeff = 1 / weights_sum   # / (math.sqrt(2 * math.pi) (skip)
         score_coeff = weights_sum / num_match
 
         distance_sigma_array = (distances.reshape(1, num_conformers) - means) / stds
-        np.sum(distance_sigma_array < DISTANCE_SIGMA_THRESHOLD, axis=0, out=num_pass)
+        np.sum(np.abs(distance_sigma_array) < DISTANCE_SIGMA_THRESHOLD, axis=0, out=num_pass)
         num_fails += (num_pass < (num_match * PASS_THRESHOLD))
         if min(num_fails) > match_threshold:
             return (-1,) * num_conformers
-
-        np.dot(weights / stds, np.exp(-0.5 * distance_sigma_array ** 2), out=likelihood)
+        np.dot(weights / stds.reshape(-1), np.exp(-0.5 * distance_sigma_array ** 2), out=likelihood)
         match_scores += likelihood * normalize_coeff * score_coeff
 
     return tuple(float(score) if num_fail <= match_threshold else -1 for score, num_fail in zip(match_scores, num_fails))
@@ -84,21 +82,22 @@ def scoring_matching_self(
                 for model_node1, model_node2 in itertools.product(model_node_list1, model_node_list2)
             ],
             dtype=np.float32
-        )   # [M*N]
+        )   # [M*N, 1]
         stds = np.array(
             [
                 [model_node1.neighbor_edge_dict[model_node2].distance_std]
                 for model_node1, model_node2 in itertools.product(model_node_list1, model_node_list2)
             ],
             dtype=np.float32
-        )   # [M*N]
+        )   # [M*N, 1]
         weights = (weights1.reshape(-1, 1) * weights2.reshape(1, -1)).reshape(-1)   # [M*N]
         weights_sum = sum(weights)
-        normalize_coeff = 1 / (math.sqrt(2 * math.pi) * weights_sum)
+        normalize_coeff = 1 / weights_sum   # / (math.sqrt(2 * math.pi) (skip)
         score_coeff = weights_sum / num_match
 
         distance_sigma_array = (distances.reshape(1, num_conformers) - means) / stds
-        np.dot(weights / stds, np.exp(-0.5 * distance_sigma_array ** 2), out=likelihood)
+        np.dot(weights / stds.reshape(-1), np.exp(-0.5 * distance_sigma_array ** 2), out=likelihood)
+
         match_scores += likelihood * normalize_coeff * score_coeff
 
     return tuple(match_scores.tolist())
