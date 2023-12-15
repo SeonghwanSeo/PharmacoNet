@@ -1,6 +1,6 @@
 # PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling
 
-#### **Preprint** [[arxiv](https://arxiv.org/abs/2310.00681)]
+Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
 Official Github for ***PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling*** by Seonghwan Seo* and Woo Youn Kim.
 
