@@ -23,7 +23,7 @@ sh ./download-weights.sh
 
 # Pharmacophore Modeling
 python modeling.py -r <RECEPTOR_PATH> --autobox_ligand <LIGAND_PATH> -p <OUT_PHARMACOPHORE_MODEL_PATH> 
-python modeling.py -r <RECEPTOR_PATH> --center <X> <Y> <Z> --cuda -p <OUT_PHARMACOPHORE_MODEL_PATH>
+python modeling.py -r <RECEPTOR_PATH> --center <X> <Y> <Z> -p <OUT_PHARMACOPHORE_MODEL_PATH> --cuda	# CUDA Acceleration
 
 # Scoring with a single ligand SMILES
 python scoring.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES> --num_conformers <NUM_CONFORMERS>
@@ -47,23 +47,16 @@ python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi -
 
 ## Environment
 
-#### Pharmacophore Modeling
+```shell
+# Required python>=3.9, Best Performance at 3.11
+conda create --name pmnet python=3.11
+conda activate pmnet
+conda install openbabel
 
-- python >= 3.9
-- [PyTorch]((https://pytorch.org/)) >= 1.13
-- [OpenBabel](http://openbabel.org/wiki/Main_Page) >= 3.1.1
-- [Biopython](https://biopython.org) >= 1.81
-- [OmegaConf](https://omegaconf.readthedocs.io/en/2.3_branch/) >= 2.3.0
-- [Timm](https://timm.fast.ai) >= 0.9
-- [MolVoxel](https://github.com/SeonghwanSeo/molvoxel) (Comming soon in November)
-
-#### Scoring
-
-- python >= 3.9 (Best performance in 3.11)
-- [NumPy](https://numpy.org) = 1.24
-- [Numba](https://numba.pydata.org) = 0.57 (not required, but strongly recommended)
-- [OpenBabel](http://openbabel.org/wiki/Main_Page) >= 3.1.1
-- [RDKit](https://www.rdkit.org/docs/Install.html) >= 2022.9.5 (Optional, For ETKDG)
+pip install torch torchvision # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install rdkit biopython omegaconf timm numba # Numba is optional, but recommended.
+pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
+```
 
 
 
