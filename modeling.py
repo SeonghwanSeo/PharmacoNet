@@ -11,7 +11,7 @@ class Modeling_ArgParser(argparse.ArgumentParser):
         cfg_args = self.add_argument_group('config')
         cfg_args.add_argument('--model_path', type=str, help='path of embedded model (.tar)', default='./weights/model.tar')
         cfg_args.add_argument('-r', '--receptor', type=str, help='path of receptor pdb file (.pdb)', required=True)
-        cfg_args.add_argument('-p', '--pharmacophore_model', type=str, help='path to save pharmacophore model (.pkl)', required=True)
+        cfg_args.add_argument('-p', '--pharmacophore_model', type=str, help='path to save pharmacophore model (.json | .pkl)', required=True)
 
         cfg_args.add_argument('--autobox_ligand', type=str, help='path of ligand to define the center of box (.sdf, .pdb, .mol2)')
         cfg_args.add_argument('--center', nargs='+', type=float, help='coordinate of the center')

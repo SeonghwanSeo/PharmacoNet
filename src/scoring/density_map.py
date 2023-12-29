@@ -51,7 +51,7 @@ class DensityMapGraph():
     def add_node(
         self,
         node_type: str,
-        hotspot_coords: Tuple[int, int, int],
+        hotspot_position: Tuple[float, float, float],
         score: float,
         mask: NDArray[np.float_],
     ):
@@ -59,7 +59,7 @@ class DensityMapGraph():
             grids, grid_scores = np.array(grids), np.array(grid_scores)
             if len(grids) < 8:
                 continue
-            new_node = DensityMapNode(self, hotspot_coords, node_type, score, grids, grid_scores)
+            new_node = DensityMapNode(self, hotspot_position, node_type, score, grids, grid_scores)
             self.nodes.append(new_node)
             self.node_dict[node_type].append(new_node)
             for node in self.nodes:     # Add self loop
@@ -193,7 +193,7 @@ class DensityMapNode():
     def __init__(
         self,
         graph: DensityMapGraph,
-        hotspot_coords: Tuple[int, int, int],
+        hotspot_position: Tuple[float, float, float],
         node_type: str,
         score: float,
         grids: NDArray[np.int_],
@@ -204,7 +204,7 @@ class DensityMapNode():
         self.type: str = node_type
         self.grids = grids
 
-        self.hotspot_position: Tuple[float, float, float] = coords_to_position(hotspot_coords, self.graph.center, self.graph.resolution, self.graph.size)
+        self.hotspot_position: Tuple[float, float, float] = hotspot_position
 
         self.score: float = score
         center_coords = np.average(grids, axis=0, weights=grid_scores)

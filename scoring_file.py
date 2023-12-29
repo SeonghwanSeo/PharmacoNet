@@ -13,7 +13,7 @@ class Scoring_ArgParser(argparse.ArgumentParser):
     def __init__(self):
         super().__init__('scoring')
         self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-        self.add_argument('-p', '--pharmacophore_model', type=str, help='path of pharmacophore model (.pkl)', required=True)
+        self.add_argument('-p', '--pharmacophore_model', type=str, help='path of pharmacophore model (.json | .pkl)', required=True)
         self.add_argument('-s', '--smiles_path', type=str, help='molecules SMILES file', required=True)
         self.add_argument('--num_conformers', type=int, help='number of RDKit conformer to use', default=10)
         self.add_argument('--num_cpus', type=int, help='number of cpu cores. default: (try to detect the number of CPUs)')

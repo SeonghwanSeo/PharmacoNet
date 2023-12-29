@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import pickle
+import json
+import os
 from openbabel import pybel
 from rdkit.Chem import Mol
 
-from typing import Dict, List, Tuple, Set, Optional
+from typing import Dict, List, Tuple, Set, Iterable, Optional
 from numpy.typing import NDArray
 
 from .density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
@@ -43,7 +45,7 @@ class PharmacophoreModel():
     ):
         graph = DensityMapGraph(center, resolution, size)
         for node in density_maps:
-            graph.add_node(node['type'], node['coords'], node['score'], node['map'])
+            graph.add_node(node['type'], node['position'], node['score'], node['map'])
         graph.setup()
 
         model = cls()
@@ -95,14 +97,28 @@ class PharmacophoreModel():
         return matcher.scoring()
 
     def save(self, save_path: str):
+        extension = os.path.splitext(save_path)[-1]
         state = self.__getstate__()
-        with open(save_path, 'wb') as w:
-            pickle.dump(state, w)
+        if extension == '.pkl':
+            with open(save_path, 'wb') as w:
+                pickle.dump(state, w)
+        elif extension == '.json':
+            with open(save_path, 'w') as w:
+                json.dump(state, w, indent=2)
+        else:
+            raise NotImplementedError
 
     @classmethod
     def load(cls, save_path: str):
-        with open(save_path, 'rb') as f:
-            state = pickle.load(f)
+        extension = os.path.splitext(save_path)[-1]
+        if extension == '.pkl':
+            with open(save_path, 'rb') as f:
+                state = pickle.load(f)
+        elif extension == '.json':
+            with open(save_path) as f:
+                state = json.load(f)
+        else:
+            raise NotImplementedError
         model = cls()
         model.__setstate__(state)
         return model
@@ -138,15 +154,15 @@ class ModelNodeCluster():
         self,
         graph: PharmacophoreModel,
         cluster_type: str,
-        node_indices: Set[int],
-        node_types: Set[str],
+        node_indices: Iterable[int],
+        node_types: Iterable[str],
         center: Tuple[float, float, float],
         size: float,
     ):
         self.type: str = cluster_type
         self.nodes: Set[ModelNode] = {graph.nodes[index] for index in node_indices}
-        self.node_indices: Set[int] = node_indices
-        self.node_types: Set[str] = node_types
+        self.node_indices: Set[int] = set(node_indices)
+        self.node_types: Set[str] = set(node_types)
 
         self.center: Tuple[float, float, float] = center
         self.size: float = size
@@ -168,8 +184,8 @@ class ModelNodeCluster():
     def get_kwargs(self):
         return dict(
             cluster_type=self.type,
-            node_indices=self.node_indices,
-            node_types=self.node_types,
+            node_indices=tuple(self.node_indices),
+            node_types=tuple(self.node_types),
             center=self.center,
             size=self.size,
         )
@@ -180,6 +196,7 @@ class ModelNode():
         self,
         graph: PharmacophoreModel,
         index: int,
+        type: str,
         interaction_type: str,
         hotspot_position: Tuple[float, float, float],
         score: float,
@@ -190,9 +207,9 @@ class ModelNode():
     ):
         self.graph: PharmacophoreModel = graph
         self.index: int = index
+        self.type: str = type
         self.interaction_type: str = interaction_type
         self.hotspot_position: Tuple[float, float, float] = hotspot_position
-        self.type: str = INTERACTION_TO_PHARMACOPHORE[interaction_type]
         self.score: float = score
         self.center: Tuple[float, float, float] = center
         self.radius: float = radius
@@ -204,7 +221,8 @@ class ModelNode():
 
     def setup(self):
         self.neighbor_edge_dict = {
-            self.graph.nodes[node_index]: self.graph.edges[edge_index] for node_index, edge_index in self._neighbor_edge_dict.items()
+            self.graph.nodes[int(node_index)]: self.graph.edges[edge_index]     # json save key as str, so type conversion is needed.
+            for node_index, edge_index in self._neighbor_edge_dict.items()
         }
         self.overlapped_nodes = [self.graph.nodes[node_index] for node_index in self._overlapped_nodes]
 
@@ -215,6 +233,7 @@ class ModelNode():
         return cls(
             graph,
             node.index,
+            INTERACTION_TO_PHARMACOPHORE[node.type],
             node.type,
             node.hotspot_position,
             node.score,
@@ -230,6 +249,7 @@ class ModelNode():
     def get_kwargs(self):
         return dict(
             index=self.index,
+            type=self.type,
             interaction_type=self.interaction_type,
             hotspot_position=self.hotspot_position,
             score=self.score,

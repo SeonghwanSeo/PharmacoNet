@@ -1,0 +1,2882 @@
+{
+  "nodes": [
+    {
+      "index": 0,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        6.466000080108643,
+        -3.930000066757202,
+        1.7940000295639038
+      ],
+      "score": 0.8742712470675679,
+      "center": [
+        6.504419803619385,
+        -6.9557271003723145,
+        -0.26346704363822937
+      ],
+      "radius": 1.2210039799807693,
+      "neighbor_edge_dict": {
+        "0": 0,
+        "1": 1,
+        "2": 3,
+        "3": 6,
+        "4": 10,
+        "5": 15,
+        "6": 21,
+        "7": 28,
+        "8": 36,
+        "9": 45,
+        "10": 55,
+        "11": 66,
+        "12": 78,
+        "13": 91,
+        "14": 105,
+        "15": 120,
+        "16": 136
+      },
+      "overlapped_nodes": [
+        0,
+        0,
+        2,
+        4,
+        6
+      ]
+    },
+    {
+      "index": 1,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        3.3970000743865967,
+        -13.956999778747559,
+        4.400000095367432
+      ],
+      "score": 0.9705014749262537,
+      "center": [
+        2.14361572265625,
+        -12.35102367401123,
+        1.5446414947509766
+      ],
+      "radius": 1.1577325642095337,
+      "neighbor_edge_dict": {
+        "0": 1,
+        "1": 2,
+        "2": 4,
+        "3": 7,
+        "4": 11,
+        "5": 16,
+        "6": 22,
+        "7": 29,
+        "8": 37,
+        "9": 46,
+        "10": 56,
+        "11": 67,
+        "12": 79,
+        "13": 92,
+        "14": 106,
+        "15": 121,
+        "16": 137
+      },
+      "overlapped_nodes": [
+        1,
+        1,
+        15
+      ]
+    },
+    {
+      "index": 2,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        3.9560000896453857,
+        -7.909999847412109,
+        2.61299991607666
+      ],
+      "score": 0.9187745337142592,
+      "center": [
+        6.649661540985107,
+        -7.879343509674072,
+        -0.003650617552921176
+      ],
+      "radius": 0.8419451504803148,
+      "neighbor_edge_dict": {
+        "0": 3,
+        "1": 4,
+        "2": 5,
+        "3": 8,
+        "4": 12,
+        "5": 17,
+        "6": 23,
+        "7": 30,
+        "8": 38,
+        "9": 47,
+        "10": 57,
+        "11": 68,
+        "12": 80,
+        "13": 93,
+        "14": 107,
+        "15": 122,
+        "16": 138
+      },
+      "overlapped_nodes": [
+        0,
+        2,
+        2,
+        4,
+        6,
+        14,
+        16
+      ]
+    },
+    {
+      "index": 3,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        3.9560000896453857,
+        -7.909999847412109,
+        2.61299991607666
+      ],
+      "score": 0.9187745337142592,
+      "center": [
+        3.329247236251831,
+        -10.796677589416504,
+        0.47799360752105713
+      ],
+      "radius": 0.7101240423074943,
+      "neighbor_edge_dict": {
+        "0": 6,
+        "1": 7,
+        "2": 8,
+        "3": 9,
+        "4": 13,
+        "5": 18,
+        "6": 24,
+        "7": 31,
+        "8": 39,
+        "9": 48,
+        "10": 58,
+        "11": 69,
+        "12": 81,
+        "13": 94,
+        "14": 108,
+        "15": 123,
+        "16": 139
+      },
+      "overlapped_nodes": [
+        3,
+        3,
+        5,
+        8,
+        15
+      ]
+    },
+    {
+      "index": 4,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        7.6529998779296875,
+        -11.430999755859375,
+        0.1850000023841858
+      ],
+      "score": 0.9990476854110051,
+      "center": [
+        7.1919169425964355,
+        -8.178377151489258,
+        -0.7050528526306152
+      ],
+      "radius": 1.1651068557947326,
+      "neighbor_edge_dict": {
+        "0": 10,
+        "1": 11,
+        "2": 12,
+        "3": 13,
+        "4": 14,
+        "5": 19,
+        "6": 25,
+        "7": 32,
+        "8": 40,
+        "9": 49,
+        "10": 59,
+        "11": 70,
+        "12": 82,
+        "13": 95,
+        "14": 109,
+        "15": 124,
+        "16": 140
+      },
+      "overlapped_nodes": [
+        0,
+        2,
+        4,
+        4,
+        6,
+        16
+      ]
+    },
+    {
+      "index": 5,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        6.554999828338623,
+        -12.465999603271484,
+        -0.013000000268220901
+      ],
+      "score": 0.9720809235128794,
+      "center": [
+        3.3815648555755615,
+        -10.901447296142578,
+        0.3398106098175049
+      ],
+      "radius": 0.8276721363507135,
+      "neighbor_edge_dict": {
+        "0": 15,
+        "1": 16,
+        "2": 17,
+        "3": 18,
+        "4": 19,
+        "5": 20,
+        "6": 26,
+        "7": 33,
+        "8": 41,
+        "9": 50,
+        "10": 60,
+        "11": 71,
+        "12": 83,
+        "13": 96,
+        "14": 110,
+        "15": 125,
+        "16": 141
+      },
+      "overlapped_nodes": [
+        3,
+        5,
+        5,
+        8,
+        15
+      ]
+    },
+    {
+      "index": 6,
+      "type": "Hydrophobic",
+      "interaction_type": "Hydrophobic",
+      "hotspot_position": [
+        10.104999542236328,
+        -7.375999927520752,
+        2.7009999752044678
+      ],
+      "score": 0.8612872505981,
+      "center": [
+        7.819345474243164,
+        -7.608108997344971,
+        -0.05866537243127823
+      ],
+      "radius": 1.2342050461176612,
+      "neighbor_edge_dict": {
+        "0": 21,
+        "1": 22,
+        "2": 23,
+        "3": 24,
+        "4": 25,
+        "5": 26,
+        "6": 27,
+        "7": 34,
+        "8": 42,
+        "9": 51,
+        "10": 61,
+        "11": 72,
+        "12": 84,
+        "13": 97,
+        "14": 111,
+        "15": 126,
+        "16": 142
+      },
+      "overlapped_nodes": [
+        0,
+        2,
+        4,
+        6,
+        6,
+        14,
+        16
+      ]
+    },
+    {
+      "index": 7,
+      "type": "Aromatic",
+      "interaction_type": "PiStacking_P",
+      "hotspot_position": [
+        2.7283332347869873,
+        -8.249500274658203,
+        3.128999948501587
+      ],
+      "score": 0.9134017637704207,
+      "center": [
+        4.130634784698486,
+        -6.9036970138549805,
+        -1.3999183177947998
+      ],
+      "radius": 0.9188929451620275,
+      "neighbor_edge_dict": {
+        "0": 28,
+        "1": 29,
+        "2": 30,
+        "3": 31,
+        "4": 32,
+        "5": 33,
+        "6": 34,
+        "7": 35,
+        "8": 43,
+        "9": 52,
+        "10": 62,
+        "11": 73,
+        "12": 85,
+        "13": 98,
+        "14": 112,
+        "15": 127,
+        "16": 143
+      },
+      "overlapped_nodes": [
+        7,
+        7,
+        9
+      ]
+    },
+    {
+      "index": 8,
+      "type": "Aromatic",
+      "interaction_type": "PiStacking_P",
+      "hotspot_position": [
+        2.7283332347869873,
+        -8.249500274658203,
+        3.128999948501587
+      ],
+      "score": 0.9134017637704207,
+      "center": [
+        2.2864770889282227,
+        -10.89654541015625,
+        0.39420557022094727
+      ],
+      "radius": 0.6451905103710748,
+      "neighbor_edge_dict": {
+        "0": 36,
+        "1": 37,
+        "2": 38,
+        "3": 39,
+        "4": 40,
+        "5": 41,
+        "6": 42,
+        "7": 43,
+        "8": 44,
+        "9": 53,
+        "10": 63,
+        "11": 74,
+        "12": 86,
+        "13": 99,
+        "14": 113,
+        "15": 128,
+        "16": 144
+      },
+      "overlapped_nodes": [
+        3,
+        5,
+        8,
+        8
+      ]
+    },
+    {
+      "index": 9,
+      "type": "Aromatic",
+      "interaction_type": "PiCation_lring",
+      "hotspot_position": [
+        5.146999835968018,
+        -6.420333385467529,
+        -5.858666896820068
+      ],
+      "score": 0.982484076433121,
+      "center": [
+        4.219979763031006,
+        -7.499727249145508,
+        -1.7629016637802124
+      ],
+      "radius": 1.2276400014959281,
+      "neighbor_edge_dict": {
+        "0": 45,
+        "1": 46,
+        "2": 47,
+        "3": 48,
+        "4": 49,
+        "5": 50,
+        "6": 51,
+        "7": 52,
+        "8": 53,
+        "9": 54,
+        "10": 64,
+        "11": 75,
+        "12": 87,
+        "13": 100,
+        "14": 114,
+        "15": 129,
+        "16": 145
+      },
+      "overlapped_nodes": [
+        7,
+        9,
+        9
+      ]
+    },
+    {
+      "index": 10,
+      "type": "HBond_donor",
+      "interaction_type": "HBond_ldon",
+      "hotspot_position": [
+        0.22200000286102295,
+        -4.617000102996826,
+        2.9839999675750732
+      ],
+      "score": 0.8879306390201386,
+      "center": [
+        -0.04591802507638931,
+        -4.273284912109375,
+        0.22498977184295654
+      ],
+      "radius": 1.1193685151922983,
+      "neighbor_edge_dict": {
+        "0": 55,
+        "1": 56,
+        "2": 57,
+        "3": 58,
+        "4": 59,
+        "5": 60,
+        "6": 61,
+        "7": 62,
+        "8": 63,
+        "9": 64,
+        "10": 65,
+        "11": 76,
+        "12": 88,
+        "13": 101,
+        "14": 115,
+        "15": 130,
+        "16": 146
+      },
+      "overlapped_nodes": [
+        10,
+        10,
+        12,
+        13
+      ]
+    },
+    {
+      "index": 11,
+      "type": "HBond_donor",
+      "interaction_type": "HBond_ldon",
+      "hotspot_position": [
+        0.23600000143051147,
+        -5.320000171661377,
+        -4.373000144958496
+      ],
+      "score": 0.9634845635120877,
+      "center": [
+        1.7420722246170044,
+        -5.333615779876709,
+        -2.0231094360351562
+      ],
+      "radius": 0.8691232371457478,
+      "neighbor_edge_dict": {
+        "0": 66,
+        "1": 67,
+        "2": 68,
+        "3": 69,
+        "4": 70,
+        "5": 71,
+        "6": 72,
+        "7": 73,
+        "8": 74,
+        "9": 75,
+        "10": 76,
+        "11": 77,
+        "12": 89,
+        "13": 102,
+        "14": 116,
+        "15": 131,
+        "16": 147
+      },
+      "overlapped_nodes": [
+        11,
+        11
+      ]
+    },
+    {
+      "index": 12,
+      "type": "Anion",
+      "interaction_type": "SaltBridge_lneg",
+      "hotspot_position": [
+        -1.0870000123977661,
+        -1.8830000162124634,
+        2.4539999961853027
+      ],
+      "score": 0.886411889596603,
+      "center": [
+        -1.1425822973251343,
+        -4.132870674133301,
+        -0.2095670998096466
+      ],
+      "radius": 0.8557499835861255,
+      "neighbor_edge_dict": {
+        "0": 78,
+        "1": 79,
+        "2": 80,
+        "3": 81,
+        "4": 82,
+        "5": 83,
+        "6": 84,
+        "7": 85,
+        "8": 86,
+        "9": 87,
+        "10": 88,
+        "11": 89,
+        "12": 90,
+        "13": 103,
+        "14": 117,
+        "15": 132,
+        "16": 148
+      },
+      "overlapped_nodes": [
+        10,
+        12,
+        12
+      ]
+    },
+    {
+      "index": 13,
+      "type": "Halogen",
+      "interaction_type": "XBond",
+      "hotspot_position": [
+        0.22200000286102295,
+        -4.617000102996826,
+        2.9839999675750732
+      ],
+      "score": 0.90368782161235,
+      "center": [
+        1.1545273065567017,
+        -4.340761661529541,
+        0.16515229642391205
+      ],
+      "radius": 1.1502631139151147,
+      "neighbor_edge_dict": {
+        "0": 91,
+        "1": 92,
+        "2": 93,
+        "3": 94,
+        "4": 95,
+        "5": 96,
+        "6": 97,
+        "7": 98,
+        "8": 99,
+        "9": 100,
+        "10": 101,
+        "11": 102,
+        "12": 103,
+        "13": 104,
+        "14": 118,
+        "15": 133,
+        "16": 149
+      },
+      "overlapped_nodes": [
+        10,
+        13,
+        13
+      ]
+    },
+    {
+      "index": 14,
+      "type": "Halogen",
+      "interaction_type": "XBond",
+      "hotspot_position": [
+        6.256999969482422,
+        -12.722000122070312,
+        3.322999954223633
+      ],
+      "score": 0.9907804459691252,
+      "center": [
+        7.346330642700195,
+        -8.538810729980469,
+        0.9596903920173645
+      ],
+      "radius": 0.8820971385017564,
+      "neighbor_edge_dict": {
+        "0": 105,
+        "1": 106,
+        "2": 107,
+        "3": 108,
+        "4": 109,
+        "5": 110,
+        "6": 111,
+        "7": 112,
+        "8": 113,
+        "9": 114,
+        "10": 115,
+        "11": 116,
+        "12": 117,
+        "13": 118,
+        "14": 119,
+        "15": 134,
+        "16": 150
+      },
+      "overlapped_nodes": [
+        2,
+        6,
+        14,
+        14,
+        16
+      ]
+    },
+    {
+      "index": 15,
+      "type": "Halogen",
+      "interaction_type": "XBond",
+      "hotspot_position": [
+        6.256999969482422,
+        -12.722000122070312,
+        3.322999954223633
+      ],
+      "score": 0.9907804459691252,
+      "center": [
+        3.251991033554077,
+        -11.786016464233398,
+        1.3847336769104004
+      ],
+      "radius": 0.9418747296813859,
+      "neighbor_edge_dict": {
+        "0": 120,
+        "1": 121,
+        "2": 122,
+        "3": 123,
+        "4": 124,
+        "5": 125,
+        "6": 126,
+        "7": 127,
+        "8": 128,
+        "9": 129,
+        "10": 130,
+        "11": 131,
+        "12": 132,
+        "13": 133,
+        "14": 134,
+        "15": 135,
+        "16": 151
+      },
+      "overlapped_nodes": [
+        1,
+        3,
+        5,
+        15,
+        15
+      ]
+    },
+    {
+      "index": 16,
+      "type": "Halogen",
+      "interaction_type": "XBond",
+      "hotspot_position": [
+        8.121000289916992,
+        -9.774999618530273,
+        3.549999952316284
+      ],
+      "score": 0.9935677530017153,
+      "center": [
+        7.345951080322266,
+        -8.012465476989746,
+        0.7488632798194885
+      ],
+      "radius": 1.1502631139151147,
+      "neighbor_edge_dict": {
+        "0": 136,
+        "1": 137,
+        "2": 138,
+        "3": 139,
+        "4": 140,
+        "5": 141,
+        "6": 142,
+        "7": 143,
+        "8": 144,
+        "9": 145,
+        "10": 146,
+        "11": 147,
+        "12": 148,
+        "13": 149,
+        "14": 150,
+        "15": 151,
+        "16": 152
+      },
+      "overlapped_nodes": [
+        2,
+        4,
+        6,
+        14,
+        16,
+        16
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "index": 0,
+      "node_indices": [
+        0,
+        0
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.7267603882003308
+    },
+    {
+      "index": 1,
+      "node_indices": [
+        0,
+        1
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.169037342071533,
+      "distance_std": 1.6826156451667922
+    },
+    {
+      "index": 2,
+      "node_indices": [
+        1,
+        1
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.6372810939061027
+    },
+    {
+      "index": 3,
+      "node_indices": [
+        0,
+        2
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.9703952670097351,
+      "distance_std": 1.4831461005397273
+    },
+    {
+      "index": 4,
+      "node_indices": [
+        1,
+        2
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.534338474273682,
+      "distance_std": 1.4315084095626203
+    },
+    {
+      "index": 5,
+      "node_indices": [
+        2,
+        2
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.1906902505835175
+    },
+    {
+      "index": 6,
+      "node_indices": [
+        0,
+        3
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.038291931152344,
+      "distance_std": 1.4124896015872168
+    },
+    {
+      "index": 7,
+      "node_indices": [
+        1,
+        3
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 2.226982593536377,
+      "distance_std": 1.358168194920761
+    },
+    {
+      "index": 8,
+      "node_indices": [
+        2,
+        3
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 4.4461188316345215,
+      "distance_std": 1.1014298851404278
+    },
+    {
+      "index": 9,
+      "node_indices": [
+        3,
+        3
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.004267051598464
+    },
+    {
+      "index": 10,
+      "node_indices": [
+        0,
+        4
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 1.4705520868301392,
+      "distance_std": 1.6876980489852937
+    },
+    {
+      "index": 11,
+      "node_indices": [
+        1,
+        4
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.925131797790527,
+      "distance_std": 1.6425037825378273
+    },
+    {
+      "index": 12,
+      "node_indices": [
+        2,
+        4
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.9356426000595093,
+      "distance_std": 1.437478911788694
+    },
+    {
+      "index": 13,
+      "node_indices": [
+        3,
+        4
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 4.814074516296387,
+      "distance_std": 1.3644596516141558
+    },
+    {
+      "index": 14,
+      "node_indices": [
+        4,
+        4
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.6477099170787848
+    },
+    {
+      "index": 15,
+      "node_indices": [
+        0,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.068024635314941,
+      "distance_std": 1.4750904665206919
+    },
+    {
+      "index": 16,
+      "node_indices": [
+        1,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 2.255084753036499,
+      "distance_std": 1.4231605164290275
+    },
+    {
+      "index": 17,
+      "node_indices": [
+        2,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 4.464474201202393,
+      "distance_std": 1.1806408436559672
+    },
+    {
+      "index": 18,
+      "node_indices": [
+        3,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.1811307966709137,
+      "distance_std": 1.090558261054626
+    },
+    {
+      "index": 19,
+      "node_indices": [
+        4,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 4.798503398895264,
+      "distance_std": 1.429165893348719
+    },
+    {
+      "index": 20,
+      "node_indices": [
+        5,
+        5
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.1705051604254926
+    },
+    {
+      "index": 21,
+      "node_indices": [
+        0,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 1.48208487033844,
+      "distance_std": 1.7361200462500215
+    },
+    {
+      "index": 22,
+      "node_indices": [
+        1,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.568337917327881,
+      "distance_std": 1.692219485200865
+    },
+    {
+      "index": 23,
+      "node_indices": [
+        2,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 1.2019797563552856,
+      "distance_std": 1.4940327079015434
+    },
+    {
+      "index": 24,
+      "node_indices": [
+        3,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.533168315887451,
+      "distance_std": 1.423916518383516
+    },
+    {
+      "index": 25,
+      "node_indices": [
+        4,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 1.066156268119812,
+      "distance_std": 1.697273131019927
+    },
+    {
+      "index": 26,
+      "node_indices": [
+        5,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.540645599365234,
+      "distance_std": 1.486036090124884
+    },
+    {
+      "index": 27,
+      "node_indices": [
+        6,
+        6
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "Hydrophobic"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.7454295149689076
+    },
+    {
+      "index": 28,
+      "node_indices": [
+        0,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 2.6323153972625732,
+      "distance_std": 1.528141015678011
+    },
+    {
+      "index": 29,
+      "node_indices": [
+        1,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 6.503233432769775,
+      "distance_std": 1.4780760923916356
+    },
+    {
+      "index": 30,
+      "node_indices": [
+        2,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 3.040879011154175,
+      "distance_std": 1.2462888433609058
+    },
+    {
+      "index": 31,
+      "node_indices": [
+        3,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 4.395915508270264,
+      "distance_std": 1.1613097778507167
+    },
+    {
+      "index": 32,
+      "node_indices": [
+        4,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 3.3880815505981445,
+      "distance_std": 1.483859235267427
+    },
+    {
+      "index": 33,
+      "node_indices": [
+        5,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 4.423773288726807,
+      "distance_std": 1.236691315551257
+    },
+    {
+      "index": 34,
+      "node_indices": [
+        6,
+        7
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 3.987698793411255,
+      "distance_std": 1.538709309951312
+    },
+    {
+      "index": 35,
+      "node_indices": [
+        7,
+        7
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "PiStacking_P"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.299510865417096
+    },
+    {
+      "index": 36,
+      "node_indices": [
+        0,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 5.809786796569824,
+      "distance_std": 1.3809857036920283
+    },
+    {
+      "index": 37,
+      "node_indices": [
+        1,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 1.859951376914978,
+      "distance_std": 1.3253737151852945
+    },
+    {
+      "index": 38,
+      "node_indices": [
+        2,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 5.31969690322876,
+      "distance_std": 1.060727312314625
+    },
+    {
+      "index": 39,
+      "node_indices": [
+        3,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 1.0508869886398315,
+      "distance_std": 0.9594513797665954
+    },
+    {
+      "index": 40,
+      "node_indices": [
+        4,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 5.714905738830566,
+      "distance_std": 1.3318201004988535
+    },
+    {
+      "index": 41,
+      "node_indices": [
+        5,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 1.0964487791061401,
+      "distance_std": 1.0494341141606947
+    },
+    {
+      "index": 42,
+      "node_indices": [
+        6,
+        8
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiStacking_P"
+      ],
+      "distance_mean": 6.4522504806518555,
+      "distance_std": 1.3926711350980123
+    },
+    {
+      "index": 43,
+      "node_indices": [
+        7,
+        8
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "PiStacking_P"
+      ],
+      "distance_mean": 4.750014305114746,
+      "distance_std": 1.1227800494047944
+    },
+    {
+      "index": 44,
+      "node_indices": [
+        8,
+        8
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "PiStacking_P"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 0.912437170081193
+    },
+    {
+      "index": 45,
+      "node_indices": [
+        0,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 2.7861993312835693,
+      "distance_std": 1.7314591223594629
+    },
+    {
+      "index": 46,
+      "node_indices": [
+        1,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 6.2278571128845215,
+      "distance_std": 1.687437306540336
+    },
+    {
+      "index": 47,
+      "node_indices": [
+        2,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 3.0236446857452393,
+      "distance_std": 1.488613989484931
+    },
+    {
+      "index": 48,
+      "node_indices": [
+        3,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 4.084715366363525,
+      "distance_std": 1.4182299280215669
+    },
+    {
+      "index": 49,
+      "node_indices": [
+        4,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 3.226766347885132,
+      "distance_std": 1.6925052315112088
+    },
+    {
+      "index": 50,
+      "node_indices": [
+        5,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 4.086078643798828,
+      "distance_std": 1.4805881056405514
+    },
+    {
+      "index": 51,
+      "node_indices": [
+        6,
+        9
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "PiCation_lring"
+      ],
+      "distance_mean": 3.9839179515838623,
+      "distance_std": 1.7407935170878883
+    },
+    {
+      "index": 52,
+      "node_indices": [
+        7,
+        9
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "PiStacking_P"
+      ],
+      "distance_mean": 0.7035562992095947,
+      "distance_std": 1.533448472542024
+    },
+    {
+      "index": 53,
+      "node_indices": [
+        8,
+        9
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "PiStacking_P"
+      ],
+      "distance_mean": 4.464293479919434,
+      "distance_std": 1.3868564337903944
+    },
+    {
+      "index": 54,
+      "node_indices": [
+        9,
+        9
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "PiCation_lring"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.7361451398272683
+    },
+    {
+      "index": 55,
+      "node_indices": [
+        0,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.095139980316162,
+      "distance_std": 1.6564530153109351
+    },
+    {
+      "index": 56,
+      "node_indices": [
+        1,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 8.472626686096191,
+      "distance_std": 1.61038211708743
+    },
+    {
+      "index": 57,
+      "node_indices": [
+        2,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.60833215713501,
+      "distance_std": 1.4006632390482483
+    },
+    {
+      "index": 58,
+      "node_indices": [
+        3,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.34917688369751,
+      "distance_std": 1.3256176025788684
+    },
+    {
+      "index": 59,
+      "node_indices": [
+        4,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 8.276531219482422,
+      "distance_std": 1.6156917584191912
+    },
+    {
+      "index": 60,
+      "node_indices": [
+        5,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.462798595428467,
+      "distance_std": 1.3921303955072473
+    },
+    {
+      "index": 61,
+      "node_indices": [
+        6,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 8.547740936279297,
+      "distance_std": 1.6662076607272303
+    },
+    {
+      "index": 62,
+      "node_indices": [
+        7,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiStacking_P"
+      ],
+      "distance_mean": 5.19644021987915,
+      "distance_std": 1.4482230896765718
+    },
+    {
+      "index": 63,
+      "node_indices": [
+        8,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiStacking_P"
+      ],
+      "distance_mean": 7.023979187011719,
+      "distance_std": 1.2919971623330675
+    },
+    {
+      "index": 64,
+      "node_indices": [
+        9,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiCation_lring"
+      ],
+      "distance_mean": 5.706095218658447,
+      "distance_std": 1.6613506090156687
+    },
+    {
+      "index": 65,
+      "node_indices": [
+        10,
+        10
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "HBond_ldon"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.5830261354783821
+    },
+    {
+      "index": 66,
+      "node_indices": [
+        0,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.3298726081848145,
+      "distance_std": 1.498741445505389
+    },
+    {
+      "index": 67,
+      "node_indices": [
+        1,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 7.882518291473389,
+      "distance_std": 1.447660143672501
+    },
+    {
+      "index": 68,
+      "node_indices": [
+        2,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 5.885862827301025,
+      "distance_std": 1.2100606752407186
+    },
+    {
+      "index": 69,
+      "node_indices": [
+        3,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.214473724365234,
+      "distance_std": 1.122341907267941
+    },
+    {
+      "index": 70,
+      "node_indices": [
+        4,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.28734827041626,
+      "distance_std": 1.4535643043108177
+    },
+    {
+      "index": 71,
+      "node_indices": [
+        5,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.2667436599731445,
+      "distance_std": 1.200173473560409
+    },
+    {
+      "index": 72,
+      "node_indices": [
+        6,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "Hydrophobic"
+      ],
+      "distance_mean": 6.779794216156006,
+      "distance_std": 1.5095155836257546
+    },
+    {
+      "index": 73,
+      "node_indices": [
+        7,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiStacking_P"
+      ],
+      "distance_mean": 2.925534725189209,
+      "distance_std": 1.2648080668683483
+    },
+    {
+      "index": 74,
+      "node_indices": [
+        8,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiStacking_P"
+      ],
+      "distance_mean": 6.089825630187988,
+      "distance_std": 1.0824259771548315
+    },
+    {
+      "index": 75,
+      "node_indices": [
+        9,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "PiCation_lring"
+      ],
+      "distance_mean": 3.301480531692505,
+      "distance_std": 1.5041526433908317
+    },
+    {
+      "index": 76,
+      "node_indices": [
+        10,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "HBond_ldon"
+      ],
+      "distance_mean": 3.0618884563446045,
+      "distance_std": 1.4171665654221859
+    },
+    {
+      "index": 77,
+      "node_indices": [
+        11,
+        11
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "HBond_ldon"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.2291258693451244
+    },
+    {
+      "index": 78,
+      "node_indices": [
+        0,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 8.151568412780762,
+      "distance_std": 1.4910260740632717
+    },
+    {
+      "index": 79,
+      "node_indices": [
+        1,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 9.022992134094238,
+      "distance_std": 1.439671047371182
+    },
+    {
+      "index": 80,
+      "node_indices": [
+        2,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 8.648555755615234,
+      "distance_std": 1.2004914288844275
+    },
+    {
+      "index": 81,
+      "node_indices": [
+        3,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 8.054583549499512,
+      "distance_std": 1.112018070838235
+    },
+    {
+      "index": 82,
+      "node_indices": [
+        4,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 9.277688980102539,
+      "distance_std": 1.4456078374951977
+    },
+    {
+      "index": 83,
+      "node_indices": [
+        5,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 8.159862518310547,
+      "distance_std": 1.190524758120976
+    },
+    {
+      "index": 84,
+      "node_indices": [
+        6,
+        12
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 9.613333702087402,
+      "distance_std": 1.5018555623860612
+    },
+    {
+      "index": 85,
+      "node_indices": [
+        7,
+        12
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 6.074638366699219,
+      "distance_std": 1.2556561149758316
+    },
+    {
+      "index": 86,
+      "node_indices": [
+        8,
+        12
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 7.60725212097168,
+      "distance_std": 1.071717700273977
+    },
+    {
+      "index": 87,
+      "node_indices": [
+        9,
+        12
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 6.519635200500488,
+      "distance_std": 1.4964651708879084
+    },
+    {
+      "index": 88,
+      "node_indices": [
+        10,
+        12
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 1.1879513263702393,
+      "distance_std": 1.4090045802663185
+    },
+    {
+      "index": 89,
+      "node_indices": [
+        11,
+        12
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 3.6127490997314453,
+      "distance_std": 1.2197062087873285
+    },
+    {
+      "index": 90,
+      "node_indices": [
+        12,
+        12
+      ],
+      "edge_type": [
+        "SaltBridge_lneg",
+        "SaltBridge_lneg"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.2102132327880522
+    },
+    {
+      "index": 91,
+      "node_indices": [
+        0,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 5.970184803009033,
+      "distance_std": 1.6774850074926377
+    },
+    {
+      "index": 92,
+      "node_indices": [
+        1,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 8.188136100769043,
+      "distance_std": 1.6320079416059465
+    },
+    {
+      "index": 93,
+      "node_indices": [
+        2,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.538084983825684,
+      "distance_std": 1.4254742606062785
+    },
+    {
+      "index": 94,
+      "node_indices": [
+        3,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.819540023803711,
+      "distance_std": 1.351806712032764
+    },
+    {
+      "index": 95,
+      "node_indices": [
+        4,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 7.206568241119385,
+      "distance_std": 1.6372474512588449
+    },
+    {
+      "index": 96,
+      "node_indices": [
+        5,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.930569648742676,
+      "distance_std": 1.4170908215513394
+    },
+    {
+      "index": 97,
+      "node_indices": [
+        6,
+        13
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 7.425998687744141,
+      "distance_std": 1.6871180536927446
+    },
+    {
+      "index": 98,
+      "node_indices": [
+        7,
+        13
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 4.227919101715088,
+      "distance_std": 1.4722328198699555
+    },
+    {
+      "index": 99,
+      "node_indices": [
+        8,
+        13
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 6.656731605529785,
+      "distance_std": 1.3188540578496863
+    },
+    {
+      "index": 100,
+      "node_indices": [
+        9,
+        13
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "XBond"
+      ],
+      "distance_mean": 4.805565357208252,
+      "distance_std": 1.6823213737293534
+    },
+    {
+      "index": 101,
+      "node_indices": [
+        10,
+        13
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 1.2038283348083496,
+      "distance_std": 1.6050205930259918
+    },
+    {
+      "index": 102,
+      "node_indices": [
+        11,
+        13
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 2.4737536907196045,
+      "distance_std": 1.4416935987165926
+    },
+    {
+      "index": 103,
+      "node_indices": [
+        12,
+        13
+      ],
+      "edge_type": [
+        "SaltBridge_lneg",
+        "XBond"
+      ],
+      "distance_mean": 2.336738348007202,
+      "distance_std": 1.4336712543820325
+    },
+    {
+      "index": 104,
+      "node_indices": [
+        13,
+        13
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.6267176959962637
+    },
+    {
+      "index": 105,
+      "node_indices": [
+        0,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 2.1705026626586914,
+      "distance_std": 1.506302121382648
+    },
+    {
+      "index": 106,
+      "node_indices": [
+        1,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.476370811462402,
+      "distance_std": 1.4554861909287113
+    },
+    {
+      "index": 107,
+      "node_indices": [
+        2,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.3595112562179565,
+      "distance_std": 1.2194125627408907
+    },
+    {
+      "index": 108,
+      "node_indices": [
+        3,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 4.633244037628174,
+      "distance_std": 1.1324184373349468
+    },
+    {
+      "index": 109,
+      "node_indices": [
+        4,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.7102999687194824,
+      "distance_std": 1.4613587332249651
+    },
+    {
+      "index": 110,
+      "node_indices": [
+        5,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 4.656787395477295,
+      "distance_std": 1.2096018051591777
+    },
+    {
+      "index": 111,
+      "node_indices": [
+        6,
+        14
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.4584227800369263,
+      "distance_std": 1.5170225633177923
+    },
+    {
+      "index": 112,
+      "node_indices": [
+        7,
+        14
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 4.310690402984619,
+      "distance_std": 1.2737580643205098
+    },
+    {
+      "index": 113,
+      "node_indices": [
+        8,
+        14
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 5.610775470733643,
+      "distance_std": 1.0928706036973797
+    },
+    {
+      "index": 114,
+      "node_indices": [
+        9,
+        14
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "XBond"
+      ],
+      "distance_mean": 4.2739057540893555,
+      "distance_std": 1.5116862554862067
+    },
+    {
+      "index": 115,
+      "node_indices": [
+        10,
+        14
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 8.566203117370605,
+      "distance_std": 1.4251600733099414
+    },
+    {
+      "index": 116,
+      "node_indices": [
+        11,
+        14
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 7.1118268966674805,
+      "distance_std": 1.2383337850110085
+    },
+    {
+      "index": 117,
+      "node_indices": [
+        12,
+        14
+      ],
+      "edge_type": [
+        "SaltBridge_lneg",
+        "XBond"
+      ],
+      "distance_mean": 9.635409355163574,
+      "distance_std": 1.2289847013533737
+    },
+    {
+      "index": 118,
+      "node_indices": [
+        13,
+        14
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 7.522854328155518,
+      "distance_std": 1.4495518593643635
+    },
+    {
+      "index": 119,
+      "node_indices": [
+        14,
+        14
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.2474737365996824
+    },
+    {
+      "index": 120,
+      "node_indices": [
+        0,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.051987648010254,
+      "distance_std": 1.542069624090061
+    },
+    {
+      "index": 121,
+      "node_indices": [
+        1,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.2543123960494995,
+      "distance_std": 1.4924720086633336
+    },
+    {
+      "index": 122,
+      "node_indices": [
+        2,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 5.360398292541504,
+      "distance_std": 1.2633287944275249
+    },
+    {
+      "index": 123,
+      "node_indices": [
+        3,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.3442237377166748,
+      "distance_std": 1.1795779592191096
+    },
+    {
+      "index": 124,
+      "node_indices": [
+        4,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 5.7363128662109375,
+      "distance_std": 1.4981995834441657
+    },
+    {
+      "index": 125,
+      "node_indices": [
+        5,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.375178575515747,
+      "distance_std": 1.2538617035796802
+    },
+    {
+      "index": 126,
+      "node_indices": [
+        6,
+        15
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.356023788452148,
+      "distance_std": 1.552543108024599
+    },
+    {
+      "index": 127,
+      "node_indices": [
+        7,
+        15
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 5.688879013061523,
+      "distance_std": 1.3158617902655767
+    },
+    {
+      "index": 128,
+      "node_indices": [
+        8,
+        15
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 1.6445430517196655,
+      "distance_std": 1.1416649250481823
+    },
+    {
+      "index": 129,
+      "node_indices": [
+        9,
+        15
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "XBond"
+      ],
+      "distance_mean": 5.405264377593994,
+      "distance_std": 1.5473293055084643
+    },
+    {
+      "index": 130,
+      "node_indices": [
+        10,
+        15
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 8.286274909973145,
+      "distance_std": 1.4629128064297594
+    },
+    {
+      "index": 131,
+      "node_indices": [
+        11,
+        15
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 7.451625823974609,
+      "distance_std": 1.2816018132630302
+    },
+    {
+      "index": 132,
+      "node_indices": [
+        12,
+        15
+      ],
+      "edge_type": [
+        "SaltBridge_lneg",
+        "XBond"
+      ],
+      "distance_mean": 8.967982292175293,
+      "distance_std": 1.2725706427621368
+    },
+    {
+      "index": 133,
+      "node_indices": [
+        13,
+        15
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 7.830616474151611,
+      "distance_std": 1.4866853189717317
+    },
+    {
+      "index": 134,
+      "node_indices": [
+        14,
+        15
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 5.242959022521973,
+      "distance_std": 1.2904353405596773
+    },
+    {
+      "index": 135,
+      "node_indices": [
+        15,
+        15
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.3320120167719085
+    },
+    {
+      "index": 136,
+      "node_indices": [
+        0,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.6881005764007568,
+      "distance_std": 1.6774850074926377
+    },
+    {
+      "index": 137,
+      "node_indices": [
+        1,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 6.82060432434082,
+      "distance_std": 1.6320079416059465
+    },
+    {
+      "index": 138,
+      "node_indices": [
+        2,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.0338363647460938,
+      "distance_std": 1.4254742606062785
+    },
+    {
+      "index": 139,
+      "node_indices": [
+        3,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 4.894804954528809,
+      "distance_std": 1.351806712032764
+    },
+    {
+      "index": 140,
+      "node_indices": [
+        4,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.4714365005493164,
+      "distance_std": 1.6372474512588449
+    },
+    {
+      "index": 141,
+      "node_indices": [
+        5,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 4.922387599945068,
+      "distance_std": 1.4170908215513394
+    },
+    {
+      "index": 142,
+      "node_indices": [
+        6,
+        16
+      ],
+      "edge_type": [
+        "Hydrophobic",
+        "XBond"
+      ],
+      "distance_mean": 1.0196611881256104,
+      "distance_std": 1.6871180536927446
+    },
+    {
+      "index": 143,
+      "node_indices": [
+        7,
+        16
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 4.023044586181641,
+      "distance_std": 1.4722328198699555
+    },
+    {
+      "index": 144,
+      "node_indices": [
+        8,
+        16
+      ],
+      "edge_type": [
+        "PiStacking_P",
+        "XBond"
+      ],
+      "distance_mean": 5.834550380706787,
+      "distance_std": 1.3188540578496863
+    },
+    {
+      "index": 145,
+      "node_indices": [
+        9,
+        16
+      ],
+      "edge_type": [
+        "PiCation_lring",
+        "XBond"
+      ],
+      "distance_mean": 4.042716979980469,
+      "distance_std": 1.6823213737293534
+    },
+    {
+      "index": 146,
+      "node_indices": [
+        10,
+        16
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 8.300339698791504,
+      "distance_std": 1.6050205930259918
+    },
+    {
+      "index": 147,
+      "node_indices": [
+        11,
+        16
+      ],
+      "edge_type": [
+        "HBond_ldon",
+        "XBond"
+      ],
+      "distance_mean": 6.801729679107666,
+      "distance_std": 1.4416935987165926
+    },
+    {
+      "index": 148,
+      "node_indices": [
+        12,
+        16
+      ],
+      "edge_type": [
+        "SaltBridge_lneg",
+        "XBond"
+      ],
+      "distance_mean": 9.382165908813477,
+      "distance_std": 1.4336712543820325
+    },
+    {
+      "index": 149,
+      "node_indices": [
+        13,
+        16
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 7.2219014167785645,
+      "distance_std": 1.6267176959962637
+    },
+    {
+      "index": 150,
+      "node_indices": [
+        14,
+        16
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 0.5669987201690674,
+      "distance_std": 1.4495518593643635
+    },
+    {
+      "index": 151,
+      "node_indices": [
+        15,
+        16
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 5.603973865509033,
+      "distance_std": 1.4866853189717317
+    },
+    {
+      "index": 152,
+      "node_indices": [
+        16,
+        16
+      ],
+      "edge_type": [
+        "XBond",
+        "XBond"
+      ],
+      "distance_mean": 0.0,
+      "distance_std": 1.6267176959962637
+    }
+  ],
+  "node_cluster_dict": {
+    "Cation": [],
+    "Anion": [
+      {
+        "cluster_type": "Anion",
+        "node_indices": [
+          10,
+          12
+        ],
+        "node_types": [
+          "Anion",
+          "HBond_donor"
+        ],
+        "center": [
+          -0.5942501425743103,
+          -4.203077793121338,
+          0.007711336016654968
+        ],
+        "size": 2.8327126339650714
+      }
+    ],
+    "HBond": [
+      {
+        "cluster_type": "HBond",
+        "node_indices": [
+          11
+        ],
+        "node_types": [
+          "HBond_donor"
+        ],
+        "center": [
+          1.7420722246170044,
+          -5.333615779876709,
+          -2.0231094360351562
+        ],
+        "size": 1.7382464742914956
+      }
+    ],
+    "Aromatic": [
+      {
+        "cluster_type": "Aromatic",
+        "node_indices": [
+          0,
+          2,
+          4,
+          6,
+          7,
+          9
+        ],
+        "node_types": [
+          "Aromatic",
+          "Hydrophobic"
+        ],
+        "center": [
+          6.085992813110352,
+          -7.5041632652282715,
+          -0.6989426612854004
+        ],
+        "size": 4.603310045640171
+      },
+      {
+        "cluster_type": "Aromatic",
+        "node_indices": [
+          8,
+          1,
+          3,
+          5
+        ],
+        "node_types": [
+          "Aromatic",
+          "Hydrophobic"
+        ],
+        "center": [
+          2.785226345062256,
+          -11.23642349243164,
+          0.6891627907752991
+        ],
+        "size": 3.8600820660563966
+      }
+    ],
+    "Hydrophobic": [],
+    "Halogen": [
+      {
+        "cluster_type": "Halogen",
+        "node_indices": [
+          13
+        ],
+        "node_types": [
+          "Halogen"
+        ],
+        "center": [
+          1.1545273065567017,
+          -4.340761661529541,
+          0.16515229642391205
+        ],
+        "size": 2.3005262278302294
+      },
+      {
+        "cluster_type": "Halogen",
+        "node_indices": [
+          16,
+          14
+        ],
+        "node_types": [
+          "Halogen"
+        ],
+        "center": [
+          7.3461408615112305,
+          -8.275638580322266,
+          0.8542768359184265
+        ],
+        "size": 2.584026034949599
+      },
+      {
+        "cluster_type": "Halogen",
+        "node_indices": [
+          15
+        ],
+        "node_types": [
+          "Halogen"
+        ],
+        "center": [
+          3.251991033554077,
+          -11.786016464233398,
+          1.3847336769104004
+        ],
+        "size": 1.8837494593627717
+      }
+    ]
+  },
+  "node_dict": {
+    "Hydrophobic": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "PiStacking_P": [
+      7,
+      8
+    ],
+    "PiStacking_T": [],
+    "PiCation_lring": [
+      9
+    ],
+    "PiCation_pring": [],
+    "HBond_ldon": [
+      10,
+      11
+    ],
+    "HBond_pdon": [],
+    "SaltBridge_lneg": [
+      12
+    ],
+    "SaltBridge_pneg": [],
+    "XBond": [
+      13,
+      14,
+      15,
+      16
+    ]
+  }
+}

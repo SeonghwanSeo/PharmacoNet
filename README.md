@@ -38,11 +38,11 @@ python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES_FILE> --num_conf
 
 ```bash
 # Pharmacophore Modeling for KRAS(G12C) - PDBID: 6OIM
-python modeling.py -r ./examples/6OIM_protein.pdb --autobox_ligand ./examples/6OIM_ligand.sdf -p ./examples/6OIM_model.pkl
+python modeling.py -r ./examples/6OIM_protein.pdb --autobox_ligand ./examples/6OIM_ligand.sdf -p ./examples/6OIM_model.json
 
 # Scoring
-python scoring.py -p ./examples/6OIM_model.pkl -s 'c1ccccc1' --num_conformers 2
-python scoring_file.py -p ./examples/6OIM_model.pkl -s ./examples/example.smi --num_conformers 10
+python scoring.py -p ./examples/6OIM_model.json -s 'c1ccccc1' --num_conformers 2
+python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi --num_conformers 10
 ```
 
 

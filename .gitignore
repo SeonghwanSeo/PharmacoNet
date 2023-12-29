@@ -1,6 +1,7 @@
 # USER
 .DS_Store
 weights
+run.sh
 
 
 # Byte-compiled / optimized / DLL files

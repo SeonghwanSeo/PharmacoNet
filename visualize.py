@@ -7,14 +7,14 @@ from pymol import cmd
 import sys
 sys.path.append(".")
 sys.path.append("..")
-from src.graph.pharmacophore_model import PharmacophoreModel
+from src.scoring.pharmacophore_model import PharmacophoreModel
 
 
 class Visualize_ArgParser(argparse.ArgumentParser):
     def __init__(self):
         super().__init__('scoring')
         self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-        self.add_argument('-p', '--pharmacophore_model', type=str, help='path to save pharmacophore model (.pkl)', required=True)
+        self.add_argument('-p', '--pharmacophore_model', type=str, help='path to save pharmacophore model (.json | .pkl)', required=True)
         self.add_argument('-r', '--receptor', type=str, help='path of receptor file')
         self.add_argument('-l', '--ligand', type=str, help='path of ligand file')
         self.add_argument('-o', '--out', type=str, help='path of pymol session file (.pse)', required=True)
