@@ -3,11 +3,8 @@ import numpy as np
 import numba as nb
 import itertools
 
-from typing import Tuple, List, Tuple
+from typing import Tuple, Tuple
 from numpy.typing import NDArray
-
-from .ligand import LigandNode
-from .pharmacophore_model import ModelNode
 
 
 DISTANCE_SIGMA_THRESHOLD = 2.
@@ -84,16 +81,25 @@ def __numba_run(
         fail_array[c] += num_pass < pass_threshold
 
 
-def __get_distance_mean_std(model_node1: ModelNode, model_node2: ModelNode) -> Tuple[float, float]:
+def __get_distance_mean_std(model_node1, model_node2) -> Tuple[float, float]:
+    """
+    model_node1: ModelNode
+    model_node2: ModelNode
+    """
     edge = model_node1.neighbor_edge_dict[model_node2]
     return edge.distance_mean, edge.distance_std
 
 
 def scoring_matching_pair(
+    cluster_node_match_list1,
+    cluster_node_match_list2,
+    num_conformers: int,
+) -> Tuple[float, ...]:
+    """
     cluster_node_match_list1: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
     cluster_node_match_list2: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
     num_conformers: int,
-) -> Tuple[float, ...]:
+    """
 
     match_threshold = len(cluster_node_match_list1) * len(cluster_node_match_list2) * (1 - PASS_THRESHOLD)
 
@@ -123,9 +129,13 @@ def scoring_matching_pair(
 
 
 def scoring_matching_self(
-    cluster_node_match_list: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list,
     num_conformers: int,
 ) -> Tuple[float, ...]:
+    """
+    cluster_node_match_list: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    num_conformers: int,
+    """
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     num_fails = np.zeros((num_conformers,), dtype=np.int16)
     for match1, match2 in itertools.combinations(cluster_node_match_list, 2):

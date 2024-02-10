@@ -10,6 +10,8 @@ from typing import Dict, List, Tuple, Set, Iterable, Optional
 from numpy.typing import NDArray
 
 from .density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
+from .ligand import Ligand
+from .graph_match import GraphMatcher
 
 
 INTERACTION_TO_PHARMACOPHORE = {
@@ -70,7 +72,7 @@ class PharmacophoreModel():
     def scoring(
         self,
         ligand_pbmol: pybel.Molecule,
-        ligand_rbmol: Optional[Mol] = None,
+        ligand_rdmol: Optional[Mol] = None,
         atom_positions: Optional[NDArray] = None,
         conformer_axis: Optional[int] = None,
     ) -> float:
@@ -90,9 +92,7 @@ class PharmacophoreModel():
             case: atom_positions: None
                 Using RDKit Conformer informations
         """
-        from .ligand import Ligand
-        from .graph_match import GraphMatcher
-        ligand = Ligand(ligand_pbmol, ligand_rbmol, atom_positions, conformer_axis)
+        ligand = Ligand(ligand_pbmol, ligand_rdmol, atom_positions, conformer_axis)
         matcher = GraphMatcher(self, ligand)
         return matcher.scoring()
 

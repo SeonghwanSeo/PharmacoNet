@@ -5,11 +5,9 @@ import itertools
 import numpy as np
 import math
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
 from numpy.typing import NDArray
 
-from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
-from .pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
 from .tree import ClusterMatchTreeRoot
 try:
     from .match_utils_numba import scoring_matching_pair, scoring_matching_self
@@ -17,21 +15,33 @@ except:
     from .match_utils import scoring_matching_pair, scoring_matching_self
 
 
-# NOTE: TYPE
-LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
-ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
+if TYPE_CHECKING:
+    from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
+    from .pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
+    LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
+    ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
 
 
-# NOTE: Constant
+a, b, c, d = 8, 4, 4, 4
 WEIGHTS = dict(
-    Cation=8,
-    Anion=8,
-    Aromatic=8,
-    HBond_donor=4,
-    HBond_acceptor=4,
-    Halogen=4,
+    Cation=a,
+    Anion=a,
+    Aromatic=b,
+    HBond_donor=c,
+    HBond_acceptor=c,
+    Halogen=d,
     Hydrophobic=1,
 )
+# NOTE: Constant
+# WEIGHTS = dict(
+#    Cation=8,
+#    Anion=8,
+#    Aromatic=8,
+#    HBond_donor=4,
+#    HBond_acceptor=4,
+#    Halogen=4,
+#    Hydrophobic=1,
+# )
 MAX_DEPTH = 20
 
 
@@ -113,7 +123,7 @@ class GraphMatcher():
     def _get_node_match_dict(self) -> Dict[Tuple[LigandNodeCluster, ModelNodeCluster], List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]]:
         def __get_node_match(ligand_node: LigandNode, model_cluster: ModelNodeCluster) -> Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]:
             match_model_nodes = [model_node for model_node in model_cluster.nodes if model_node.type in ligand_node.types]
-            weights = np.array([WEIGHTS[model_node.type] * model_node.score for model_node in match_model_nodes], dtype=np.float32)
+            weights = np.array([WEIGHTS[model_node.type] for model_node in match_model_nodes], dtype=np.float32)
             return (ligand_node, match_model_nodes, weights)
 
         node_match_dict = {
