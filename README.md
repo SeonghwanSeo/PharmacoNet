@@ -39,8 +39,8 @@ python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES_FILE> --num_conf
 python modeling.py -r ./examples/6OIM_protein.pdb --autobox_ligand ./examples/6OIM_ligand.sdf -p ./examples/6OIM_model.json
 
 # Scoring
-python scoring.py -p ./examples/6OIM_model.json -s 'c1ccccc1' --num_conformers 2
-python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi --num_conformers 10
+python scoring.py -p ./examples/6OIM_model.json -s 'c1ccccc1' --num_conformers 8     # 8 is arbitrary value.
+python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi --num_conformers 10 --num_cpu 8
 ```
 
 
@@ -48,7 +48,7 @@ python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi -
 ## Environment
 
 ```shell
-# Required python>=3.9, Best Performance at 3.11
+# Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
 conda create --name pmnet python=3.11
 conda activate pmnet
 conda install openbabel
