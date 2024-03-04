@@ -1,5 +1,5 @@
 import argparse
-from src.modeling import ModelingModule
+from src.modeling import PharmacoNet
 
 
 class Modeling_ArgParser(argparse.ArgumentParser):
@@ -30,7 +30,7 @@ def main(args):
         assert len(args.center) == 3, \
             'Wrong Center!. The arguments for center coordinates should be 3. (ex. --center 1.00 2.00 -1.50)'
         print(f'Using center {tuple(args.center)}')
-    module = ModelingModule(args.model_path, 'cuda' if args.cuda else 'cpu')
+    module = PharmacoNet(args.model_path, 'cuda' if args.cuda else 'cpu')
 
     if args.autobox_ligand is not None:
         pharmacophore_model = module.run(args.receptor, ref_ligand_path=args.autobox_ligand)

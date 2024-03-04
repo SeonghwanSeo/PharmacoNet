@@ -27,7 +27,7 @@ from .utils.smoothing import GaussianSmoothing
 
 DEFAULT_FOCUS_THRESHOLD = 0.5
 DEFAULT_BOX_THRESHOLD = 0.5
-DEFAULT_SCORE_THRESHOLD = 0.7
+DEFAULT_SCORE_THRESHOLD = 0.7   # Top 30%
 
 
 class PharmacoNet():

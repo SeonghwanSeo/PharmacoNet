@@ -44,6 +44,7 @@ class Ligand():
         self.obatoms: List[ob.OBAtom] = [self.obmol.GetAtom(i + 1) for i in range(self.obmol.NumAtoms())]
 
         self.num_atoms: int = len(self.obatoms)
+        self.num_rotatable_bonds: int = pbmol.OBMol.NumRotors()
         if rdmol is not None:
             rdmol = Chem.RemoveHs(rdmol)
             assert self.num_atoms == rdmol.GetNumAtoms(), f'Atom Number ERROR - openbabel: {self.num_atoms}, rdkit: {rdmol.GetNumAtoms()}'

@@ -1,10 +1,11 @@
 import itertools
 import numpy as np
+import math
 
 from typing import Tuple, Tuple
 
 
-DISTANCE_SIGMA_THRESHOLD = 2.
+DISTANCE_SIGMA_THRESHOLD = 2. * math.sqrt(2)
 PASS_THRESHOLD = 0.5
 
 

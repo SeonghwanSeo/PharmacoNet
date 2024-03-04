@@ -22,26 +22,16 @@ if TYPE_CHECKING:
     ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
 
 
-a, b, c, d = 8, 4, 4, 4
+# NOTE: Constant
 WEIGHTS = dict(
-    Cation=a,
-    Anion=a,
-    Aromatic=b,
-    HBond_donor=c,
-    HBond_acceptor=c,
-    Halogen=d,
+    Cation=8,
+    Anion=8,
+    Aromatic=4,
+    HBond_donor=4,
+    HBond_acceptor=4,
+    Halogen=4,
     Hydrophobic=1,
 )
-# NOTE: Constant
-# WEIGHTS = dict(
-#    Cation=8,
-#    Anion=8,
-#    Aromatic=8,
-#    HBond_donor=4,
-#    HBond_acceptor=4,
-#    Halogen=4,
-#    Hydrophobic=1,
-# )
 MAX_DEPTH = 20
 
 
@@ -74,6 +64,8 @@ class GraphMatcher():
     ):
         self.model_graph: PharmacophoreModel = model
         self.ligand_graph: LigandGraph = ligand.graph
+        self.num_atoms = ligand.num_atoms
+        self.num_rotatable_bonds = ligand.num_rotatable_bonds
         self.num_conformers = self.ligand_graph.num_conformers
         self.max_depth = max_depth
         self.cluster_match_dict: Dict[LigandNodeCluster, List[ModelNodeCluster]]
@@ -94,9 +86,13 @@ class GraphMatcher():
         return list(root_tree.iteration())
 
     def scoring(self) -> float:
+        if len(self.ligand_graph.node_clusters) == 0:
+            return 0
         self.setup()
+        if len(self.ligand_cluster_list) == 0:
+            return 0
         root_tree = self._run()
-        return max(leaf.score for leaf in root_tree.iteration())
+        return max(leaf.score for leaf in root_tree.iteration())  # - len(self.ligand_graph.nodes)
 
     def _run(self) -> ClusterMatchTreeRoot:
         root_tree = ClusterMatchTreeRoot(
@@ -123,6 +119,7 @@ class GraphMatcher():
     def _get_node_match_dict(self) -> Dict[Tuple[LigandNodeCluster, ModelNodeCluster], List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]]:
         def __get_node_match(ligand_node: LigandNode, model_cluster: ModelNodeCluster) -> Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]:
             match_model_nodes = [model_node for model_node in model_cluster.nodes if model_node.type in ligand_node.types]
+            # weights = np.array([WEIGHTS[model_node.type] * model_node.score for model_node in match_model_nodes], dtype=np.float32)
             weights = np.array([WEIGHTS[model_node.type] for model_node in match_model_nodes], dtype=np.float32)
             return (ligand_node, match_model_nodes, weights)
 
