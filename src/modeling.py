@@ -90,7 +90,7 @@ class PharmacoNet():
         protein_pdb_path: str,
         center: NDArray[np.float32],
     ):
-        protein_image, non_protein_area, token_positions, tokens = self.__parse_protein(protein_pdb_path, center)
+        pocket_pdbblock, protein_image, non_protein_area, token_positions, tokens = self.__parse_protein(protein_pdb_path, center)
         density_maps = self.__create_density_maps(
             torch.from_numpy(protein_image),
             torch.from_numpy(non_protein_area) if non_protein_area is not None else None,
@@ -98,19 +98,21 @@ class PharmacoNet():
             torch.from_numpy(tokens),
         )
         x, y, z = center.tolist()
-        pharmacophore_model = PharmacophoreModel.create((x, y, z), self.out_resolution, self.out_size, density_maps)
+        pharmacophore_model = PharmacophoreModel.create(pocket_pdbblock, (x, y, z), self.out_resolution, self.out_size, density_maps)
         return pharmacophore_model
 
     def __parse_protein(
         self,
         protein_pdb_path: str,
         center: NDArray[np.float32],
-    ) -> Tuple[NDArray, Optional[NDArray], NDArray, NDArray]:
+    ) -> Tuple[str, NDArray, Optional[NDArray], NDArray, NDArray]:
 
         with tempfile.TemporaryDirectory() as dirname:
             pocket_path = os.path.join(dirname, 'pocket.pdb')
             extract_pocket(protein_pdb_path, pocket_path, center, self.pocket_cutoff)   # root(3)
             protein_obj: Protein = Protein.from_pdbfile(pocket_path)
+            with open(pocket_path) as f:
+                pocket_pdbblock: str = '\n'.join(f.readlines())
 
         token_positions, token_classes = token_inference.get_token_informations(protein_obj)
         tokens, filter = token_inference.get_token_and_filter(
@@ -134,7 +136,7 @@ class PharmacoNet():
         else:
             non_protein_area = None
 
-        return protein_image, non_protein_area, token_positions, tokens,
+        return pocket_pdbblock, protein_image, non_protein_area, token_positions, tokens
 
     def __create_density_maps(
         self,

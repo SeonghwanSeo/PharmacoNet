@@ -31,6 +31,7 @@ INTERACTION_TO_PHARMACOPHORE = {
 # NOTE: Pickle-Friendly Object
 class PharmacophoreModel():
     def __init__(self):
+        self.pocket_pdbblock: str
         self.nodes: List[ModelNode]
         self.edges: List[ModelEdge]
         self.node_dict: Dict[str, List[ModelNode]]
@@ -40,6 +41,7 @@ class PharmacophoreModel():
     @classmethod
     def create(
         cls,
+        pocket_pdbblock: str,
         center: Tuple[float, float, float],
         resolution: float,
         size: int,
@@ -51,6 +53,7 @@ class PharmacophoreModel():
         graph.setup()
 
         model = cls()
+        model.pocket_pdbblock = pocket_pdbblock
         model.nodes = [ModelNode.create(model, node) for node in graph.nodes]
         model.edges = [ModelEdge.create(model, edge) for edge in graph.edges]
         for node in model.nodes:
@@ -125,6 +128,7 @@ class PharmacophoreModel():
 
     def __getstate__(self):
         state = dict(
+            pocket_pdbblock=self.pocket_pdbblock,
             nodes=[node.get_kwargs() for node in self.nodes],
             edges=[edge.get_kwargs() for edge in self.edges],
             node_cluster_dict={typ: [cluster.get_kwargs() for cluster in cluster_list] for typ, cluster_list in self.node_cluster_dict.items()},
@@ -133,6 +137,7 @@ class PharmacophoreModel():
         return state
 
     def __setstate__(self, state):
+        self.pocket_pdbblock = state['pocket_pdbblock']
         self.nodes = [ModelNode(self, **kwargs) for kwargs in state['nodes']]
         self.edges = [ModelEdge(self, **kwargs) for kwargs in state['edges']]
         for node in self.nodes:

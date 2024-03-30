@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import tempfile
 import pymol
 from pymol import cmd
 
@@ -57,18 +58,27 @@ if __name__ == '__main__':
     cmd.reinitialize()
     cmd.feedback('disable', 'all', 'everything')
 
+    model = PharmacophoreModel.load(PHARMACOPHORE_MODEL_PATH)
+
     # NOTE: Draw Molecule
     if RECEPTOR_PATH:
         cmd.load(RECEPTOR_PATH)
         cmd.set_name(os.path.splitext(os.path.basename(RECEPTOR_PATH))[0], 'Protein')
         cmd.color('gray90', 'Protein')
+    else:
+        with tempfile.TemporaryDirectory() as direc:
+            RECEPTOR_PATH = f'{direc}/pocket.pdb'
+            with open(RECEPTOR_PATH, 'w') as w:
+                w.write(model.pocket_pdbblock)
+            cmd.load(RECEPTOR_PATH)
+            cmd.set_name(os.path.splitext(os.path.basename(RECEPTOR_PATH))[0], 'Protein')
+            cmd.color('gray90', 'Protein')
     if LIGAND_PATH:
         cmd.load(LIGAND_PATH)
         cmd.set_name(os.path.splitext(os.path.basename(LIGAND_PATH))[0], 'Ligand')
         cmd.color('green', 'Ligand')
 
     # NOTE: Pharmacophore Model
-    model = PharmacophoreModel.load(PHARMACOPHORE_MODEL_PATH)
     for node in model.nodes:
         protein_color = INTERACTION_COLOR_DICT[node.interaction_type]
         pharmacophore_color = PHARMACOPHORE_COLOR_DICT[node.type]

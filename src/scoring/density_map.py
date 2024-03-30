@@ -257,5 +257,5 @@ class DensityMapEdge():
 
         self.type: Tuple[str, str] = (min(type1, type2), max(type1, type2))
         self.distance_mean: float = np.linalg.norm(node1.center - node2.center).item()
-        self.distance_std: float = (node1.radius + node2.radius) / 2
+        self.distance_std: float = math.sqrt(node1.radius ** 2 + node2.radius ** 2)
         self.overlapped: bool = (self.distance_mean < OVERLAP_DISTANCE)

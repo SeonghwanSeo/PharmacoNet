@@ -75,7 +75,7 @@ def __numba_run(
                 std = mean_stds[m, n, 1]
                 sigma_sq = ((d - mu) / std) ** 2
                 _likelihood += w2 / std * math.exp(-0.5 * sigma_sq)
-                if sigma_sq < 8.0:  # abs(distance - mean) < 2 * math.sqrt(r1^2 + r2^2)
+                if sigma_sq < 4.0:
                     num_pass += 1
             likelihood += w1 * _likelihood
 
