@@ -27,7 +27,18 @@ from .utils.smoothing import GaussianSmoothing
 
 DEFAULT_FOCUS_THRESHOLD = 0.5
 DEFAULT_BOX_THRESHOLD = 0.5
-DEFAULT_SCORE_THRESHOLD = 0.7   # Top 30%
+DEFAULT_SCORE_THRESHOLD = {
+    'PiStacking_P': 0.6,    # Top 40%
+    'PiStacking_T': 0.6,
+    'SaltBridge_lneg': 0.6,
+    'SaltBridge_pneg': 0.6,
+    'PiCation_lring': 0.6,
+    'PiCation_pring': 0.6,
+    'XBond': 0.8,           # Top 20%
+    'HBond_ldon': 0.8,
+    'HBond_pdon': 0.8,
+    'Hydrophobic': 0.8,
+}
 
 
 class PharmacoNet():
