@@ -1,4 +1,4 @@
-# PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling
+# PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
 Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 

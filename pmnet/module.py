@@ -1,7 +1,10 @@
 import os
 import tempfile
 import math
+from openbabel import pybel
 
+import logging
+import tqdm
 import torch
 import numpy as np
 
@@ -12,17 +15,16 @@ from numpy.typing import NDArray, ArrayLike
 
 from molvoxel import create_voxelizer, BaseVoxelizer
 
-from .network import build_model
-from .network.detector import PharmacoFormer
-from .data import token_inference, pointcloud
-from .data import constant as C
-from .data import INTERACTION_LIST
-from .data.objects import Protein
-from .data.extract_pocket import extract_pocket
+from pmnet.network import build_model
+from pmnet.network.detector import PharmacoFormer
+from pmnet.data import token_inference, pointcloud
+from pmnet.data import constant as C
+from pmnet.data import INTERACTION_LIST
+from pmnet.data.objects import Protein
+from pmnet.data.extract_pocket import extract_pocket
+from pmnet.utils.smoothing import GaussianSmoothing
 
-from .scoring import PharmacophoreModel
-from . import utils
-from .utils.smoothing import GaussianSmoothing
+from pmnet.pharmacophore_model import PharmacophoreModel
 
 
 DEFAULT_FOCUS_THRESHOLD = 0.5
@@ -64,11 +66,10 @@ class PharmacoNet():
         self.score_distributions = {typ: np.array(distribution['focus']) for typ, distribution in checkpoint['score_distributions'].items()}
 
         self.score_threshold: Dict[str, float]
-        if isinstance(score_threshold, float):
-            self.score_threshold = {typ: score_threshold for typ in INTERACTION_LIST}
-        else:
+        if isinstance(score_threshold, dict):
             self.score_threshold = score_threshold
-        # self.score_threshold = utils.get_score_threshold(checkpoint['score_distributions'], score_threshold, INTERACTION_LIST)
+        else:
+            self.score_threshold = {typ: score_threshold for typ in INTERACTION_LIST}
         del checkpoint
 
         in_resolution = config.VOXEL.IN.RESOLUTION
@@ -78,6 +79,8 @@ class PharmacoNet():
         self.out_resolution = config.VOXEL.OUT.RESOLUTION
         self.out_size = config.VOXEL.OUT.SIZE
 
+        self.logger = logging.getLogger('PharmacoNet')
+
     def run(
         self,
         protein_pdb_path: str,
@@ -86,7 +89,9 @@ class PharmacoNet():
     ) -> PharmacophoreModel:
         assert (ref_ligand_path is not None) or (center is not None)
         if ref_ligand_path is not None:
-            ref_ligand = utils.load_ligand(ref_ligand_path)
+            extension = os.path.splitext(ref_ligand_path)[1]
+            assert extension in ['.sdf', '.pdb', '.mol2']
+            ref_ligand = next(pybel.readfile(extension[1:], ref_ligand_path))
             center_array = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32)
         else:
             center_array = np.array(center, dtype=np.float32)
@@ -118,12 +123,14 @@ class PharmacoNet():
         center: NDArray[np.float32],
     ) -> Tuple[str, NDArray, Optional[NDArray], NDArray, NDArray]:
 
+        self.logger.debug('Extract Pocket...')
         with tempfile.TemporaryDirectory() as dirname:
             pocket_path = os.path.join(dirname, 'pocket.pdb')
             extract_pocket(protein_pdb_path, pocket_path, center, self.pocket_cutoff)   # root(3)
             protein_obj: Protein = Protein.from_pdbfile(pocket_path)
             with open(pocket_path) as f:
                 pocket_pdbblock: str = '\n'.join(f.readlines())
+        self.logger.debug('Extract Pocket Finish')
 
         token_positions, token_classes = token_inference.get_token_informations(protein_obj)
         tokens, filter = token_inference.get_token_and_filter(
@@ -133,6 +140,7 @@ class PharmacoNet():
 
         protein_positions, protein_features = pointcloud.get_protein_pointcloud(protein_obj)
 
+        self.logger.debug('MolVoxel:Voxelize Pocket...')
         protein_image = np.asarray(
             self.in_voxelizer.forward_features(protein_positions, center, protein_features, radii=self.config.VOXEL.RADII.PROTEIN),
             np.float32
@@ -146,6 +154,7 @@ class PharmacoNet():
             )
         else:
             non_protein_area = None
+        self.logger.debug('MolVoxel:Voxelize Pocket Finish')
 
         return pocket_pdbblock, protein_image, non_protein_area, token_positions, tokens
 
@@ -162,6 +171,7 @@ class PharmacoNet():
         non_protein_area = non_protein_area.to(device=self.device, dtype=torch.bool) if non_protein_area is not None else None
 
         with torch.amp.autocast(self.device, enabled=self.config.AMP_ENABLE):
+            self.logger.debug(f'Protein-based Pharmacophore Modeling... (device: {self.device})')
             protein_image = protein_image.unsqueeze(0)
             multi_scale_features = self.model.forward_feature(protein_image)                    # List[[1, D, H, W, F]]
             bottom_features = multi_scale_features[-1]
@@ -195,22 +205,30 @@ class PharmacoNet():
                 relative_scores.append(relative_score)
             selected_indices = torch.tensor(indices, device=self.device, dtype=torch.long)  # [Ntoken',]
 
-            tokens = tokens[selected_indices]                                               # [Ntoken',]
-            # token_scores = token_scores[selected_indices]                                   # [Ntoken',]
-            token_positions = token_positions[selected_indices]                             # [Ntoken', 3]
-            token_features = token_features[selected_indices]                               # [Ntoken', F]
+            hotspots = tokens[selected_indices]                                               # [Ntoken',]
+            hotspot_positions = token_positions[selected_indices]                             # [Ntoken', 3]
+            hotspot_features = token_features[selected_indices]                               # [Ntoken', F]
+            del tokens
+            del token_positions
+            del token_features
 
             density_maps_list = []
-            step = 8
-            for idx in range(0, tokens.size(0), step):
-                _tokens, _token_features = tokens[idx:idx + step], token_features[idx:idx + step]
-                density_maps = self.model.forward_segmentation(multi_scale_features, [_tokens], [_token_features])[0]   # [[4, D, H, W]]
-                density_maps = density_maps[0].sigmoid()                                    # [4, D, H, W]
-                density_maps_list.append(density_maps)
+            if self.device == 'cpu':
+                step = 1
+            else:
+                step = 4
+            with tqdm.tqdm(desc='hotspots', total=hotspots.size(0), leave=False) as pbar:
+                for idx in range(0, hotspots.size(0), step):
+                    _hotspots, _hotspot_features = hotspots[idx:idx + step], hotspot_features[idx:idx + step]
+                    density_maps = self.model.forward_segmentation(multi_scale_features, [_hotspots], [_hotspot_features])[0]   # [[4, D, H, W]]
+                    density_maps = density_maps[0].sigmoid()                                    # [4, D, H, W]
+                    density_maps_list.append(density_maps)
+                    pbar.update(len(_hotspots))
+
             density_maps = torch.cat(density_maps_list, dim=0)                              # [Ntoken', D, H, W]
 
             box_area = token_inference.get_box_area(
-                tokens, self.config.VOXEL.RADII.PHARMACOPHORE, self.out_resolution, self.out_size,
+                hotspots, self.config.VOXEL.RADII.PHARMACOPHORE, self.out_resolution, self.out_size,
             )
             box_area = torch.from_numpy(box_area).to(device=self.device, dtype=torch.bool)  # [Ntoken', D, H, W]
             unavailable_area = ~ (box_area & non_protein_area & cavity_narrow)              # [Ntoken', D, H, W]
@@ -222,8 +240,8 @@ class PharmacoNet():
             density_maps[density_maps < self.box_threshold] = 0.
 
         out = []
-        assert len(tokens) == len(relative_scores)
-        for token, score, position, map in zip(tokens, relative_scores, token_positions, density_maps):
+        assert len(hotspots) == len(relative_scores)
+        for token, score, position, map in zip(hotspots, relative_scores, hotspot_positions, density_maps):
             if torch.all(map < 1e-6):
                 continue
             out.append({
@@ -233,4 +251,5 @@ class PharmacoNet():
                 'score': float(score),
                 'map': map.cpu().numpy(),
             })
+        self.logger.debug(f'Protein-based Pharmacophore Modeling finish (Total {len(out)} protein hotspots are detected)')
         return out

@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Optional, Iterator, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .ligand import LigandNodeCluster
-    from .pharmacophore_model import ModelNodeCluster
+    from pmnet.pharmacophore_model import ModelNodeCluster
     LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
     ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
 

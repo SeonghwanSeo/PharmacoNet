@@ -1,1 +1,0 @@
-from .scoring import PharmacophoreModel

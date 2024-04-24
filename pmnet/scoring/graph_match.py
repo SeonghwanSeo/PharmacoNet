@@ -5,7 +5,7 @@ import itertools
 import numpy as np
 import math
 
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
 from numpy.typing import NDArray
 
 from .tree import ClusterMatchTreeRoot
@@ -17,13 +17,13 @@ except:
 
 if TYPE_CHECKING:
     from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
-    from .pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
+    from pmnet.pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
     LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
     ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
 
 
 # NOTE: Parameters
-DEFAULT_WEIGHTS = dict(
+DEFAULT_WEIGHTS: Dict[str, float] = dict(
     Cation=8,
     Anion=8,
     Aromatic=4,
@@ -59,7 +59,7 @@ class GraphMatcher():
         self,
         model: PharmacophoreModel,
         ligand: Ligand,
-        weights: Dict[str, int] = DEFAULT_WEIGHTS,
+        weights: Optional[Dict[str, float]] = None,
     ):
         self.model_graph: PharmacophoreModel = model
         self.ligand_graph: LigandGraph = ligand.graph
@@ -69,7 +69,7 @@ class GraphMatcher():
         self.cluster_match_dict: Dict[LigandNodeCluster, List[ModelNodeCluster]]
         self.ligand_cluster_list: List[LigandNodeCluster]
         self.node_match_dict: Dict[Tuple[LigandNodeCluster, ModelNodeCluster], List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]]
-        self.weights: Dict[str, int] = weights
+        self.weights: Dict[str, float] = weights if weights is not None else DEFAULT_WEIGHTS
 
     def setup(self):
         self.cluster_match_dict = self._get_cluster_match_dict()
