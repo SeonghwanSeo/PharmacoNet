@@ -9,7 +9,8 @@ from openbabel import pybel
 from typing import Dict, List, Tuple, Set, Iterable, Optional, Union
 from numpy.typing import NDArray
 
-from pmnet.scoring.density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
+from pmnet.utils.density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
+
 from pmnet.scoring.ligand import Ligand
 from pmnet.scoring.graph_match import GraphMatcher
 

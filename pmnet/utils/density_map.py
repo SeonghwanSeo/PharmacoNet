@@ -7,7 +7,7 @@ import itertools
 from typing import Dict, List, Tuple, Set, Iterator
 from numpy.typing import NDArray
 
-from ..utils.constant import INTERACTION_LIST
+from .constant import INTERACTION_LIST
 
 
 OVERLAP_DISTANCE = 1.5

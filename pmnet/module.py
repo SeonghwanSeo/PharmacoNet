@@ -88,13 +88,13 @@ class PharmacoNet():
         center: Optional[ArrayLike] = None,
     ) -> PharmacophoreModel:
         assert (ref_ligand_path is not None) or (center is not None)
-        if ref_ligand_path is not None:
+        if center is not None:
+            center_array = np.array(center, dtype=np.float32)
+        else:
             extension = os.path.splitext(ref_ligand_path)[1]
             assert extension in ['.sdf', '.pdb', '.mol2']
-            ref_ligand = next(pybel.readfile(extension[1:], ref_ligand_path))
+            ref_ligand = next(pybel.readfile(extension[1:], str(ref_ligand_path)))
             center_array = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32)
-        else:
-            center_array = np.array(center, dtype=np.float32)
         assert center_array is not None
         assert center_array.shape == (3,)
 
