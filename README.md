@@ -36,6 +36,7 @@ python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -l <LIGAND_PATH>
 # Feature Extraction for Deep Learning Developer
 python feature_extraction.py 
 python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
+
 ```
 
 
@@ -43,7 +44,7 @@ python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
 ## Environment
 
 ```shell
-# Required python>=3.9, Best Performance at 3.11
+# Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
 conda create --name pmnet python=3.10
 conda activate pmnet
 conda install openbabel pymol-open-source
