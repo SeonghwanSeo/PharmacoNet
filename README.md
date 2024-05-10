@@ -1,13 +1,18 @@
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
+#### Before using PharmacoNet, also consider using OpenPharm - GUI powered by PharmacoNet.
+
+##### [OpenPharm Github](https://github.com/SeonghwanSeo/OpenPharm) (Released in June)
+
 Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
 Official Github for ***PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling*** by Seonghwan Seo* and Woo Youn Kim.
 
 1. Fully automated protein-based pharmacophore modeling based on image instance segmentation modeling
-2. Coarse-grained graph matching at the pharmacophore level
+2. Coarse-grained graph matching at the pharmacophore level for high throughput
+3. Pharmacophore-aware scoring function with parameterized analytical function for robust generalization ability
 
-PharmacoNet is an extremely rapid yet reasonably accurate structure-based scoring function with high generation ability.
+PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
 
 If you have any problems or need help with the code, please add an issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
@@ -18,29 +23,19 @@ If you have any problems or need help with the code, please add an issue or cont
 ## Quick Start
 
 ```bash
-# Download Pre-trained Model
-sh ./download-weights.sh
-
 # Pharmacophore Modeling
-python modeling.py -r <RECEPTOR_PATH> --autobox_ligand <LIGAND_PATH> -p <OUT_PHARMACOPHORE_MODEL_PATH> 
-python modeling.py -r <RECEPTOR_PATH> --center <X> <Y> <Z> -p <OUT_PHARMACOPHORE_MODEL_PATH> --cuda	# CUDA Acceleration
+python modeling.py --pdb <PDB ID>
+python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
 
-# Scoring with a single ligand SMILES
+# Scoring with a ligand SMILES
 python scoring.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES> --num_conformers <NUM_CONFORMERS>
 
-# Scoring with a ligand SMILES file. (see ./examples/example.smi)
-python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES_FILE> --num_conformers <NUM_CONFORMERS> --num_cpus <NUM_CPU>
-```
+# Scoring with a ligand sdf file
+python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -l <LIGAND_PATH>
 
-#### Example
-
-```bash
-# Pharmacophore Modeling for KRAS(G12C) - PDBID: 6OIM
-python modeling.py -r ./examples/6OIM_protein.pdb --autobox_ligand ./examples/6OIM_ligand.sdf -p ./examples/6OIM_model.json
-
-# Scoring
-python scoring.py -p ./examples/6OIM_model.json -s 'c1ccccc1' --num_conformers 2
-python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi --num_conformers 10
+# Feature Extraction for Deep Learning Developer
+python feature_extraction.py 
+python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
 ```
 
 
@@ -49,9 +44,9 @@ python scoring_file.py -p ./examples/6OIM_model.json -s ./examples/example.smi -
 
 ```shell
 # Required python>=3.9, Best Performance at 3.11
-conda create --name pmnet python=3.11
+conda create --name pmnet python=3.10
 conda activate pmnet
-conda install openbabel
+conda install openbabel pymol-open-source
 
 pip install torch torchvision # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
 pip install rdkit biopython omegaconf timm numba # Numba is optional, but recommended.
@@ -60,36 +55,98 @@ pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
 
 
 
+## Pharmacophore Modeling
+
+You can run `model.py` for automated protein-based pharmacophore modeling with RCSB PDB code or custom protein path (`--protein`). With protein path, you should enter `--prefix`.
+
+#### Example with PDB Code
+
+```bash
+# Pharmacophore Modeling for KRAS(G12C) - PDBID: 6OIM
+> python modeling.py --pdb 6oim
+INFO:root:Load PharmacoNet finish
+INFO:root:Download 6oim to result/6oim/6oim.pdb
+==============================
+
+INFO:root:A total of 3 ligand(s) are detected!
+Ligand 1
+- ID      : MG (Chain: B [auth A])
+- Center  : -2.512, 2.588, 0.220
+- Name    : MAGNESIUM ION
+
+Ligand 2
+- ID      : GDP (Chain: C [auth A])
+- Center  : -6.125, 3.588, 7.310
+- Name    : GUANOSINE-5'-DIPHOSPHATE
+
+Ligand 3
+- ID      : MOV (Chain: D [auth A])
+- Center  : 1.872, -8.260, -1.361
+- Name    : AMG 510 (BOUND FORM)
+- Synonyms: 6-FLUORO-7-(2-FLUORO-6-HYDROXYPHENYL)-4-[(2S)-2-METHYL-4-PROPANOYLPIPERAZIN-1-YL]-1-[4-METHYL-2-(PROPAN-2-YL)PYRIDIN-3-YL]PYRIDO[2,3-D]PYRIMIDIN-2(1H)-ONE
+
+INFO:root:Select the ligand number(s) (ex. 3 ; 1,3 ; manual ; all ; exit)
+ligand number:3	# USER INPUT: Enter the ligand number for binding site detection
+INFO:root:Running 3th Ligand...
+Ligand 3
+- ID      : MOV (Chain: D [auth A])
+- Center  : 1.872, -8.260, -1.361
+- Name    : AMG 510 (BOUND FORM)
+- Synonyms: 6-FLUORO-7-(2-FLUORO-6-HYDROXYPHENYL)-4-[(2S)-2-METHYL-4-PROPANOYLPIPERAZIN-1-YL]-1-[4-METHYL-2-(PROPAN-2-YL)PYRIDIN-3-YL]PYRIDO[2,3-D]PYRIMIDIN-2(1H)-ONE
+INFO:root:Save Pharmacophore Model to result/6oim/6oim_D_MOV_model.pm
+INFO:root:Save Pymol Visualization Session to result/6oim/6oim_D_MOV_model.pse
+```
+
+#### Example with custom protein
+
+```bash
+> python modeling.py --protein ./examples/6OIM_protein.pdb --prefix 6oim
+INFO:root:Load PharmacoNet finish
+INFO:root:Load examples/6OIM_protein.pdb
+
+WARNING:root:No ligand is detected!
+INFO:root:Enter the center of binding site manually:
+x: 2	# USER INPUT: Enter x
+y: -8	# USER INPUT: Enter y
+z: -1	# USER INPUT: Enter z
+INFO:root:Using center (2.0, -8.0, -1.0)
+INFO:root:Save Pharmacophore Model to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pm
+INFO:root:Save Pymol Visualization Session to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pse
+```
+
+
+
 ## Scoring
 
-We provide two simple example scripts for scoring. However, it can be easily included in your custom script via the python code below.
-
-\* Multiprocessing is allowed. See [`./scoring_file.py`](./scoring_file.py)
+We provide two simple example scripts for scoring. However, it can be easily included in your custom script via the python code below. (\* Multiprocessing is allowed)
 
 #### Example python code
 
 ```python
-from src import PharmacophoreModel
-from openbabel import pybel
-
+from pmnet import PharmacophoreModel
 model = PharmacophoreModel.load(<PHARMCOPHORE_MODEL_PATH>)
-pbmol = pybel.readstring('smi', <LIGAND_SMILES>)
+
+# NOTE: Scoring with ligand file with 1 or more conformers
+score = model.scoring_file(<LIGAND_PATH>)	# SDF, MOL2, PDB
 
 # NOTE: Scoring with RDKit ETKDG Conformers
-def scoring_etkdg_conformers(model, pbmol, smiles, num_conformers):
-    from rdkit import Chem
-    from rdkit.Chem import AllChem
-    rdmol = Chem.MolFromSmiles(smiles)
-    rdmol = Chem.AddHs(rdmol)
-    AllChem.EmbedMultipleConfs(rdmol, num_conformers, AllChem.srETKDGv3())
-    rdmol = Chem.RemoveHs(rdmol)
-    return model.scoring(pbmol, rdmol)
-
-# NOTE: Scoring with custom ligand conformers.
-def scoring_own_conformers(model, pbmol, atom_positions):
-    # atom_positions: [NUM_CONFORMERS, NUM_ATOMS, 3]
-    return model.scoring(pbmol, atom_positions=atom_positions)
+score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 ```
+
+
+
+## Pharmacophore Feature Extraction
+
+For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the script `feature_extraction.py`.
+
+```bash
+python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PKL_PATH>
+python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH>
+```
+
+#### Paper List
+
+- TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
 
 
 

@@ -100,7 +100,11 @@ def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str
     ligand_inform_list = []
     last_chain = protein.data['SEQRES'].split('\n')[-1].split()[1]
     for idx, line in enumerate(het_lines):
-        ligid, authchain, residue_idx, _ = line.strip().split()
+        vs = line.strip().split()
+        if len(vs) == 4:
+            ligid, authchain, residue_idx, _ = vs
+        else:
+            ligid, authchain, residue_idx, = vs[0], vs[1][0], vs[1][1:]
         pdbchain = chr(ord(last_chain) + idx + 1)
         identify_key = f"{pdb_code}_{pdbchain}_{ligid}"
         ligand_path = os.path.join(save_dir, f'{identify_key}.pdb')

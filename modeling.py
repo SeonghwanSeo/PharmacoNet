@@ -23,13 +23,14 @@ class Modeling_ArgParser(argparse.ArgumentParser):
 
         # config
         cfg_args = self.add_argument_group('config')
-        cfg_args.add_argument('pdb', type=str, help='RCSB PDB code')
+        cfg_args.add_argument('--pdb', type=str, help='RCSB PDB code')
         cfg_args.add_argument('-l', '--ligand_id', type=str, help='RCSB ligand code')
         cfg_args.add_argument('-p', '--protein', type=str, help='custom path of protein pdb file (.pdb)')
         cfg_args.add_argument('-c', '--chain', type=str, help='Chain')
         cfg_args.add_argument('-a', '--all', action='store_true', help='use all binding sites')
-        cfg_args.add_argument('--out_dir', type=str, help='custom directorh path. default: `./result/{PDBID}`')
-        cfg_args.add_argument('--suffix', choices=('json', 'pkl'), type=str, help='extension of pharmacophore model (json (default) | pkl)', default='json')
+        cfg_args.add_argument('--out_dir', type=str, help='custom directorh path. default: `./result/{PDBID | prefix}`')
+        cfg_args.add_argument('--prefix', type=str, help='task name. default: {PDBID}')
+        cfg_args.add_argument('--suffix', choices=('pm', 'json'), type=str, help='extension of pharmacophore model (pm (default) | json)', default='pm')
 
         # system config
         env_args = self.add_argument_group('environment')
@@ -45,11 +46,12 @@ class Modeling_ArgParser(argparse.ArgumentParser):
 
 def main(args):
     logging.info(pmnet.__description__)
-    PDBID = args.pdb
+    assert (args.prefix is not None or args.pdb is not None), 'MISSING PREFIX: `--prefix` or `--pdb`'
+    PREFIX = args.prefix if args.prefix else args.pdb
 
     # NOTE: Setting
     if args.out_dir is None:
-        SAVE_DIR = Path('./result') / PDBID
+        SAVE_DIR = Path('./result') / PREFIX
     else:
         SAVE_DIR = Path(args.out_dir)
     SAVE_DIR.mkdir(exist_ok=True, parents=True)
@@ -62,15 +64,19 @@ def main(args):
     logging.info(f'Load PharmacoNet finish')
 
     # NOTE: Set Protein
-    if isinstance(args.protein, str):
+    if isinstance(args.pdb, str):
+        protein_path: str = str(SAVE_DIR / f'{PREFIX}.pdb')
+        if not os.path.exists(protein_path):
+            logging.info(f'Download {args.pdb} to {protein_path}')
+            download_pdb(args.pdb, protein_path)
+        else:
+            logging.info(f'Load {protein_path}')
+    elif isinstance(args.protein, str):
         protein_path: str = args.protein
-    else:  # NOTE: Download PDB
-        protein_path: str = str(SAVE_DIR / f'{PDBID}.pdb')
-    if not os.path.exists(protein_path):
-        logging.info(f'Download {PDBID} to {protein_path}')
-        download_pdb(PDBID, protein_path)
-    else:
+        assert os.path.exists(protein_path)
         logging.info(f'Load {protein_path}')
+    else:
+        raise Exception('Missing protein: `--pdb` or `--protein`')
 
     # NOTE: Functions
     def run_pmnet(filename, ligand_path=None, center=None) -> PharmacophoreModel:
@@ -86,22 +92,22 @@ def main(args):
         if (not args.force) and os.path.exists(pymol_path):
             logging.warning(f'Visualizing Pass - {pymol_path} exists\n')
         else:
-            visualize.visualize_single(pharmacophore_model, protein_path, ligand_path, PDBID, str(pymol_path))
+            visualize.visualize_single(pharmacophore_model, protein_path, ligand_path, PREFIX, str(pymol_path))
             logging.info(f'Save Pymol Visualization Session to {pymol_path}\n')
         return pharmacophore_model
 
     def run_pmnet_ref_ligand(ligand_path) -> PharmacophoreModel:
         logging.info(f'Using center of {ligand_path} as center of box')
-        return run_pmnet(f'{PDBID}_{Path(ligand_path).stem}_model', ligand_path)
+        return run_pmnet(f'{PREFIX}_{Path(ligand_path).stem}_model', ligand_path)
 
     def run_pmnet_center(center) -> PharmacophoreModel:
         x, y, z = center
         logging.info(f'Using center {(x, y, z)}')
-        return run_pmnet(f'{PDBID}_{x}_{y}_{z}_model', center=(x, y, z))
+        return run_pmnet(f'{PREFIX}_{x}_{y}_{z}_model', center=(x, y, z))
 
     def run_pmnet_inform(inform) -> PharmacophoreModel:
         logging.info(f"Running {inform.order}th Ligand...\n{str(inform)}")
-        return run_pmnet(f'{PDBID}_{inform.pdbchain}_{inform.id}_model', inform.file_path, inform.center)
+        return run_pmnet(f'{PREFIX}_{inform.pdbchain}_{inform.id}_model', inform.file_path, inform.center)
 
     def run_pmnet_manual_center():
         logging.info('Enter the center of binding site manually:')
@@ -128,9 +134,8 @@ def main(args):
         return SUCCESS
 
     # NOTE: Case 3: With Detected Ligand(s) Center
-
     # NOTE: Ligand Detection
-    inform_list = parse_pdb(PDBID, protein_path, SAVE_DIR)
+    inform_list = parse_pdb(PREFIX, protein_path, SAVE_DIR)
 
     # NOTE: Case 3-1: No detected Ligand
     if len(inform_list) == 0:
@@ -143,13 +148,13 @@ def main(args):
         logging.info(f'Use All Binding Site (-a | --all)')
         model_dict = {}
         for inform in inform_list:
-            model_dict[f'{PDBID}_{inform.pdbchain}_{inform.id}'] = (run_pmnet_inform(inform), inform.file_path)
-        pymol_path = SAVE_DIR / f'{PDBID}.pse'
+            model_dict[f'{PREFIX}_{inform.pdbchain}_{inform.id}'] = (run_pmnet_inform(inform), inform.file_path)
+        pymol_path = SAVE_DIR / f'{PREFIX}.pse'
         logging.info(f"Visualize all pharmacophore models...")
         if (not args.force) and os.path.exists(pymol_path):
             logging.warning(f'Visualizing Pass - {pymol_path} exists\n')
         else:
-            visualize.visualize_multiple(model_dict, protein_path, PDBID, str(pymol_path))
+            visualize.visualize_multiple(model_dict, protein_path, PREFIX, str(pymol_path))
             logging.info(f'Save Pymol Visualization Session to {pymol_path}\n')
         return
 

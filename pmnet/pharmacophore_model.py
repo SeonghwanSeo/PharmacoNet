@@ -120,7 +120,7 @@ class PharmacophoreModel():
     def save(self, save_path: str):
         extension = os.path.splitext(save_path)[-1]
         state = self.__getstate__()
-        if extension == '.pkl':
+        if extension == '.pm':
             with open(save_path, 'wb') as w:
                 pickle.dump(state, w)
         elif extension == '.json':
@@ -132,7 +132,7 @@ class PharmacophoreModel():
     @classmethod
     def load(cls, save_path: str):
         extension = os.path.splitext(save_path)[-1]
-        if extension == '.pkl':
+        if extension == '.pm':
             with open(save_path, 'rb') as f:
                 state = pickle.load(f)
         elif extension == '.json':

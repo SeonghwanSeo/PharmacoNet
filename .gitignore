@@ -2,6 +2,7 @@
 .DS_Store
 weights
 run.sh
+result/
 
 
 # Byte-compiled / optimized / DLL files
