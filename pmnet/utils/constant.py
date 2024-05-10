@@ -55,4 +55,3 @@ SHORT_INTERACTION: Set[int] = {
     HBOND_PDON,
     XBOND,
 }
-

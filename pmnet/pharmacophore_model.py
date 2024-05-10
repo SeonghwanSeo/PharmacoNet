@@ -3,13 +3,16 @@ from __future__ import annotations
 import pickle
 import json
 import os
+import numpy as np
 from openbabel import pybel
-from rdkit.Chem import Mol
 
-from typing import Dict, List, Tuple, Set, Iterable, Optional
+from typing import Dict, List, Tuple, Set, Iterable, Optional, Union
 from numpy.typing import NDArray
 
-from .density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
+from pmnet.utils.density_map import DensityMapGraph, DensityMapNode, DensityMapNodeCluster, DensityMapEdge
+
+from pmnet.scoring.ligand import Ligand
+from pmnet.scoring.graph_match import GraphMatcher
 
 
 INTERACTION_TO_PHARMACOPHORE = {
@@ -29,15 +32,61 @@ INTERACTION_TO_PHARMACOPHORE = {
 # NOTE: Pickle-Friendly Object
 class PharmacophoreModel():
     def __init__(self):
+        self.pocket_pdbblock: str
         self.nodes: List[ModelNode]
         self.edges: List[ModelEdge]
         self.node_dict: Dict[str, List[ModelNode]]
         self.node_cluster_dict: Dict[str, List[ModelNodeCluster]]
         self.node_clusters: List[ModelNodeCluster]
 
+    def scoring_pbmol(
+        self,
+        ligand_pbmol: pybel.Molecule,
+        atom_positions: Union[List[NDArray[np.float32]], NDArray[np.float32]],
+        conformer_axis: Optional[int] = None,
+        weights: Optional[Dict[str, float]] = None,
+    ) -> float:
+        """Scoring Function
+
+        Args:
+            ligand_pbmol: pybel.Molecule
+            atom_positions: List[NDArray[np.float32]] | NDArray[np.float32] | None
+            conformer_axis: Optional[int]
+            weights: Optional[Dict[str, float]]
+
+            case: atom_positions: NDArray[np.float32]
+                i) conformer_axis is 0 or None
+                    atom_positions: (N_conformers, N_atoms, 3)
+                ii) conformer_axis is 1
+                    atom_positions: (N_atoms, N_conformers, 3)
+            case: atom_positions: None
+                Using RDKit Conformer informations
+        """
+        ligand = Ligand(ligand_pbmol, atom_positions, conformer_axis)
+        return self._scoring(ligand, weights)
+
+    def scoring_file(
+        self,
+        ligand_file: os.PathLike,
+        weights: Optional[Dict[str, float]] = None,
+    ) -> float:
+        return self._scoring(Ligand.load_from_file(ligand_file), weights)
+
+    def scoring_smiles(
+        self,
+        ligand_smiles: str,
+        num_conformers: int,
+        weights: Optional[Dict[str, float]] = None,
+    ) -> float:
+        return self._scoring(Ligand.load_from_smiles(ligand_smiles, num_conformers), weights)
+
+    def _scoring(self, ligand: Ligand, weights: Optional[Dict[str, float]] = None) -> float:
+        return GraphMatcher(self, ligand, weights).scoring()
+
     @classmethod
     def create(
         cls,
+        pocket_pdbblock: str,
         center: Tuple[float, float, float],
         resolution: float,
         size: int,
@@ -49,6 +98,7 @@ class PharmacophoreModel():
         graph.setup()
 
         model = cls()
+        model.pocket_pdbblock = pocket_pdbblock
         model.nodes = [ModelNode.create(model, node) for node in graph.nodes]
         model.edges = [ModelEdge.create(model, edge) for edge in graph.edges]
         for node in model.nodes:
@@ -67,39 +117,10 @@ class PharmacophoreModel():
         del graph
         return model
 
-    def scoring(
-        self,
-        ligand_pbmol: pybel.Molecule,
-        ligand_rbmol: Optional[Mol] = None,
-        atom_positions: Optional[NDArray] = None,
-        conformer_axis: Optional[int] = None,
-    ) -> float:
-        """Scoring Function
-
-        Args:
-            ligand_pbmol: pybel.Molecule
-            ligand_rdmol: Chem.Mol | None
-            atom_positions: List[NDArray[np.float32]] | NDArray[np.float32] | None
-            conformer_axis: Optional[int]
-
-            case: atom_positions: NDArray[np.float32]
-                i) conformer_axis is 0 or None
-                    atom_positions: (N_conformers, N_atoms, 3)
-                ii) conformer_axis is 1
-                    atom_positions: (N_atoms, N_conformers, 3)
-            case: atom_positions: None
-                Using RDKit Conformer informations
-        """
-        from .ligand import Ligand
-        from .graph_match import GraphMatcher
-        ligand = Ligand(ligand_pbmol, ligand_rbmol, atom_positions, conformer_axis)
-        matcher = GraphMatcher(self, ligand)
-        return matcher.scoring()
-
     def save(self, save_path: str):
         extension = os.path.splitext(save_path)[-1]
         state = self.__getstate__()
-        if extension == '.pkl':
+        if extension == '.pm':
             with open(save_path, 'wb') as w:
                 pickle.dump(state, w)
         elif extension == '.json':
@@ -111,7 +132,7 @@ class PharmacophoreModel():
     @classmethod
     def load(cls, save_path: str):
         extension = os.path.splitext(save_path)[-1]
-        if extension == '.pkl':
+        if extension == '.pm':
             with open(save_path, 'rb') as f:
                 state = pickle.load(f)
         elif extension == '.json':
@@ -125,6 +146,7 @@ class PharmacophoreModel():
 
     def __getstate__(self):
         state = dict(
+            pocket_pdbblock=self.pocket_pdbblock,
             nodes=[node.get_kwargs() for node in self.nodes],
             edges=[edge.get_kwargs() for edge in self.edges],
             node_cluster_dict={typ: [cluster.get_kwargs() for cluster in cluster_list] for typ, cluster_list in self.node_cluster_dict.items()},
@@ -133,6 +155,7 @@ class PharmacophoreModel():
         return state
 
     def __setstate__(self, state):
+        self.pocket_pdbblock = state['pocket_pdbblock']
         self.nodes = [ModelNode(self, **kwargs) for kwargs in state['nodes']]
         self.edges = [ModelEdge(self, **kwargs) for kwargs in state['edges']]
         for node in self.nodes:

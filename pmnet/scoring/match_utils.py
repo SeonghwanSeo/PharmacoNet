@@ -1,12 +1,7 @@
 import itertools
 import numpy as np
-import math
 
-from typing import Tuple, List, Tuple
-from numpy.typing import NDArray
-
-from .ligand import LigandNode
-from .pharmacophore_model import ModelNode
+from typing import Tuple, Tuple
 
 
 DISTANCE_SIGMA_THRESHOLD = 2.
@@ -14,10 +9,15 @@ PASS_THRESHOLD = 0.5
 
 
 def scoring_matching_pair(
-    cluster_node_match_list1: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
-    cluster_node_match_list2: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list1,
+    cluster_node_match_list2,
     num_conformers: int,
 ) -> Tuple[float, ...]:
+    """
+        cluster_node_match_list1: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+        cluster_node_match_list2: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+        num_conformers: int,
+    """
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     num_fails = np.zeros((num_conformers,), dtype=np.int16)
 
@@ -64,9 +64,13 @@ def scoring_matching_pair(
 
 
 def scoring_matching_self(
-    cluster_node_match_list: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list,
     num_conformers: int,
 ) -> Tuple[float, ...]:
+    """
+        cluster_node_match_list: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]
+        num_conformers: str
+    """
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     likelihood = np.empty((num_conformers,), dtype=np.float32)
     for cluster_node_match1, cluster_node_match2 in itertools.combinations(cluster_node_match_list, 2):

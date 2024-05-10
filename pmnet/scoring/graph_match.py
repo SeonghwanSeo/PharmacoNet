@@ -5,11 +5,9 @@ import itertools
 import numpy as np
 import math
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
 from numpy.typing import NDArray
 
-from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
-from .pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
 from .tree import ClusterMatchTreeRoot
 try:
     from .match_utils_numba import scoring_matching_pair, scoring_matching_self
@@ -17,22 +15,23 @@ except:
     from .match_utils import scoring_matching_pair, scoring_matching_self
 
 
-# NOTE: TYPE
-LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
-ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
+if TYPE_CHECKING:
+    from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
+    from pmnet.pharmacophore_model import PharmacophoreModel, ModelNodeCluster, ModelNode
+    LigandClusterPair = Tuple[LigandNodeCluster, LigandNodeCluster]
+    ModelClusterPair = Tuple[ModelNodeCluster, ModelNodeCluster]
 
 
-# NOTE: Constant
-WEIGHTS = dict(
+# NOTE: Parameters
+DEFAULT_WEIGHTS: Dict[str, float] = dict(
     Cation=8,
     Anion=8,
-    Aromatic=8,
+    Aromatic=4,
     HBond_donor=4,
     HBond_acceptor=4,
     Halogen=4,
     Hydrophobic=1,
 )
-MAX_DEPTH = 20
 
 
 def priority_fn(cluster: LigandNodeCluster):
@@ -60,21 +59,22 @@ class GraphMatcher():
         self,
         model: PharmacophoreModel,
         ligand: Ligand,
-        max_depth: Optional[int] = MAX_DEPTH,
+        weights: Optional[Dict[str, float]] = None,
     ):
         self.model_graph: PharmacophoreModel = model
         self.ligand_graph: LigandGraph = ligand.graph
+        self.num_atoms = ligand.num_atoms
+        self.num_rotatable_bonds = ligand.num_rotatable_bonds
         self.num_conformers = self.ligand_graph.num_conformers
-        self.max_depth = max_depth
         self.cluster_match_dict: Dict[LigandNodeCluster, List[ModelNodeCluster]]
         self.ligand_cluster_list: List[LigandNodeCluster]
         self.node_match_dict: Dict[Tuple[LigandNodeCluster, ModelNodeCluster], List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]]
+        self.weights: Dict[str, float] = weights if weights is not None else DEFAULT_WEIGHTS
 
     def setup(self):
         self.cluster_match_dict = self._get_cluster_match_dict()
         self.ligand_cluster_list = sorted(self.cluster_match_dict.keys(), key=priority_fn)
-        if self.max_depth is not None:
-            self.ligand_cluster_list = self.ligand_cluster_list[:self.max_depth]
+        self.ligand_cluster_list = self.ligand_cluster_list[:20]    # MAX DEPTH: 20
         self.node_match_dict = self._get_node_match_dict()
         self.matching_pair_scores_dict: Dict[LigandClusterPair, Dict[ModelClusterPair, Tuple[float, ...]]] = self._get_pair_scores()
 
@@ -84,7 +84,11 @@ class GraphMatcher():
         return list(root_tree.iteration())
 
     def scoring(self) -> float:
+        if len(self.ligand_graph.node_clusters) == 0:
+            return 0
         self.setup()
+        if len(self.ligand_cluster_list) == 0:
+            return 0
         root_tree = self._run()
         return max(leaf.score for leaf in root_tree.iteration())
 
@@ -113,7 +117,7 @@ class GraphMatcher():
     def _get_node_match_dict(self) -> Dict[Tuple[LigandNodeCluster, ModelNodeCluster], List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]]]:
         def __get_node_match(ligand_node: LigandNode, model_cluster: ModelNodeCluster) -> Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]:
             match_model_nodes = [model_node for model_node in model_cluster.nodes if model_node.type in ligand_node.types]
-            weights = np.array([WEIGHTS[model_node.type] * model_node.score for model_node in match_model_nodes], dtype=np.float32)
+            weights = np.array([self.weights[model_node.type] for model_node in match_model_nodes], dtype=np.float32)
             return (ligand_node, match_model_nodes, weights)
 
         node_match_dict = {

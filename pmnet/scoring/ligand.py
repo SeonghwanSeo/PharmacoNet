@@ -5,6 +5,8 @@ import numpy as np
 from openbabel import pybel
 from openbabel.pybel import ob
 from rdkit import Chem
+from rdkit.Chem import rdDistGeom
+import tempfile
 
 from typing import Set, Dict, List, Sequence, Union, Tuple, Optional, Iterator
 from numpy.typing import NDArray
@@ -20,15 +22,14 @@ class Ligand():
     def __init__(
         self,
         pbmol: pybel.Molecule,
-        rdmol: Optional[Chem.Mol] = None,
-        atom_positions: Optional[Union[List[NDArray[np.float32]], NDArray[np.float32]]] = None,
-        conformer_axis: Optional[int] = None
+        atom_positions: Union[List[NDArray[np.float32]], NDArray[np.float32]],
+        conformer_axis: Optional[int] = None,
+        _unsafe: bool = False
     ):
         """Ligand Object
 
         Args:
             pbmol: pybel.Molecule Object
-            rdmol: Chem.Mol Object
             atom_positions: List[NDArray[np.float32]] | NDArray[np.float32] | None
                 case: NDArray[np.float32]
                     i) conformer_axis is 0 or None
@@ -38,17 +39,13 @@ class Ligand():
                 case: None
                     Using RDKit Conformer informations
         """
-        self.pbmol: pybel.Molecule = pbmol.clone
+        self.pbmol: pybel.Molecule = pbmol if _unsafe else pbmol.clone
         self.pbmol.removeh()
         self.obmol: ob.OBMol = self.pbmol.OBMol
         self.obatoms: List[ob.OBAtom] = [self.obmol.GetAtom(i + 1) for i in range(self.obmol.NumAtoms())]
 
         self.num_atoms: int = len(self.obatoms)
-        if rdmol is not None:
-            rdmol = Chem.RemoveHs(rdmol)
-            assert self.num_atoms == rdmol.GetNumAtoms(), f'Atom Number ERROR - openbabel: {self.num_atoms}, rdkit: {rdmol.GetNumAtoms()}'
-            for obatom, rdatom in zip(self.obatoms, rdmol.GetAtoms()):
-                assert obatom.GetAtomicNum() == rdatom.GetAtomicNum(), f'Atomic Number ERROR - openbabel: {obatom.GetAtomicNum()}, rdkit: {rdatom.GetAtomicNum()}'
+        self.num_rotatable_bonds: int = pbmol.OBMol.NumRotors()
 
         self.atom_positions: NDArray[np.float32]    # [N_atoms, N_conformers, 3]
         if isinstance(atom_positions, list):
@@ -57,10 +54,6 @@ class Ligand():
             self.atom_positions = np.asarray(atom_positions, dtype=np.float32)
             if conformer_axis in [0, None]:
                 self.atom_positions = np.ascontiguousarray(np.moveaxis(self.atom_positions, 0, 1))
-        elif rdmol is not None:
-            self.atom_positions = np.stack([conformer.GetPositions() for conformer in rdmol.GetConformers()], axis=1, dtype=np.float32)
-        else:
-            raise ValueError
 
         assert self.num_atoms == self.atom_positions.shape[0]
         self.num_conformers: int = self.atom_positions.shape[1]
@@ -73,33 +66,35 @@ class Ligand():
         self.graph = LigandGraph(self)
 
     @classmethod
-    def create(
-        cls,
-        pbmol: Optional[pybel.Molecule] = None,
-        smiles: Optional[str] = None,
-        filename: Optional[str] = None,
-        atom_positions: Optional[NDArray[np.float32]] = None,
-        conformer_axis: Optional[int] = None,
-    ) -> Ligand:
-        assert pbmol is not None or smiles is not None or filename is not None
-        if pbmol is not None:
-            pass
-        elif smiles is not None:
-            pbmol = pybel.readstring('smi', smiles)
-            assert atom_positions is not None
-        else:
-            assert filename is not None
-            extension = os.path.splitext(filename)[1]
-            assert extension in ['.sdf', '.pdb', '.mol2']
-            pbmol = next(pybel.readfile(extension[1:], filename))
-        if atom_positions is None:
-            rdmol = Chem.MolFromMol2Block(pbmol.write('mol2'))
-            if rdmol is None:
-                rdmol = Chem.MolFromPDBBlock(pbmol.write('pdb'))
-            assert rdmol is not None
-        else:
-            rdmol = None
-        out = cls(pbmol, rdmol, atom_positions, conformer_axis)
+    def load_from_file(cls, filename: os.PathLike) -> Ligand:
+        assert filename is not None
+        extension = os.path.splitext(filename)[1]
+        assert extension in ['.sdf', '.pdb', '.mol2']
+        pbmol_list: List[pybel.Molecule] = list(pybel.readfile(extension[1:], filename))
+        base_pbmol = pbmol_list[0]
+        base_pbmol.removeh()
+        num_atoms = len(base_pbmol.atoms)
+        atom_positions = []
+        for pbmol in pbmol_list:
+            pbmol.removeh()
+            assert len(pbmol.atoms) == num_atoms
+            atom_positions.append([atom.coords for atom in pbmol.atoms])
+        return cls(base_pbmol, atom_positions, _unsafe=True)
+
+    @classmethod
+    def load_from_smiles(cls, smiles: str, num_conformers: int) -> Ligand:
+        fn = tempfile.NamedTemporaryFile(suffix='.sdf').name
+        try:
+            rdmol: Chem.rdchem.Mol = Chem.MolFromSmiles(smiles)
+            rdmol = Chem.AddHs(rdmol)
+            rdDistGeom.EmbedMultipleConfs(rdmol, num_conformers, param=rdDistGeom.srETKDGv3())
+            with Chem.SDWriter(fn) as w:
+                w.write(rdmol)
+            out = cls.load_from_file(fn)
+            os.unlink(fn)
+        except Exception as e:
+            os.unlink(fn)
+            raise e
         return out
 
 

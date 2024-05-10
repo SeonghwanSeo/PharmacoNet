@@ -7,7 +7,7 @@ import itertools
 from typing import Dict, List, Tuple, Set, Iterator
 from numpy.typing import NDArray
 
-from ..utils.constant import INTERACTION_LIST
+from .constant import INTERACTION_LIST
 
 
 OVERLAP_DISTANCE = 1.5
@@ -55,6 +55,7 @@ class DensityMapGraph():
         score: float,
         mask: NDArray[np.float_],
     ):
+        new_node_list = []
         for grids, grid_scores in self.__extract_pharmacophores(mask):
             grids, grid_scores = np.array(grids), np.array(grid_scores)
             if len(grids) < 8:
@@ -69,6 +70,8 @@ class DensityMapGraph():
                 self.edge_dict_nodes[(new_node, node)] = edge
                 self.edge_dict_indices[(node.index, new_node.index)] = edge
                 self.edge_dict_indices[(new_node.index, node.index)] = edge
+            new_node_list.append(new_node)
+        return new_node_list
 
     def setup(self):
         self.__clustering()
