@@ -60,7 +60,9 @@ pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
 
 You can run `model.py` for automated protein-based pharmacophore modeling with RCSB PDB code or custom protein path (`--protein`). With protein path, you should enter `--prefix`.
 
-#### Example with PDB Code
+#### Example with RCSB PDB Code
+
+The pharmacophore model file is `result/6oim/6oim_D_MOV_model.pm` and the pymol session file is `result/6oim/6oim_D_MOV_model.pse`
 
 ```bash
 # Pharmacophore Modeling for KRAS(G12C) - PDBID: 6OIM
@@ -78,7 +80,7 @@ Ligand 1
 Ligand 2
 - ID      : GDP (Chain: C [auth A])
 - Center  : -6.125, 3.588, 7.310
-- Name    : GUANOSINE-5'-DIPHOSPHATE
+- Name    : GUANOSINE-5-DIPHOSPHATE
 
 Ligand 3
 - ID      : MOV (Chain: D [auth A])
@@ -117,11 +119,30 @@ INFO:root:Save Pymol Visualization Session to result/6OIM/6OIM_2.0_-8.0_-1.0_mod
 
 
 
-## Scoring
+## Virtual Screening
 
-We provide two simple example scripts for scoring. However, it can be easily included in your custom script via the python code below. (\* Multiprocessing is allowed)
+We provide the simple script for screening.
 
-#### Example python code
+```bash
+# Default Parameter Setting (Cation/Anion: 8, Aromatic/Halogen/HBA/HBD: 4, Hydrophobic: 1)
+python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU>
+
+# Custom Parameters Setting
+python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU> \
+  --anion <ANION> --cation <CATION> --aromatic <AROMATIC> \
+  --hbd <HBD> --hba <HBA> --halogen <HALOGEN> --hydrophobic <HYDROPHOBIC>
+
+# Example
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1 --hbd 5 --hba 5 --aromatic 8
+
+```
+
+
+
+#### Example python code for ligand evaluation
+
+Also, it can be easily included in your custom script via the python code below. (\* Multiprocessing is allowed)
 
 ```python
 from pmnet import PharmacophoreModel
