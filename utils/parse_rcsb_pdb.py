@@ -83,16 +83,16 @@ def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str
     ligand_syn_dict = {}
     for line in hetsyn_lines:
         line: str = line.strip()
-        if line[0].isdigit():
+        if line.startswith(het_id_list):
+            key, *strings = line.split()
+            assert key not in ligand_syn_dict
+            ligand_syn_dict[key] = ' '.join(strings)
+        else:
             _, key, *strings = line.split()
             if ligand_syn_dict[key][-1] == '-':
                 ligand_syn_dict[key] += ' '.join(strings)
             else:
                 ligand_syn_dict[key] += ' ' + ' '.join(strings)
-        else:
-            key, *strings = line.split()
-            assert key not in ligand_syn_dict
-            ligand_syn_dict[key] = ' '.join(strings)
 
     pymol.finish_launching(['pymol', '-cq'])
     pymol.cmd.load(str(protein_path))

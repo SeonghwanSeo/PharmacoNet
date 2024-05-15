@@ -65,7 +65,7 @@ def main(args):
 
     # NOTE: Set Protein
     if isinstance(args.pdb, str):
-        protein_path: str = str(SAVE_DIR / f'{PREFIX}.pdb')
+        protein_path: str = str(SAVE_DIR / f'{args.pdb}.pdb')
         if not os.path.exists(protein_path):
             logging.info(f'Download {args.pdb} to {protein_path}')
             download_pdb(args.pdb, protein_path)
