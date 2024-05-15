@@ -24,19 +24,16 @@ If you have any problems or need help with the code, please add an issue or cont
 
 ```bash
 # Pharmacophore Modeling
-python modeling.py --pdb <PDB ID>
-python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
+python modeling.py --pdb <PDB ID> --cuda 		# RCSB PDB importing, CUDA Acceleration
+python modeling.py --protein <PROTEIN_PATH>
+python modeling.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH>
 
-# Scoring with a ligand SMILES
-python scoring.py -p <PHARMACOPHORE_MODEL_PATH> -s <SMILES> --num_conformers <NUM_CONFORMERS>
-
-# Scoring with a ligand sdf file
-python scoring_file.py -p <PHARMACOPHORE_MODEL_PATH> -l <LIGAND_PATH>
+# Virtual Screening
+python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU>
 
 # Feature Extraction for Deep Learning Developer
 python feature_extraction.py 
 python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
-
 ```
 
 
@@ -60,7 +57,9 @@ pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
 
 You can run `model.py` for automated protein-based pharmacophore modeling with RCSB PDB code or custom protein path (`--protein`). With protein path, you should enter `--prefix`.
 
-#### Example with PDB Code
+#### Example with RCSB PDB Code
+
+The pharmacophore model file is `result/6oim/6oim_D_MOV_model.pm` and the pymol session file is `result/6oim/6oim_D_MOV_model.pse`
 
 ```bash
 # Pharmacophore Modeling for KRAS(G12C) - PDBID: 6OIM
@@ -78,7 +77,7 @@ Ligand 1
 Ligand 2
 - ID      : GDP (Chain: C [auth A])
 - Center  : -6.125, 3.588, 7.310
-- Name    : GUANOSINE-5'-DIPHOSPHATE
+- Name    : GUANOSINE-5-DIPHOSPHATE
 
 Ligand 3
 - ID      : MOV (Chain: D [auth A])
@@ -101,10 +100,18 @@ INFO:root:Save Pymol Visualization Session to result/6oim/6oim_D_MOV_model.pse
 #### Example with custom protein
 
 ```bash
+# With reference ligand.
+> python modeling.py --protein ./examples/6OIM_protein.pdb --ref_ligand ./examples/6OIM_D_MOV.pdb --prefix 6oim
+INFO:root:Load PharmacoNet finish
+INFO:root:Load examples/6OIM_protein.pdb
+INFO:root:Using center of examples/6oim_D_MOV.pdb as center of box
+INFO:root:Save Pharmacophore Model to result/6oim/6oim_6oim_D_MOV_model.pm
+INFO:root:Save Pymol Visualization Session to result/6oim/6oim_6oim_D_MOV_model.pse
+
+# Without reference ligand -> center is required.
 > python modeling.py --protein ./examples/6OIM_protein.pdb --prefix 6oim
 INFO:root:Load PharmacoNet finish
 INFO:root:Load examples/6OIM_protein.pdb
-
 WARNING:root:No ligand is detected!
 INFO:root:Enter the center of binding site manually:
 x: 2	# USER INPUT: Enter x
@@ -117,11 +124,29 @@ INFO:root:Save Pymol Visualization Session to result/6OIM/6OIM_2.0_-8.0_-1.0_mod
 
 
 
-## Scoring
+## Virtual Screening
 
-We provide two simple example scripts for scoring. However, it can be easily included in your custom script via the python code below. (\* Multiprocessing is allowed)
+We provide the simple script for screening.
 
-#### Example python code
+```bash
+# Default Parameter Setting (Cation/Anion: 8, Aromatic/Halogen/HBA/HBD: 4, Hydrophobic: 1)
+python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU>
+
+# Custom Parameters Setting
+python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU> \
+  --anion <ANION> --cation <CATION> --aromatic <AROMATIC> \
+  --hbd <HBD> --hba <HBA> --halogen <HALOGEN> --hydrophobic <HYDROPHOBIC>
+
+# Example
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1 --hbd 5 --hba 5 --aromatic 8
+```
+
+
+
+#### Example python code for ligand evaluation
+
+Also, it can be easily included in your custom script via the python code below. (\* Multiprocessing is allowed)
 
 ```python
 from pmnet import PharmacophoreModel

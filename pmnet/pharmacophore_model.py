@@ -70,7 +70,7 @@ class PharmacophoreModel():
         ligand_file: os.PathLike,
         weights: Optional[Dict[str, float]] = None,
     ) -> float:
-        return self._scoring(Ligand.load_from_file(ligand_file), weights)
+        return self._scoring(Ligand.load_from_file(str(ligand_file)), weights)
 
     def scoring_smiles(
         self,
