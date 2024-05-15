@@ -1,8 +1,8 @@
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
-**Before using PharmacoNet, also consider using OpenPharm - GUI powered by PharmacoNet.**
+**Before using PharmacoNet, also consider using PharmacoGUI - GUI powered by PharmacoNet.**
 
-**[OpenPharm Github](https://github.com/SeonghwanSeo/OpenPharm) (Released in June)**
+**[PharmacoGUI Github](https://github.com/SeonghwanSeo/PharmacoGUI) (Released in May-June)**
 
 Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
