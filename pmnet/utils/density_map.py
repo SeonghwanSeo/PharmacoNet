@@ -4,17 +4,17 @@ import numpy as np
 import math
 import itertools
 
-from typing import Dict, List, Tuple, Set, Iterator
+from collections.abc import Iterator
 from numpy.typing import NDArray
 
-from .constant import INTERACTION_LIST
+from pmnet.data.constant import INTERACTION_LIST
 
 
 OVERLAP_DISTANCE = 1.5
 CLUSTER_DISTANCE = 3.0
 
 
-def coords_to_position(coords, center, resolution, size) -> Tuple[float, float, float]:
+def coords_to_position(coords, center, resolution, size) -> tuple[float, float, float]:
     x_center, y_center, z_center = center
     x, y, z = coords
     x_origin = x_center - (resolution * (size - 1) / 2)
@@ -26,35 +26,30 @@ def coords_to_position(coords, center, resolution, size) -> Tuple[float, float, 
     return (x_pos, y_pos, z_pos)
 
 
-class DensityMapGraph():
-    def __init__(self, center: Tuple[float, float, float], resolution: float, size: int):
-        self.center: Tuple[float, float, float] = center
+class DensityMapGraph:
+    def __init__(self, center: tuple[float, float, float], resolution: float, size: int):
+        self.center: tuple[float, float, float] = center
         self.resolution: float = resolution
         self.size: int = size
 
-        self.nodes: List[DensityMapNode] = []
-        self.edges: List[DensityMapEdge] = []
-        self.node_dict: Dict[str, List[DensityMapNode]] = {typ: [] for typ in INTERACTION_LIST}
-        self.edge_dict_nodes: Dict[Tuple[DensityMapNode, DensityMapNode], DensityMapEdge] = {}
-        self.edge_dict_indices: Dict[Tuple[int, int], DensityMapEdge] = {}
+        self.nodes: list[DensityMapNode] = []
+        self.edges: list[DensityMapEdge] = []
+        self.node_dict: dict[str, list[DensityMapNode]] = {typ: [] for typ in INTERACTION_LIST}
+        self.edge_dict_nodes: dict[tuple[DensityMapNode, DensityMapNode], DensityMapEdge] = {}
+        self.edge_dict_indices: dict[tuple[int, int], DensityMapEdge] = {}
 
-        self.node_clusters: List[DensityMapNodeCluster] = []
-        self.node_cluster_dict: Dict[str, List[DensityMapNodeCluster]] = dict(
-            Cation=[],
-            Anion=[],
-            HBond=[],
-            Aromatic=[],
-            Hydrophobic=[],
-            Halogen=[]
+        self.node_clusters: list[DensityMapNodeCluster] = []
+        self.node_cluster_dict: dict[str, list[DensityMapNodeCluster]] = dict(
+            Cation=[], Anion=[], HBond=[], Aromatic=[], Hydrophobic=[], Halogen=[]
         )
 
     def add_node(
         self,
         node_type: str,
-        hotspot_position: Tuple[float, float, float],
+        hotspot_position: tuple[float, float, float],
         score: float,
         mask: NDArray[np.float_],
-    ):
+    ) -> list[DensityMapNode]:
         new_node_list = []
         for grids, grid_scores in self.__extract_pharmacophores(mask):
             grids, grid_scores = np.array(grids), np.array(grid_scores)
@@ -63,38 +58,40 @@ class DensityMapGraph():
             new_node = DensityMapNode(self, hotspot_position, node_type, score, grids, grid_scores)
             self.nodes.append(new_node)
             self.node_dict[node_type].append(new_node)
-            for node in self.nodes:     # Add self loop
+            new_node_list.append(new_node)
+            for node in self.nodes:  # Add self loop
                 edge = new_node.add_neighbors(node)
                 self.edges.append(edge)
                 self.edge_dict_nodes[(node, new_node)] = edge
                 self.edge_dict_nodes[(new_node, node)] = edge
                 self.edge_dict_indices[(node.index, new_node.index)] = edge
                 self.edge_dict_indices[(new_node.index, node.index)] = edge
-            new_node_list.append(new_node)
         return new_node_list
 
     def setup(self):
         self.__clustering()
 
     @staticmethod
-    def __extract_pharmacophores(mask) -> Iterator[Tuple[List[Tuple[int, int, int]], List[float]]]:
+    def __extract_pharmacophores(
+        mask,
+    ) -> Iterator[tuple[list[tuple[int, int, int]], list[float]]]:
         """Get Node From Mask by Clustering Algorithm
 
         Args:
             mask (NDArray): FloatArray[D, H, W]
 
         Yields:
-            coordinates: List[Tuple[int, int, int]] - [(x, y, z)]
-            grid_scores: List[float] - [score]
+            coordinates: list[tuple[int, int, int]] - [(x, y, z)]
+            grid_scores: list[float] - [score]
         """
-        x_indices, y_indices, z_indices = np.where(mask > 0.)
+        x_indices, y_indices, z_indices = np.where(mask > 0.0)
         points = {(int(x), int(y), int(z)) for x, y, z in zip(x_indices, y_indices, z_indices)}
-        while (len(points) > 0):
+        while len(points) > 0:
             point = x, y, z = points.pop()
             cluster = [point]
             scores = [float(mask[x, y, z])]
             search_center = cluster
-            for (x, y, z) in search_center:
+            for x, y, z in search_center:
                 new_center = []
                 for dx, dy, dz in itertools.product((-1, 0, 1), repeat=3):
                     if dx == 0 and dy == 0 and dz == 0:
@@ -115,88 +112,98 @@ class DensityMapGraph():
 
         # NOTE: Cation, Anion, Aromatic Aromatic
         GROUP_CLUSTER_CONFIGS = [
-            {'name': 'Cation', 'major_type': ('SaltBridge_pneg', 'PiCation_pring'), 'minor_type': 'HBond'},
-            {'name': 'Anion', 'major_type': 'SaltBridge_lneg', 'minor_type': 'HBond'},
-            {'name': 'Aromatic', 'major_type': ('PiStacking', 'PiCation_lring'), 'minor_type': 'Hydrophobic'},
+            {
+                "name": "Cation",
+                "major_type": ("SaltBridge_pneg", "PiCation_pring"),
+                "minor_type": "HBond",
+            },
+            {"name": "Anion", "major_type": "SaltBridge_lneg", "minor_type": "HBond"},
+            {
+                "name": "Aromatic",
+                "major_type": ("PiStacking", "PiCation_lring"),
+                "minor_type": "Hydrophobic",
+            },
         ]
         used_nodes = set()
         for node in self.nodes:
             if node in used_nodes:
                 continue
             for CONFIG in GROUP_CLUSTER_CONFIGS:
-                if node.type.startswith(CONFIG['major_type']):
+                if node.type.startswith(CONFIG["major_type"]):
                     cluster_nodes = {node}
                     # NOTE: Add Overlapped Nodes
                     cluster_nodes.update(
-                        overlapped_node for overlapped_node in node.overlapped_nodes
-                        if overlapped_node.type.startswith(CONFIG['major_type'])
+                        overlapped_node
+                        for overlapped_node in node.overlapped_nodes
+                        if overlapped_node.type.startswith(CONFIG["major_type"])
                     )
                     # NOTE: Add Dependency Nodes
                     cluster_nodes.update(
-                        _node for _node in self.nodes
-                        if _node.type.startswith(CONFIG['minor_type'])
+                        _node
+                        for _node in self.nodes
+                        if _node.type.startswith(CONFIG["minor_type"])
                         and any(are_nodes_close(_node, cluster_node) for cluster_node in cluster_nodes)
                     )
                     used_nodes.update(cluster_nodes)
                     # NOTE: Add New Cluster
-                    cluster = DensityMapNodeCluster(self, cluster_nodes, CONFIG['name'])
-                    self.node_cluster_dict[CONFIG['name']].append(cluster)
+                    cluster = DensityMapNodeCluster(self, cluster_nodes, CONFIG["name"])
+                    self.node_cluster_dict[CONFIG["name"]].append(cluster)
                     break
 
         # NOTE: HBond, Hydrophobic, Halogen
         SINGLE_CLUSTER_CONFIGS = [
-            {'name': 'HBond', 'type': 'HBond'},
-            {'name': 'Hydrophobic', 'type': 'Hydrophobic'},
-            {'name': 'Halogen', 'type': 'XBond'},
+            {"name": "HBond", "type": "HBond"},
+            {"name": "Hydrophobic", "type": "Hydrophobic"},
+            {"name": "Halogen", "type": "XBond"},
         ]
         for node in self.nodes:
             if node in used_nodes:
                 continue
             for CONFIG in SINGLE_CLUSTER_CONFIGS:
-                if node.type.startswith(CONFIG['type']):
+                if node.type.startswith(CONFIG["type"]):
                     # NOTE: Create New Cluster - [Node, Close Nodes]
                     cluster_nodes = {
-                        _node for _node in self.nodes
-                        if _node.type.startswith(CONFIG['type'])
-                        and are_nodes_close(node, _node)
+                        _node
+                        for _node in self.nodes
+                        if _node.type.startswith(CONFIG["type"]) and are_nodes_close(node, _node)
                     }
                     cluster_nodes.add(node)
-                    cluster = DensityMapNodeCluster(self, cluster_nodes, CONFIG['name'])
+                    cluster = DensityMapNodeCluster(self, cluster_nodes, CONFIG["name"])
                     used_nodes.update(cluster_nodes)
-                    self.node_cluster_dict[CONFIG['name']].append(cluster)
+                    self.node_cluster_dict[CONFIG["name"]].append(cluster)
                     break
 
         for clusters in self.node_cluster_dict.values():
             self.node_clusters.extend(clusters)
 
 
-class DensityMapNodeCluster():
+class DensityMapNodeCluster:
     def __init__(
         self,
         graph: DensityMapGraph,
-        nodes: Set[DensityMapNode],
+        nodes: set[DensityMapNode],
         cluster_type: str,
     ):
         self.graph = graph
         self.type: str = cluster_type
-        self.nodes: Set[DensityMapNode] = nodes
+        self.nodes: set[DensityMapNode] = nodes
         positions = np.array([node.center for node in self.nodes])
         radii = np.array([node.radius * 2 for node in self.nodes])
         center = np.mean(positions, axis=0)
         distances = np.linalg.norm(positions - center.reshape(1, 3), axis=-1) + radii
         x, y, z = center.tolist()
-        self.center: Tuple[float, float, float] = (x, y, z)
+        self.center: tuple[float, float, float] = (x, y, z)
         self.size: float = np.max(distances).item()
 
     def __repr__(self):
-        return f'DensityMapNodeCluster[{self.type}] [ {self.nodes} ]'
+        return f"DensityMapNodeCluster[{self.type}] [ {self.nodes} ]"
 
 
-class DensityMapNode():
+class DensityMapNode:
     def __init__(
         self,
         graph: DensityMapGraph,
-        hotspot_position: Tuple[float, float, float],
+        hotspot_position: tuple[float, float, float],
         node_type: str,
         score: float,
         grids: NDArray[np.int_],
@@ -207,21 +214,24 @@ class DensityMapNode():
         self.type: str = node_type
         self.grids = grids
 
-        self.hotspot_position: Tuple[float, float, float] = hotspot_position
+        self.hotspot_position: tuple[float, float, float] = hotspot_position
 
         self.score: float = score
         center_coords = np.average(grids, axis=0, weights=grid_scores)
-        self.center: NDArray[np.float32] = np.array(coords_to_position(center_coords, self.graph.center, self.graph.resolution, self.graph.size), dtype=np.float32)
+        self.center: NDArray[np.float32] = np.array(
+            coords_to_position(center_coords, self.graph.center, self.graph.resolution, self.graph.size),
+            dtype=np.float32,
+        )
         self.radius = (grids.shape[0] / (4 * math.pi / 3)) ** (1 / 3) * self.graph.resolution
 
-        self.neighbor_edge_dict: Dict[DensityMapNode, DensityMapEdge] = {}
-        self.overlapped_nodes: List[DensityMapNode] = []
+        self.neighbor_edge_dict: dict[DensityMapNode, DensityMapEdge] = {}
+        self.overlapped_nodes: list[DensityMapNode] = []
 
     def __hash__(self):
         return self.index
 
     def __repr__(self):
-        return f'DensityMapNode({self.index})[{self.type}]'
+        return f"DensityMapNode({self.index})[{self.type}]"
 
     def add_neighbors(self, neighbor: DensityMapNode) -> DensityMapEdge:
         assert neighbor not in self.neighbor_edge_dict
@@ -236,7 +246,7 @@ class DensityMapNode():
         return edge
 
 
-class DensityMapEdge():
+class DensityMapEdge:
     """Density Map Edge
 
     Attributes:
@@ -254,11 +264,11 @@ class DensityMapEdge():
         self.index = len(self.graph.edges)
         if node2.index < node1.index:
             node1, node2 = node2, node1
-        self.node_indices: Tuple[int, int] = (node1.index, node2.index)
-        self.nodes: Tuple[DensityMapNode, DensityMapNode] = (node1, node2)
+        self.node_indices: tuple[int, int] = (node1.index, node2.index)
+        self.nodes: tuple[DensityMapNode, DensityMapNode] = (node1, node2)
         type1, type2 = node1.type, node2.type
 
-        self.type: Tuple[str, str] = (min(type1, type2), max(type1, type2))
+        self.type: tuple[str, str] = (min(type1, type2), max(type1, type2))
         self.distance_mean: float = np.linalg.norm(node1.center - node2.center).item()
-        self.distance_std: float = math.sqrt(node1.radius ** 2 + node2.radius ** 2)
-        self.overlapped: bool = (self.distance_mean < OVERLAP_DISTANCE)
+        self.distance_std: float = math.sqrt(node1.radius**2 + node2.radius**2)
+        self.overlapped: bool = self.distance_mean < OVERLAP_DISTANCE

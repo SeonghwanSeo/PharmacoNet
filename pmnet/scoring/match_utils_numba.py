@@ -3,15 +3,18 @@ import numpy as np
 import numba as nb
 import itertools
 
-from typing import Tuple, Tuple
 from numpy.typing import NDArray
 
 
-DISTANCE_SIGMA_THRESHOLD = 2.
+DISTANCE_SIGMA_THRESHOLD = 2.0
 PASS_THRESHOLD = 0.5
 
 
-@nb.njit('void(float32[::1],float32[:, :, ::1],float32[::1],float32[::1],float32[::1],int16[::1])', fastmath=True, cache=True)
+@nb.njit(
+    "void(float32[::1],float32[:, :, ::1],float32[::1],float32[::1],float32[::1],int16[::1])",
+    fastmath=True,
+    cache=True,
+)
 def __numba_run(
     distances: NDArray[np.float32],
     mean_stds: NDArray[np.float32],
@@ -54,7 +57,7 @@ def __numba_run(
     C = distances.shape[0]
 
     num_match = M * N
-    pass_threshold = (num_match + 1) // 2    # PASS_THRESHOLD
+    pass_threshold = (num_match + 1) // 2  # PASS_THRESHOLD
 
     # NOTE: Coefficient Calculation
     W1 = sum(weights1)
@@ -65,10 +68,10 @@ def __numba_run(
     for c in range(C):
         d = distances[c]
         num_pass = 0
-        likelihood = 0.
+        likelihood = 0.0
         for m in range(M):
             w1 = weights1[m]
-            _likelihood = 0.
+            _likelihood = 0.0
             for n in range(N):
                 w2 = weights2[n]
                 mu = mean_stds[m, n, 0]
@@ -84,7 +87,11 @@ def __numba_run(
             fail_array[c] += 1
 
 
-@nb.njit('void(float32[::1],float32[:, :, ::1],float32[::1],float32[::1],float32[::1])', fastmath=True, cache=True)
+@nb.njit(
+    "void(float32[::1],float32[:, :, ::1],float32[::1],float32[::1],float32[::1])",
+    fastmath=True,
+    cache=True,
+)
 def __numba_run_self(
     distances: NDArray[np.float32],
     mean_stds: NDArray[np.float32],
@@ -131,10 +138,10 @@ def __numba_run_self(
 
     for c in range(C):
         d = distances[c]
-        likelihood = 0.
+        likelihood = 0.0
         for m in range(M):
             w1 = weights1[m]
-            _likelihood = 0.
+            _likelihood = 0.0
             for n in range(N):
                 w2 = weights2[n]
                 mu = mean_stds[m, n, 0]
@@ -145,7 +152,7 @@ def __numba_run_self(
         score_array[c] += likelihood * normalize_coeff * score_coeff
 
 
-def __get_distance_mean_std(model_node1, model_node2) -> Tuple[float, float]:
+def __get_distance_mean_std(model_node1, model_node2) -> tuple[float, float]:
     """
     model_node1: ModelNode
     model_node2: ModelNode
@@ -158,14 +165,18 @@ def scoring_matching_pair(
     cluster_node_match_list1,
     cluster_node_match_list2,
     num_conformers: int,
-) -> Tuple[float, ...]:
+) -> tuple[float, ...]:
     """
-    cluster_node_match_list1: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
-    cluster_node_match_list2: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list1: List[tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list2: List[tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
     num_conformers: int,
     """
 
-    match_threshold = len(cluster_node_match_list1) * len(cluster_node_match_list2) * (1 - PASS_THRESHOLD)
+    match_threshold = (
+        len(cluster_node_match_list1)
+        * len(cluster_node_match_list2)
+        * (1 - PASS_THRESHOLD)
+    )
 
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     num_fails = np.zeros((num_conformers,), dtype=np.int16)
@@ -174,30 +185,34 @@ def scoring_matching_pair(
             ligand_edge = ligand_node1.neighbor_edge_dict[ligand_node2]
             distances = ligand_edge.distances
 
-            mean_stds = np.array([
-                [__get_distance_mean_std(model_node1, model_node2) for model_node2 in model_node_list2]
-                for model_node1 in model_node_list1
-            ], dtype=np.float32)   # [M, N, 2]
+            mean_stds = np.array(
+                [
+                    [
+                        __get_distance_mean_std(model_node1, model_node2)
+                        for model_node2 in model_node_list2
+                    ]
+                    for model_node1 in model_node_list1
+                ],
+                dtype=np.float32,
+            )  # [M, N, 2]
             __numba_run(
-                distances,
-                mean_stds,
-                weights1,
-                weights2,
-                match_scores,
-                num_fails
+                distances, mean_stds, weights1, weights2, match_scores, num_fails
             )
             if min(num_fails) > match_threshold:
                 return (-1,) * num_conformers
 
-    return tuple(float(score) if num_fail <= match_threshold else -1 for score, num_fail in zip(match_scores, num_fails))
+    return tuple(
+        float(score) if num_fail <= match_threshold else -1
+        for score, num_fail in zip(match_scores, num_fails, strict=True)
+    )
 
 
 def scoring_matching_self(
     cluster_node_match_list,
     num_conformers: int,
-) -> Tuple[float, ...]:
+) -> tuple[float, ...]:
     """
-    cluster_node_match_list: List[Tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
+    cluster_node_match_list: List[tuple[LigandNode, List[ModelNode], NDArray[np.float32]]],
     num_conformers: int,
     """
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
@@ -208,10 +223,16 @@ def scoring_matching_self(
         ligand_edge = ligand_node1.neighbor_edge_dict[ligand_node2]
         distances = ligand_edge.distances
 
-        mean_stds = np.array([
-            [__get_distance_mean_std(model_node1, model_node2) for model_node2 in model_node_list2]
-            for model_node1 in model_node_list1
-        ], dtype=np.float32)   # [M, N, 2]
+        mean_stds = np.array(
+            [
+                [
+                    __get_distance_mean_std(model_node1, model_node2)
+                    for model_node2 in model_node_list2
+                ]
+                for model_node1 in model_node_list1
+            ],
+            dtype=np.float32,
+        )  # [M, N, 2]
         __numba_run_self(
             distances,
             mean_stds,

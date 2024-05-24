@@ -1,0 +1,17 @@
+name: openph
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip=24.0
+  - openbabel=3.1.1
+  - pymol-open-source=3.0.0
+  - numpy>=1.26.0
+  - pip:
+      - --find-links https://pytorch-geometric.com/whl/torch-1.13.1+cu117.html
+      - torch==1.13.1+cu117
+      - molvoxel==0.1.3
+      - numba>=0.59.0
+      - omegaconf==2.3.0
+      - gdown==5.1.0
+      - biopython==1.83
