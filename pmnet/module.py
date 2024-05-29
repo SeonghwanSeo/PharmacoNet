@@ -33,16 +33,16 @@ MOLVOXEL_LIBRARY = "numba" if find_spec("numba") is not None else "numpy"
 DEFAULT_FOCUS_THRESHOLD = 0.5
 DEFAULT_BOX_THRESHOLD = 0.5
 DEFAULT_SCORE_THRESHOLD = {
-    "PiStacking_P": 0.6,  # Top 40%
-    "PiStacking_T": 0.6,
-    "SaltBridge_lneg": 0.6,
-    "SaltBridge_pneg": 0.6,
-    "PiCation_lring": 0.6,
-    "PiCation_pring": 0.6,
-    "XBond": 0.8,  # Top 20%
-    "HBond_ldon": 0.8,
-    "HBond_pdon": 0.8,
-    "Hydrophobic": 0.8,
+    "PiStacking_P": 0.7,  # Top 30%
+    "PiStacking_T": 0.7,
+    "SaltBridge_lneg": 0.7,
+    "SaltBridge_pneg": 0.7,
+    "PiCation_lring": 0.7,
+    "PiCation_pring": 0.7,
+    "XBond": 0.85,  # Top 15%
+    "HBond_ldon": 0.85,
+    "HBond_pdon": 0.85,
+    "Hydrophobic": 0.85,
 }
 
 
@@ -69,8 +69,7 @@ class PharmacoNet:
         self.focus_threshold = focus_threshold
         self.box_threshold = box_threshold
         self.score_distributions = {
-            typ: np.array(distribution["focus"])
-            for typ, distribution in checkpoint["score_distributions"].items()
+            typ: np.array(distribution["focus"]) for typ, distribution in checkpoint["score_distributions"].items()
         }
 
         self.score_threshold: dict[str, float]
@@ -78,7 +77,6 @@ class PharmacoNet:
             self.score_threshold = score_threshold
         else:
             self.score_threshold = {typ: score_threshold for typ in INTERACTION_LIST}
-        print(self.score_threshold)
         del checkpoint
 
         in_resolution = config.VOXEL.IN.RESOLUTION
@@ -120,37 +118,34 @@ class PharmacoNet:
         protein_pdb_path: str,
         center: NDArray[np.float32],
     ):
-        pocket_pdbblock, protein_image, non_protein_area, token_positions, tokens = self._parse_protein(
-            protein_pdb_path, center
-        )
+        protein_image, non_protein_area, token_positions, tokens = self._parse_protein(protein_pdb_path, center)
+        with open(protein_pdb_path) as f:
+            pdbblock: str = "\n".join(f.readlines())
+
         density_maps = self._create_density_maps(
             torch.from_numpy(protein_image),
             torch.from_numpy(non_protein_area) if non_protein_area is not None else None,
             torch.from_numpy(token_positions),
             torch.from_numpy(tokens),
         )
-        return self._create_pharmacophore_model(pocket_pdbblock, center, density_maps)
+        return self._create_pharmacophore_model(pdbblock, center, density_maps)
 
     def _create_pharmacophore_model(
-        self, pocket_pdbblock: str, center: NDArray[np.float32], density_maps
+        self, pdbblock: str, center: NDArray[np.float32], density_maps
     ) -> PharmacophoreModel:
         x, y, z = center.tolist()
-        return PharmacophoreModel.create(
-            pocket_pdbblock, (x, y, z), self.out_resolution, self.out_size, density_maps
-        )
+        return PharmacophoreModel.create(pdbblock, (x, y, z), self.out_resolution, self.out_size, density_maps)
 
     def _parse_protein(
         self,
         protein_pdb_path: str,
         center: NDArray[np.float32],
-    ) -> tuple[str, NDArray, NDArray | None, NDArray, NDArray]:
+    ) -> tuple[NDArray, NDArray | None, NDArray, NDArray]:
         self.print_log("debug", "Extract Pocket...")
         with tempfile.TemporaryDirectory() as dirname:
             pocket_path = os.path.join(dirname, "pocket.pdb")
             extract_pocket(protein_pdb_path, pocket_path, center, self.pocket_cutoff)  # root(3)
             protein_obj: Protein = Protein.from_pdbfile(pocket_path)
-            with open(pocket_path) as f:
-                pocket_pdbblock: str = "\n".join(f.readlines())
         self.print_log("debug", "Extract Pocket Finish")
 
         token_positions, token_classes = token_inference.get_token_informations(protein_obj)
@@ -186,7 +181,7 @@ class PharmacoNet:
             non_protein_area = None
         self.print_log("debug", "MolVoxel:Voxelize Pocket Finish")
 
-        return pocket_pdbblock, protein_image, non_protein_area, token_positions, tokens
+        return protein_image, non_protein_area, token_positions, tokens
 
     def _create_density_maps(
         self,
@@ -199,9 +194,7 @@ class PharmacoNet:
         token_positions = token_positions.to(device=self.device, dtype=torch.float)
         tokens = tokens.to(device=self.device, dtype=torch.long)
         non_protein_area = (
-            non_protein_area.to(device=self.device, dtype=torch.bool)
-            if non_protein_area is not None
-            else None
+            non_protein_area.to(device=self.device, dtype=torch.bool) if non_protein_area is not None else None
         )
 
         with torch.amp.autocast(self.device, enabled=self.config.AMP_ENABLE):
@@ -228,9 +221,7 @@ class PharmacoNet:
                 x, y, z, typ = tokens[i].tolist()
                 # NOTE: Check the token score
                 absolute_score = token_scores[i].item()
-                relative_score = float(
-                    (self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean()
-                )
+                relative_score = float((self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean())
                 if relative_score < self.score_threshold[INTERACTION_LIST[int(typ)]]:
                     continue
                 # NOTE: Check the token exists in cavity
@@ -282,9 +273,7 @@ class PharmacoNet:
                 self.out_resolution,
                 self.out_size,
             )
-            box_area = torch.from_numpy(box_area).to(
-                device=self.device, dtype=torch.bool
-            )  # [Ntoken', D, H, W]
+            box_area = torch.from_numpy(box_area).to(device=self.device, dtype=torch.bool)  # [Ntoken', D, H, W]
             unavailable_area = ~(box_area & non_protein_area & cavity_narrow)  # [Ntoken', D, H, W]
 
             # NOTE: masking should be performed before smoothing - masked area is not trained.
@@ -324,9 +313,7 @@ class PharmacoNet:
         token_positions = token_positions.to(device=self.device, dtype=torch.float)
         tokens = tokens.to(device=self.device, dtype=torch.long)
         non_protein_area = (
-            non_protein_area.to(device=self.device, dtype=torch.bool)
-            if non_protein_area is not None
-            else None
+            non_protein_area.to(device=self.device, dtype=torch.bool) if non_protein_area is not None else None
         )
 
         with torch.amp.autocast(self.device, enabled=self.config.AMP_ENABLE):
@@ -353,9 +340,7 @@ class PharmacoNet:
                 x, y, z, typ = tokens[i].tolist()
                 # NOTE: Check the token score
                 absolute_score = token_scores[i].item()
-                relative_score = float(
-                    (self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean()
-                )
+                relative_score = float((self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean())
                 if relative_score < self.score_threshold[INTERACTION_LIST[int(typ)]]:
                     continue
                 # NOTE: Check the token exists in cavity

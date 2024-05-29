@@ -30,8 +30,8 @@ if TYPE_CHECKING:
 
 # NOTE: Parameters
 DEFAULT_WEIGHTS: dict[str, float] = dict(
-    Cation=4,
-    Anion=4,
+    Cation=8,
+    Anion=8,
     Aromatic=4,
     HBond_donor=4,
     HBond_acceptor=4,
@@ -66,11 +66,7 @@ class GraphMatcher:
         model: PharmacophoreModel,
         ligand: Ligand,
         weights: dict[str, float] | None = None,
-        scoring_rule: str = "average",
     ):
-        assert scoring_rule in ("average", "max")
-        self.scoring_rule: str = scoring_rule
-
         self.model_graph: PharmacophoreModel = model
         self.ligand_graph: LigandGraph = ligand.graph
         self.num_atoms = ligand.num_atoms
@@ -91,9 +87,9 @@ class GraphMatcher:
         self.ligand_cluster_list = sorted(self.cluster_match_dict.keys(), key=priority_fn)
         self.ligand_cluster_list = self.ligand_cluster_list[:20]  # MAX DEPTH: 20
         self.node_match_dict = self._get_node_match_dict()
-        self.matching_pair_scores_dict: dict[
-            LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]
-        ] = self._get_pair_scores()
+        self.matching_pair_scores_dict: dict[LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]] = (
+            self._get_pair_scores()
+        )
 
     def run(self) -> float:
         if len(self.ligand_graph.node_clusters) == 0:
@@ -102,20 +98,18 @@ class GraphMatcher:
         if len(self.ligand_cluster_list) == 0:
             return 0
         root_tree = self.run_tree()
-        if self.scoring_rule.startswith("max"):
-            return self._run_max(root_tree)
-        else:
-            return self._run_average(root_tree)
+        return self._run_average(root_tree)
+
+    def _run_average(self, root_tree) -> float:
+        scores = np.zeros(self.num_conformers)
+        for leaf in root_tree.iteration():
+            for conformer_id, _score in leaf.pair_scores.items():
+                if _score > scores[conformer_id]:
+                    scores[conformer_id] = _score
+        return float(np.mean(scores))
 
     def _run_max(self, root_tree) -> float:
         return max(leaf.max_score for leaf in root_tree.iteration())
-
-    def _run_average(self, root_tree) -> float:
-        scores = [0] * self.num_conformers
-        for leaf in root_tree.iteration():
-            for conformer_id, _score in leaf.pair_scores.items():
-                scores[conformer_id] = max(_score, scores[conformer_id])
-        return sum(scores) / self.num_conformers
 
     def run_tree(self) -> ClusterMatchTreeRoot:
         root_tree = ClusterMatchTreeRoot(
@@ -152,9 +146,7 @@ class GraphMatcher:
             ligand_node: LigandNode, model_cluster: ModelNodeCluster
         ) -> tuple[LigandNode, list[ModelNode], NDArray[np.float32]]:
             match_model_nodes = [
-                model_node
-                for model_node in model_cluster.nodes
-                if model_node.type in ligand_node.types
+                model_node for model_node in model_cluster.nodes if model_node.type in ligand_node.types
             ]
             weights = np.array(
                 [self.weights[model_node.type] for model_node in match_model_nodes],
@@ -164,8 +156,7 @@ class GraphMatcher:
 
         node_match_dict = {
             (ligand_cluster, model_cluster): [
-                __get_node_match(ligand_node, model_cluster)
-                for ligand_node in ligand_cluster.nodes
+                __get_node_match(ligand_node, model_cluster) for ligand_node in ligand_cluster.nodes
             ]
             for ligand_cluster, model_cluster_list in self.cluster_match_dict.items()
             for model_cluster in model_cluster_list
@@ -184,65 +175,46 @@ class GraphMatcher:
     def _get_pair_scores_readability(
         self,
     ) -> dict[LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]]:
-        matching_pair_scores_dict: dict[
-            LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]
-        ] = {
+        matching_pair_scores_dict: dict[LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]] = {
             (ligand_cluster1, ligand_cluster2): {}
-            for ligand_cluster1, ligand_cluster2 in itertools.combinations(
-                self.ligand_cluster_list, 2
-            )
+            for ligand_cluster1, ligand_cluster2 in itertools.combinations(self.ligand_cluster_list, 2)
         }
 
         NO_MATCH_SCORE = (-1,) * self.num_conformers
-        for ligand_cluster1, ligand_cluster2 in itertools.combinations(
-            self.ligand_cluster_list, 2
-        ):
-            ligand_cluster_distance = np.linalg.norm(
-                ligand_cluster1.center - ligand_cluster2.center, axis=-1
-            )
+        for ligand_cluster1, ligand_cluster2 in itertools.combinations(self.ligand_cluster_list, 2):
+            ligand_cluster_distance = np.linalg.norm(ligand_cluster1.center - ligand_cluster2.center, axis=-1)
             ligand_cluster_size = ligand_cluster1.size + ligand_cluster2.size
 
             model_cluster_list1, model_cluster_list2 = (
                 self.cluster_match_dict[ligand_cluster1],
                 self.cluster_match_dict[ligand_cluster2],
             )
-            for model_cluster1, model_cluster2 in itertools.product(
-                model_cluster_list1, model_cluster_list2
-            ):
+            for model_cluster1, model_cluster2 in itertools.product(model_cluster_list1, model_cluster_list2):
                 (x1, y1, z1), (x2, y2, z2) = (
                     model_cluster1.center,
                     model_cluster2.center,
                 )
-                model_cluster_distance = math.sqrt(
-                    (x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2
-                )
+                model_cluster_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2)
                 model_cluster_size = model_cluster1.size + model_cluster2.size
 
                 if (
-                    min(
-                        np.abs(ligand_cluster_distance - model_cluster_distance)
-                        - ligand_cluster_size
-                    )
+                    min(np.abs(ligand_cluster_distance - model_cluster_distance) - ligand_cluster_size)
                     > model_cluster_size
                 ):
                     pair_score = NO_MATCH_SCORE
                 else:
                     node_match_list1 = self.node_match_dict[ligand_cluster1, model_cluster1]
                     node_match_list2 = self.node_match_dict[ligand_cluster2, model_cluster2]
-                    pair_score = scoring_matching_pair(
-                        node_match_list1, node_match_list2, self.num_conformers
-                    )
-                matching_pair_scores_dict[ligand_cluster1, ligand_cluster2][
-                    model_cluster1, model_cluster2
-                ] = pair_score
+                    pair_score = scoring_matching_pair(node_match_list1, node_match_list2, self.num_conformers)
+                matching_pair_scores_dict[ligand_cluster1, ligand_cluster2][model_cluster1, model_cluster2] = pair_score
 
         for ligand_cluster in self.ligand_cluster_list:
             for model_cluster in self.cluster_match_dict[ligand_cluster]:
                 node_match_list = self.node_match_dict[ligand_cluster, model_cluster]
                 self_pair_score = scoring_matching_self(node_match_list, self.num_conformers)
-                matching_pair_scores_dict[ligand_cluster, ligand_cluster][
-                    model_cluster, model_cluster
-                ] = self_pair_score
+                matching_pair_scores_dict[ligand_cluster, ligand_cluster][model_cluster, model_cluster] = (
+                    self_pair_score
+                )
 
         return matching_pair_scores_dict
 
@@ -265,9 +237,7 @@ class GraphMatcher:
                     for model_cluster in self.cluster_match_dict[ligand_cluster1]
                 }
             else:
-                ligand_cluster_distance = np.linalg.norm(
-                    ligand_cluster1.center - ligand_cluster2.center, axis=-1
-                )
+                ligand_cluster_distance = np.linalg.norm(ligand_cluster1.center - ligand_cluster2.center, axis=-1)
                 ligand_cluster_size = ligand_cluster1.size + ligand_cluster2.size
                 return {
                     model_cluster_pair: __get_score_dict_inner(
@@ -294,25 +264,16 @@ class GraphMatcher:
             model_cluster_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2)
             model_cluster_size = model_cluster1.size + model_cluster2.size
 
-            if (
-                min(np.abs(ligand_cluster_distance - model_cluster_distance) - ligand_cluster_size)
-                > model_cluster_size
-            ):
+            if min(np.abs(ligand_cluster_distance - model_cluster_distance) - ligand_cluster_size) > model_cluster_size:
                 pair_score = NO_MATCH_SCORE
             else:
                 node_match_list1 = self.node_match_dict[ligand_cluster1, model_cluster1]
                 node_match_list2 = self.node_match_dict[ligand_cluster2, model_cluster2]
-                pair_score = scoring_matching_pair(
-                    node_match_list1, node_match_list2, self.num_conformers
-                )
+                pair_score = scoring_matching_pair(node_match_list1, node_match_list2, self.num_conformers)
             return pair_score
 
-        matching_pair_scores_dict: dict[
-            LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]
-        ] = {
+        matching_pair_scores_dict: dict[LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]] = {
             ligand_cluster_pair: __get_score_dict_outer(ligand_cluster_pair)
-            for ligand_cluster_pair in itertools.combinations_with_replacement(
-                self.ligand_cluster_list, 2
-            )
+            for ligand_cluster_pair in itertools.combinations_with_replacement(self.ligand_cluster_list, 2)
         }
         return matching_pair_scores_dict

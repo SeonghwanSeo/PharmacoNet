@@ -47,9 +47,7 @@ def download_pdb(pdb_code: str, output_file: PathLike[str]):
         print(f"Error downloading PDB file: {e}")
 
 
-def parse_pdb(
-    pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str]
-) -> List[LigandInform]:
+def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str]) -> List[LigandInform]:
     protein: pybel.Molecule = next(pybel.readfile("pdb", str(protein_path)))
 
     if "HET" not in protein.data.keys():

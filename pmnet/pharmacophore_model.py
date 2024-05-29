@@ -37,7 +37,7 @@ INTERACTION_TO_PHARMACOPHORE = {
 # NOTE: Pickle-Friendly Object
 class PharmacophoreModel:
     def __init__(self):
-        self.pocket_pdbblock: str
+        self.pdbblock: str
         self.nodes: list[ModelNode]
         self.edges: list[ModelEdge]
         self.node_dict: dict[str, list[ModelNode]]
@@ -50,7 +50,6 @@ class PharmacophoreModel:
         atom_positions: list[NDArray[np.float32]] | NDArray[np.float32],
         conformer_axis: int | None = None,
         weights: dict[str, float] | None = None,
-        scoring_rule: str = "average",
     ) -> float:
         """Scoring Function
 
@@ -59,7 +58,6 @@ class PharmacophoreModel:
             atom_positions: list[NDArray[np.float32]] | NDArray[np.float32] | None
             conformer_axis: int | None
             weights: dict[str, float] | None
-            scoring_rule: str: scoring rule {'max', 'average'}
 
             i) conformer_axis is 0 or None
                 atom_positions: (N_conformers, N_atoms, 3)
@@ -67,39 +65,37 @@ class PharmacophoreModel:
                 atom_positions: (N_atoms, N_conformers, 3)
         """
         ligand = Ligand(ligand_pbmol, atom_positions, conformer_axis)
-        return self._scoring(ligand, weights, scoring_rule)
+        return self._scoring(ligand, weights)
 
     def scoring_file(
         self,
         ligand_file: os.PathLike,
         weights: dict[str, float] | None = None,
-        scoring_rule: str = "average",
+        num_conformers: int | None = None,
     ) -> float:
-        ligand = Ligand.load_from_file(ligand_file)
-        return self._scoring(ligand, weights, scoring_rule)
+        ligand = Ligand.load_from_file(ligand_file, num_conformers)
+        return self._scoring(ligand, weights)
 
     def scoring_smiles(
         self,
         ligand_smiles: str,
         num_conformers: int,
         weights: dict[str, float] | None = None,
-        scoring_rule: str = "average",
     ) -> float:
         ligand = Ligand.load_from_smiles(ligand_smiles, num_conformers)
-        return self._scoring(ligand, weights, scoring_rule)
+        return self._scoring(ligand, weights)
 
     def _scoring(
         self,
         ligand: Ligand,
         weights: dict[str, float] | None = None,
-        scoring_rule: str = "average",
     ) -> float:
-        return GraphMatcher(self, ligand, weights, scoring_rule).run()
+        return GraphMatcher(self, ligand, weights).run()
 
     @classmethod
     def create(
         cls,
-        pocket_pdbblock: str,
+        pdbblock: str,
         center: tuple[float, float, float],
         resolution: float,
         size: int,
@@ -111,14 +107,13 @@ class PharmacophoreModel:
         graph.setup()
 
         model = cls()
-        model.pocket_pdbblock = pocket_pdbblock
+        model.pdbblock = pdbblock
         model.nodes = [ModelNode.create(model, node) for node in graph.nodes]
         model.edges = [ModelEdge.create(model, edge) for edge in graph.edges]
         for node in model.nodes:
             node.setup()
         model.node_dict = {
-            typ: [model.nodes[node.index] for node in node_list]
-            for typ, node_list in graph.node_dict.items()
+            typ: [model.nodes[node.index] for node in node_list] for typ, node_list in graph.node_dict.items()
         }
         model.node_cluster_dict = {
             typ: [ModelNodeCluster.create(model, cluster) for cluster in cluster_list]
@@ -159,29 +154,24 @@ class PharmacophoreModel:
 
     def __getstate__(self):
         state = dict(
-            pocket_pdbblock=self.pocket_pdbblock,
+            pdbblock=self.pdbblock,
             nodes=[node.get_kwargs() for node in self.nodes],
             edges=[edge.get_kwargs() for edge in self.edges],
             node_cluster_dict={
                 typ: [cluster.get_kwargs() for cluster in cluster_list]
                 for typ, cluster_list in self.node_cluster_dict.items()
             },
-            node_dict={
-                typ: [node.index for node in nodes] for typ, nodes in self.node_dict.items()
-            },
+            node_dict={typ: [node.index for node in nodes] for typ, nodes in self.node_dict.items()},
         )
         return state
 
     def __setstate__(self, state):
-        self.pocket_pdbblock = state["pocket_pdbblock"]
+        self.pdbblock = state.get("pdbblock")
         self.nodes = [ModelNode(self, **kwargs) for kwargs in state["nodes"]]
         self.edges = [ModelEdge(self, **kwargs) for kwargs in state["edges"]]
         for node in self.nodes:
             node.setup()
-        self.node_dict = {
-            typ: [self.nodes[index] for index in indices]
-            for typ, indices in state["node_dict"].items()
-        }
+        self.node_dict = {typ: [self.nodes[index] for index in indices] for typ, indices in state["node_dict"].items()}
         self.node_cluster_dict = {
             typ: [ModelNodeCluster(self, **kwargs) for kwargs in cluster_list]
             for typ, cluster_list in state["node_cluster_dict"].items()
@@ -268,9 +258,7 @@ class ModelNode:
             ]  # json save key as str, so type conversion is needed.
             for node_index, edge_index in self._neighbor_edge_dict.items()
         }
-        self.overlapped_nodes = [
-            self.graph.nodes[node_index] for node_index in self._overlapped_nodes
-        ]
+        self.overlapped_nodes = [self.graph.nodes[node_index] for node_index in self._overlapped_nodes]
 
     @classmethod
     def create(cls, graph: PharmacophoreModel, node: DensityMapNode) -> ModelNode:

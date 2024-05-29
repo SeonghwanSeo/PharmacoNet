@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import numpy as np
+import itertools
 
 from openbabel import pybel
 from openbabel.pybel import ob
@@ -35,9 +36,7 @@ class Ligand:
         self.pbmol: pybel.Molecule = pbmol if _unsafe else pbmol.clone
         self.pbmol.removeh()
         self.obmol: ob.OBMol = self.pbmol.OBMol
-        self.obatoms: list[ob.OBAtom] = [
-            self.obmol.GetAtom(i + 1) for i in range(self.obmol.NumAtoms())
-        ]
+        self.obatoms: list[ob.OBAtom] = [self.obmol.GetAtom(i + 1) for i in range(self.obmol.NumAtoms())]
 
         self.num_atoms: int = len(self.obatoms)
         self.num_rotatable_bonds: int = pbmol.OBMol.NumRotors()
@@ -53,9 +52,7 @@ class Ligand:
         assert self.num_atoms == self.atom_positions.shape[0]
         self.num_conformers: int = self.atom_positions.shape[1]
 
-        self.pharmacophore_nodes: dict[str, list[PharmacophoreNode]] = get_pharmacophore_nodes(
-            self.pbmol
-        )
+        self.pharmacophore_nodes: dict[str, list[PharmacophoreNode]] = get_pharmacophore_nodes(self.pbmol)
         self.pharmacophore_list: list[tuple[str, PharmacophoreNode]] = []
         for typ, node_list in self.pharmacophore_nodes.items():
             self.pharmacophore_list.extend((typ, node) for node in node_list)
@@ -63,11 +60,18 @@ class Ligand:
         self.graph = LigandGraph(self)
 
     @classmethod
-    def load_from_file(cls, filename: os.PathLike[str]) -> Ligand:
+    def load_from_file(cls, filename: os.PathLike[str], num_conformers: int | None = None) -> Ligand:
         assert filename is not None
         extension = os.path.splitext(filename)[1]
         assert extension in [".sdf", ".pdb", ".mol2"]
-        pbmol_list: list[pybel.Molecule] = list(pybel.readfile(extension[1:], str(filename)))
+        if num_conformers is None:
+            pbmol_list: list[pybel.Molecule] = list(pybel.readfile(extension[1:], str(filename)))
+        else:
+            assert num_conformers > 0
+            pbmol_list: list[pybel.Molecule] = list(
+                itertools.islice(pybel.readfile(extension[1:], str(filename)), num_conformers)
+            )
+
         base_pbmol = pbmol_list[0]
         base_pbmol.removeh()
         num_atoms = len(base_pbmol.atoms)
@@ -161,9 +165,7 @@ class LigandGraph:
                 atom_index = next(iter(node.atom_indices))
                 obatom = obj.obatoms[atom_index]
                 neighbors = [
-                    neighbor.GetIdx() - 1
-                    for neighbor in ob.OBAtomAtomIter(obatom)
-                    if neighbor.GetAtomicNum() != 1
+                    neighbor.GetIdx() - 1 for neighbor in ob.OBAtomAtomIter(obatom) if neighbor.GetAtomicNum() != 1
                 ]
                 if len(neighbors) == 1:
                     group_nodes = hbond_pharmacophores.setdefault(neighbors[0], [])
@@ -178,9 +180,7 @@ class LigandGraph:
                 atom_index = next(iter(node.atom_indices))
                 obatom = obj.obatoms[atom_index]
                 neighbors = [
-                    neighbor.GetIdx() - 1
-                    for neighbor in ob.OBAtomAtomIter(obatom)
-                    if neighbor.GetAtomicNum() != 1
+                    neighbor.GetIdx() - 1 for neighbor in ob.OBAtomAtomIter(obatom) if neighbor.GetAtomicNum() != 1
                 ]
                 if len(neighbors) == 1:
                     group_nodes = hydrop_pharmacophores.setdefault(neighbors[0], [])
@@ -198,9 +198,7 @@ class LigandGraph:
             for atom_index in group_index:
                 obatom = obj.obatoms[atom_index]
                 neighbors = [
-                    neighbor.GetIdx() - 1
-                    for neighbor in ob.OBAtomAtomIter(obatom)
-                    if neighbor.GetAtomicNum() == 6
+                    neighbor.GetIdx() - 1 for neighbor in ob.OBAtomAtomIter(obatom) if neighbor.GetAtomicNum() == 6
                 ]
                 for neighbor_index in neighbors:
                     neighbor_node = index_to_node.pop(neighbor_index, None)
@@ -278,9 +276,7 @@ class LigandNode:
         self.graph: LigandGraph = graph
         self.index: int = node_index
         self.types: list[str] = [node_type]
-        self.atom_indices: set[int] = (
-            {atom_indices} if isinstance(atom_indices, int) else set(atom_indices)
-        )
+        self.atom_indices: set[int] = {atom_indices} if isinstance(atom_indices, int) else set(atom_indices)
         self.center_indices: int | Sequence[int] = center_indices
 
         self.neighbor_edge_dict: dict[LigandNode, LigandEdge] = {}
@@ -294,9 +290,7 @@ class LigandNode:
 
     def set_positions(self):
         if isinstance(self.center_indices, int):
-            self.positions = np.asarray(
-                self.graph.atom_positions[self.center_indices], dtype=np.float32
-            )
+            self.positions = np.asarray(self.graph.atom_positions[self.center_indices], dtype=np.float32)
         else:
             self.positions = np.mean(
                 self.graph.atom_positions[self.center_indices, :],
@@ -324,14 +318,10 @@ class LigandNode:
         elif check_type(node_types, "Aromatic") and check_type(neighbor_node_types, "Hydrophobic"):
             if neighbor.atom_indices.issubset(self.atom_indices):
                 neighbor.dependence_nodes.add(self)
-        elif check_type(node_types, "HBond") and check_type(
-            neighbor_node_types, "Cation", "Anion"
-        ):
+        elif check_type(node_types, "HBond") and check_type(neighbor_node_types, "Cation", "Anion"):
             if self.atom_indices.issubset(neighbor.atom_indices):
                 self.dependence_nodes.add(neighbor)
-        elif check_type(node_types, "Cation", "Anion") and check_type(
-            neighbor_node_types, "HBond"
-        ):
+        elif check_type(node_types, "Cation", "Anion") and check_type(neighbor_node_types, "HBond"):
             if neighbor.atom_indices.issubset(self.atom_indices):
                 neighbor.dependence_nodes.add(self)
         return edge
