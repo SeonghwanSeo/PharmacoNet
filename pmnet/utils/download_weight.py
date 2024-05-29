@@ -6,7 +6,7 @@ from pathlib import Path
 def download_pretrained_model(weight_path):
     if not os.path.exists(weight_path):
         weight_path = Path(weight_path)
-        weight_path.parent.mkdir()
+        weight_path.parent.mkdir(exist_ok=True)
         try:
             import gdown
         except ImportError:
@@ -18,7 +18,7 @@ def download_pretrained_model(weight_path):
         logging.debug(f"Download pre-trained model... (path: {weight_path})")
         gdown.download(
             "https://drive.google.com/uc?id=1gzjdM7bD3jPm23LBcDXtkSk18nETL04p",
-            weight_path,
+            str(weight_path),
             quiet=False,
         )
         logging.debug(f"Download pre-trained model finish")
