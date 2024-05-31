@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from openbabel import pybel
 import torch
 import numpy as np
+from typing import Any
 
 from torch import Tensor
 from numpy.typing import NDArray, ArrayLike
@@ -24,7 +25,9 @@ from pmnet.data.objects import Protein
 from pmnet.data.extract_pocket import extract_pocket
 from pmnet.utils.smoothing import GaussianSmoothing
 from pmnet.utils.download_weight import download_pretrained_model
-from pmnet.pharmacophore_model import PharmacophoreModel
+from pmnet.utils.density_map import DensityMapGraph
+
+from pmnet.pharmacophore_model import PharmacophoreModel, INTERACTION_TO_PHARMACOPHORE
 
 from importlib.util import find_spec
 
@@ -111,6 +114,25 @@ class PharmacoNet:
         assert center_array is not None
         assert center_array.shape == (3,)
         return self._run(protein_pdb_path, center_array)
+
+    @torch.no_grad()
+    def feature_extraction(
+        self,
+        protein_pdb_path: str,
+        ref_ligand_path: str | None = None,
+        center: ArrayLike | None = None,
+    ) -> list[dict[str, Any]]:
+        if center is not None:
+            center_array = np.array(center, dtype=np.float32)
+        else:
+            assert ref_ligand_path is not None
+            extension = os.path.splitext(ref_ligand_path)[1]
+            assert extension in [".sdf", ".pdb", ".mol2"]
+            ref_ligand = next(pybel.readfile(extension[1:], str(ref_ligand_path)))
+            center_array = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32)
+        assert center_array is not None
+        assert center_array.shape == (3,)
+        return self._feature_extraction(protein_pdb_path, tuple(center_array.tolist()))
 
     @torch.no_grad()
     def _run(
@@ -301,6 +323,33 @@ class PharmacoNet:
             f"Protein-based Pharmacophore Modeling finish (Total {len(out)} protein hotspots are detected)",
         )
         return out
+
+    def _feature_extraction(self, protein_pdb_path: str, center: tuple[float, float, float]):
+        center_array = np.array(center, dtype=np.float32)
+        protein_image, non_protein_area, token_positions, tokens = self._parse_protein(protein_pdb_path, center_array)
+        density_maps = self._create_density_maps_feature(
+            torch.from_numpy(protein_image),
+            torch.from_numpy(non_protein_area) if non_protein_area is not None else None,
+            torch.from_numpy(token_positions),
+            torch.from_numpy(tokens),
+        )
+        graph = DensityMapGraph(center, self.out_resolution, self.out_size)
+        features = []
+        for map in density_maps:
+            node_list = graph.add_node(map["type"], map["position"], map["score"], map["map"])
+            for node in node_list:
+                features.append(
+                    {
+                        "type": INTERACTION_TO_PHARMACOPHORE[node.type],
+                        "nci_type": node.type,
+                        "hotspot_position": node.hotspot_position,
+                        "priority_score": node.score,
+                        "center": tuple(node.center.tolist()),
+                        "radius": node.radius,
+                        "feature": map["feature"],
+                    }
+                )
+        return features
 
     def _create_density_maps_feature(
         self,

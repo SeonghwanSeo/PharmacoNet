@@ -1,78 +1,88 @@
-import numpy as np
-from pmnet.module import PharmacoNet
-from pmnet.utils.density_map import DensityMapGraph
-import torch
+import argparse
 import pickle
+from pmnet.module import PharmacoNet
+
+
+"""
+PHARMACOPHORE_POINT_FEATURE_LIST: list[dict[str, Any]]
+    PHARMACOPHORE_POINT_FEATURE
+        - type: str (7 types)
+            {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
+             'Halogen', 'HBond_donor', 'HBond_acceptor'}
+            *** `type` is obtained from `nci_type`.
+
+        - nci_type: str (10 types)
+            'Hydrophobic': Hydrophobic interaction
+            'PiStacking_P': PiStacking (Parallel)
+            'PiStacking_T': PiStacking (T-shaped)
+            'PiCation_lring': Interaction btw Protein Cation & Ligand Aromatic Ring
+            'PiCation_pring': Interaction btw Protein Aromatic Ring & Ligand Cation
+            'SaltBridge_pneg': SaltBridge btw Protein Anion & Ligand Cation
+            'SaltBridge_lneg': SaltBridge btw Protein Cation & Ligand Anion
+            'XBond': Halogen Bond
+            'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
+            'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
+
+        - hotspot_position: tuple[float, float, float] - (x, y, z)
+        - priority_score: str in [0, 1]
+        - center: tuple[float, float, float] - (x, y, z) 
+        - radius: float
+        - feature: NDArray[np.float32]
+"""
 
 
 DEFAULT_SCORE_THRESHOLD = {
-    "PiStacking_P": 0.6,  # Top 40%
-    "PiStacking_T": 0.6,
-    "SaltBridge_lneg": 0.6,
-    "SaltBridge_pneg": 0.6,
-    "PiCation_lring": 0.6,
-    "PiCation_pring": 0.6,
-    "XBond": 0.8,  # Top 20%
-    "HBond_ldon": 0.8,
-    "HBond_pdon": 0.8,
-    "Hydrophobic": 0.8,
+    "PiStacking_P": 0.7,  # Top 30%
+    "PiStacking_T": 0.7,
+    "SaltBridge_lneg": 0.7,
+    "SaltBridge_pneg": 0.7,
+    "PiCation_lring": 0.7,
+    "PiCation_pring": 0.7,
+    "XBond": 0.85,  # Top 15%
+    "HBond_ldon": 0.85,
+    "HBond_pdon": 0.85,
+    "Hydrophobic": 0.85,
+}
+
+RECOMMEND_SCORE_THRESHOLD = {
+    "PiStacking_P": 0.5,
+    "PiStacking_T": 0.5,
+    "SaltBridge_lneg": 0.5,
+    "SaltBridge_pneg": 0.5,
+    "PiCation_lring": 0.5,
+    "PiCation_pring": 0.5,
+    "XBond": 0.5,
+    "HBond_ldon": 0.5,
+    "HBond_pdon": 0.5,
+    "Hydrophobic": 0.5,
 }
 
 
-def main():
-    protein_pdb_path = "./examples/6OIM_protein.pdb"
-    save_path = "./examples/6OIM_MOV.pkl"
-    center = (1.872, -8.260, -1.361)
-    device = "cuda"
-    features = feature_extraction(protein_pdb_path, center, device=device, verbose=True)
-    with open(save_path, "wb") as w:
-        pickle.dump(features, w)
-
-
-def feature_extraction(
-    protein_pdb_path,
-    center,
-    focus_threshold=0.5,
-    box_threshold=0.5,
-    score_threshold=DEFAULT_SCORE_THRESHOLD,
-    device="cpu",
-    verbose=True,
-):
-    module = PharmacoNet(
-        device=device,
-        focus_threshold=focus_threshold,
-        box_threshold=box_threshold,
-        score_threshold=score_threshold,
-        verbose=verbose,
-    )
-    with torch.no_grad():
-        center_array = np.array(center, dtype=np.float32)
-        _, protein_image, non_protein_area, token_positions, tokens = module._parse_protein(
-            protein_pdb_path, center_array
+class ArgParser(argparse.ArgumentParser):
+    def __init__(self):
+        super().__init__("PharmacoNet Feature Extraction Script")
+        self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
+        self.add_argument("-p", "--protein", type=str, help="custom path of protein pdb file (.pdb)", required=True)
+        self.add_argument("--out", type=str, help="save path of features (.pkl)", required=True)
+        self.add_argument(
+            "--ref_ligand", type=str, help="path of ligand to define the center of box (.sdf, .pdb, .mol2)"
         )
-        density_maps = module._create_density_maps_feature(
-            torch.from_numpy(protein_image),
-            torch.from_numpy(non_protein_area) if non_protein_area is not None else None,
-            torch.from_numpy(token_positions),
-            torch.from_numpy(tokens),
-        )
-    graph = DensityMapGraph(center, module.out_resolution, module.out_size)
-    features = []
-    for map in density_maps:
-        node_list = graph.add_node(map["type"], map["position"], map["score"], map["map"])
-        for node in node_list:
-            features.append(
-                {
-                    "type": node.type,
-                    "hotspot_position": node.hotspot_position,
-                    "score": node.score,
-                    "center": node.center,
-                    "radius": node.radius,
-                    "feature": map["feature"],
-                }
-            )
-    return features
+        self.add_argument("--center", nargs="+", type=float, help="coordinate of the center")
+        self.add_argument("--cuda", action="store_true", help="use gpu acceleration with CUDA")
 
 
 if __name__ == "__main__":
-    main()
+    parser = ArgParser()
+    args = parser.parse_args()
+    module = PharmacoNet(
+        device="cuda" if args.cuda else "cpu",
+        focus_threshold=0.5,
+        box_threshold=0.5,
+        score_threshold=RECOMMEND_SCORE_THRESHOLD,
+    )
+    pharmacophore_point_feature_list = module.feature_extraction(args.protein, args.ref_ligand, args.center)
+    for key, item in pharmacophore_point_feature_list[0].items():
+        print(key)
+        print(type(item))
+    with open(args.out, "wb") as w:
+        pickle.dump(pharmacophore_point_feature_list, w)

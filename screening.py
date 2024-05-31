@@ -49,7 +49,7 @@ if __name__ == "__main__":
         Halogen=args.halogen,
         Hydrophobic=args.hydrophobic,
     )
-    library_path = Path(args.library)
+    library_path = Path(args.library_dir)
     file_list = list(library_path.rglob("*.sdf")) + list(library_path.rglob("*.mol2"))
     f = partial(func, model=model, weight=weight)
 
