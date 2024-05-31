@@ -16,7 +16,7 @@ PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool
 
 If you have any problems or need help with the code, please add an github issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
-![x ](images/overview.png)
+![](images/overview.png)
 
 ## Quick Start
 
@@ -201,7 +201,7 @@ from pmnet.module import PharmacoNet
 module = PharmacoNet(
     "cuda",
     score_threshold = 0.5  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
-)gs
+)
 
 pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
 ```
@@ -210,7 +210,7 @@ pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, cent
 
 - TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
 
-## Citation
+## gCitation
 
 Paper on [arxiv](https://arxiv.org/abs/2310.00681)
 
