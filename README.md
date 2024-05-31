@@ -2,7 +2,7 @@
 
 **Before using PharmacoNet, also consider using PharmacoGUI - GUI powered by PharmacoNet.**
 
-**[PharmacoGUI Github](https://github.com/SeonghwanSeo/PharmacoGUI) (Released in May-June)**
+**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco) (Released in May-June)**
 
 Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
@@ -40,14 +40,26 @@ python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
 
 ## Environment
 
+### Installation from environment.yml
+
+For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. However, it 
+
+```bash
+conda create -f environment.yml
+conda activate pmnet
+```
+
+
+
+### Manual Installation
+
 ```shell
 # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name pmnet python=3.10
+conda create --name pmnet python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
 conda activate pmnet
-conda install openbabel pymol-open-source
 
-pip install torch torchvision # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install rdkit biopython omegaconf timm numba # Numba is optional, but recommended.
+pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install rdkit biopython omegaconf numba # Numba is optional, but recommended.
 pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
 ```
 
