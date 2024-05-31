@@ -31,7 +31,8 @@ PHARMACOPHORE_POINT_FEATURE_LIST: list[dict[str, Any]]
 """
 
 
-DEFAULT_SCORE_THRESHOLD = {
+# NOTE: UNUSED IN THIS SCRIPT
+DEFAULT_MODELING_SCORE_THRESHOLD = {
     "PiStacking_P": 0.7,  # Top 30%
     "PiStacking_T": 0.7,
     "SaltBridge_lneg": 0.7,
@@ -44,31 +45,36 @@ DEFAULT_SCORE_THRESHOLD = {
     "Hydrophobic": 0.85,
 }
 
-RECOMMEND_SCORE_THRESHOLD = {
-    "PiStacking_P": 0.5,
-    "PiStacking_T": 0.5,
-    "SaltBridge_lneg": 0.5,
-    "SaltBridge_pneg": 0.5,
-    "PiCation_lring": 0.5,
-    "PiCation_pring": 0.5,
-    "XBond": 0.5,
-    "HBond_ldon": 0.5,
-    "HBond_pdon": 0.5,
-    "Hydrophobic": 0.5,
-}
+
+# NOTE: RECOMMENDED
+RECOMMENDED_SCORE_THRESHOLD = 0.5
 
 
 class ArgParser(argparse.ArgumentParser):
     def __init__(self):
         super().__init__("PharmacoNet Feature Extraction Script")
         self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-        self.add_argument("-p", "--protein", type=str, help="custom path of protein pdb file (.pdb)", required=True)
-        self.add_argument("--out", type=str, help="save path of features (.pkl)", required=True)
         self.add_argument(
-            "--ref_ligand", type=str, help="path of ligand to define the center of box (.sdf, .pdb, .mol2)"
+            "-p",
+            "--protein",
+            type=str,
+            help="custom path of protein pdb file (.pdb)",
+            required=True,
         )
-        self.add_argument("--center", nargs="+", type=float, help="coordinate of the center")
-        self.add_argument("--cuda", action="store_true", help="use gpu acceleration with CUDA")
+        self.add_argument(
+            "--out", type=str, help="save path of features (.pkl)", required=True
+        )
+        self.add_argument(
+            "--ref_ligand",
+            type=str,
+            help="path of ligand to define the center of box (.sdf, .pdb, .mol2)",
+        )
+        self.add_argument(
+            "--center", nargs="+", type=float, help="coordinate of the center"
+        )
+        self.add_argument(
+            "--cuda", action="store_true", help="use gpu acceleration with CUDA"
+        )
 
 
 if __name__ == "__main__":
@@ -76,11 +82,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     module = PharmacoNet(
         device="cuda" if args.cuda else "cpu",
-        focus_threshold=0.5,
-        box_threshold=0.5,
-        score_threshold=RECOMMEND_SCORE_THRESHOLD,
+        score_threshold=RECOMMENDED_SCORE_THRESHOLD,
     )
-    pharmacophore_point_feature_list = module.feature_extraction(args.protein, args.ref_ligand, args.center)
+    pharmacophore_point_feature_list = module.feature_extraction(
+        args.protein, args.ref_ligand, args.center
+    )
     for key, item in pharmacophore_point_feature_list[0].items():
         print(key)
         print(type(item))

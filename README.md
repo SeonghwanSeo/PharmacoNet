@@ -2,7 +2,7 @@
 
 **Before using PharmacoNet, also consider using PharmacoGUI - GUI powered by PharmacoNet.**
 
-**[PharmacoGUI Github](https://github.com/SeonghwanSeo/PharmacoGUI) (Released in May-June)**
+**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco) (Coming soon!)**
 
 Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
@@ -14,9 +14,9 @@ Official Github for ***PharmacoNet: Accelerating Large-Scale Virtual Screening b
 
 PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
 
-If you have any problems or need help with the code, please add an issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
+If you have any problems or need help with the code, please add an github issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
-![](images/overview.png)
+![x	](images/overview.png)
 
 
 
@@ -24,30 +24,40 @@ If you have any problems or need help with the code, please add an issue or cont
 
 ```bash
 # Pharmacophore Modeling
-python modeling.py --pdb <PDB ID> --cuda 		# RCSB PDB importing, CUDA Acceleration
-python modeling.py --protein <PROTEIN_PATH>
-python modeling.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH>
+python modeling.py --pdb <PDB ID> 		# RCSB PDB importing
+python modeling.py --protein <PROTEIN_PATH> --prefix <EXP_NAME> --cuda 	# CUDA acceleration
+python modeling.py --protein <PROTEIN_PATH> --prefix <EXP_NAME> --ref_ligand <REF_LIGAND_PATH>
 
 # Virtual Screening
 python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU>
 
-# Feature Extraction for Deep Learning Developer
-python feature_extraction.py 
-python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
+# Feature Extraction for Deep Learning Researcher
+python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PKL_PATH>
+python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH> --cuda
 ```
 
 
 
 ## Environment
 
+#### Installation with `environment.yml`
+
+For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default.  You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
+
+```bash
+conda create -f environment.yml
+conda activate pmnet
+```
+
+#### Manual Installation
+
 ```shell
 # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name pmnet python=3.10
+conda create --name pmnet python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
 conda activate pmnet
-conda install openbabel pymol-open-source
 
-pip install torch torchvision # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install rdkit biopython omegaconf timm numba # Numba is optional, but recommended.
+pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install rdkit biopython omegaconf numba # Numba is optional, but recommended.
 pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
 ```
 
@@ -96,6 +106,8 @@ Ligand 3
 INFO:root:Save Pharmacophore Model to result/6oim/6oim_D_MOV_model.pm
 INFO:root:Save Pymol Visualization Session to result/6oim/6oim_D_MOV_model.pse
 ```
+
+
 
 #### Example with custom protein
 
@@ -170,7 +182,50 @@ python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_P
 python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH>
 ```
 
-#### Paper List
+```bash
+PHARMACOPHORE NODE FEATURE LIST: list[dict[str, Any]]
+    PHARMACOPHORE NODE FEATURE: dict[str, Any]
+        - feature: NDArray[np.float32]
+        - type: str (7 types)
+            {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
+             'Halogen', 'HBond_donor', 'HBond_acceptor'}
+            *** `type` is obtained from `nci_type`.
+        - nci_type: str (10 types)
+            'Hydrophobic': Hydrophobic interaction
+            'PiStacking_P': Pi-Pi Stacking (Parallel)
+            'PiStacking_T': Pi-Pi Stacking (T-shaped)
+            'PiCation_lring': Cation-Pi Interaction btw Protein Cation & Ligand Aromatic Ring
+            'PiCation_pring': Cation-Pi Interaction btw Protein Aromatic Ring & Ligand Cation
+            'SaltBridge_pneg': SaltBridge btw Protein Anion & Ligand Cation
+            'SaltBridge_lneg': SaltBridge btw Protein Cation & Ligand Anion
+            'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
+            'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
+            'XBond': Halogen Bond
+        - hotspot_position: tuple[float, float, float] - (x, y, z)
+        - priority_score: str in [0, 1]
+        - center: tuple[float, float, float] - (x, y, z) 
+        - radius: float
+```
+
+
+
+### Python Script
+
+For feature extraction, it is recommended to use `score_threshold=0.5` instead of default setting used for pharmacophore modeling. If you want to extract more features, decrease the `score_threshold`.
+
+```python
+from pmnet.module import PharmacoNet
+
+module = PharmacoNet(
+    "cuda",
+    score_threshold = 0.5		# <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
+)
+pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
+```
+
+
+
+### Paper List
 
 - TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
 
