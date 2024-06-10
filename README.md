@@ -1,12 +1,12 @@
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
-**Before using PharmacoNet, also consider using PharmacoGUI - GUI powered by PharmacoNet.**
+**Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
 
-**[PharmacoGUI Github](https://github.com/SeonghwanSeo/PharmacoGUI) (Released in May-June)**
+**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco)**
 
-Accepted in ***NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)*** [[arxiv](https://arxiv.org/abs/2310.00681)]
+Accepted in **_NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)_** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
-Official Github for ***PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling*** by Seonghwan Seo* and Woo Youn Kim.
+Official Github for **_PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling_** by Seonghwan Seo\* and Woo Youn Kim.
 
 1. Fully automated protein-based pharmacophore modeling based on image instance segmentation modeling
 2. Coarse-grained graph matching at the pharmacophore level for high throughput
@@ -14,44 +14,46 @@ Official Github for ***PharmacoNet: Accelerating Large-Scale Virtual Screening b
 
 PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
 
-If you have any problems or need help with the code, please add an issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
+If you have any problems or need help with the code, please add an github issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
 ![](images/overview.png)
-
-
 
 ## Quick Start
 
 ```bash
 # Pharmacophore Modeling
-python modeling.py --pdb <PDB ID> --cuda 		# RCSB PDB importing, CUDA Acceleration
-python modeling.py --protein <PROTEIN_PATH>
-python modeling.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH>
+python modeling.py --pdb <PDB ID>   # RCSB PDB importing
+python modeling.py --protein <PROTEIN_PATH> --prefix <EXP_NAME> --cuda  # CUDA acceleration
+python modeling.py --protein <PROTEIN_PATH> --prefix <EXP_NAME> --ref_ligand <REF_LIGAND_PATH>
 
 # Virtual Screening
 python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> --cpus <NCPU>
 
-# Feature Extraction for Deep Learning Developer
-python feature_extraction.py 
-python modeling.py --protein <PROTEIN_PATH> --cuda	# CUDA Acceleration
+# Feature Extraction for Deep Learning Researcher
+python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PKL_PATH>
+python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH> --cuda
 ```
 
+#### Installation with `environment.yml`
 
+For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
 
-## Environment
+```bash
+conda create -f environment.yml
+conda activate pmnet
+```
+
+#### Manual Installation
 
 ```shell
 # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name pmnet python=3.10
+conda create --name pmnet python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
 conda activate pmnet
-conda install openbabel pymol-open-source
 
-pip install torch torchvision # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install rdkit biopython omegaconf timm numba # Numba is optional, but recommended.
-pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
+pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install rdkit biopython omegaconf numba # Numba is optional, but recommended.
+pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
 ```
-
-
 
 ## Pharmacophore Modeling
 
@@ -86,7 +88,7 @@ Ligand 3
 - Synonyms: 6-FLUORO-7-(2-FLUORO-6-HYDROXYPHENYL)-4-[(2S)-2-METHYL-4-PROPANOYLPIPERAZIN-1-YL]-1-[4-METHYL-2-(PROPAN-2-YL)PYRIDIN-3-YL]PYRIDO[2,3-D]PYRIMIDIN-2(1H)-ONE
 
 INFO:root:Select the ligand number(s) (ex. 3 ; 1,3 ; manual ; all ; exit)
-ligand number:3	# USER INPUT: Enter the ligand number for binding site detection
+ligand number:3 # USER INPUT: Enter the ligand number for binding site detection
 INFO:root:Running 3th Ligand...
 Ligand 3
 - ID      : MOV (Chain: D [auth A])
@@ -114,15 +116,13 @@ INFO:root:Load PharmacoNet finish
 INFO:root:Load examples/6OIM_protein.pdb
 WARNING:root:No ligand is detected!
 INFO:root:Enter the center of binding site manually:
-x: 2	# USER INPUT: Enter x
-y: -8	# USER INPUT: Enter y
-z: -1	# USER INPUT: Enter z
+x: 2 # USER INPUT: Enter x
+y: -8 # USER INPUT: Enter y
+z: -1 # USER INPUT: Enter z
 INFO:root:Using center (2.0, -8.0, -1.0)
 INFO:root:Save Pharmacophore Model to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pm
 INFO:root:Save Pymol Visualization Session to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pse
 ```
-
-
 
 ## Virtual Screening
 
@@ -139,10 +139,8 @@ python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> 
 
 # Example
 python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1
-python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1 --hbd 5 --hba 5 --aromatic 8
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 2 --hbd 5 --hba 5 --aromatic 8
 ```
-
-
 
 #### Example python code for ligand evaluation
 
@@ -153,13 +151,11 @@ from pmnet import PharmacophoreModel
 model = PharmacophoreModel.load(<PHARMCOPHORE_MODEL_PATH>)
 
 # NOTE: Scoring with ligand file with 1 or more conformers
-score = model.scoring_file(<LIGAND_PATH>)	# SDF, MOL2, PDB
+score = model.scoring_file(<LIGAND_PATH>) # SDF, MOL2, PDB
 
 # NOTE: Scoring with RDKit ETKDG Conformers
 score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 ```
-
-
 
 ## Pharmacophore Feature Extraction
 
@@ -170,11 +166,49 @@ python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_P
 python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH>
 ```
 
-#### Paper List
+```bash
+PHARMACOPHORE NODE FEATURE LIST: List[Dict[str, Any]]
+    PHARMACOPHORE NODE FEATURE: Dict[str, Any]
+        - feature: NDArray[np.float32]
+        - type: str (7 types)
+            {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
+             'Halogen', 'HBond_donor', 'HBond_acceptor'}
+            *** `type` is obtained from `nci_type`.
+        - nci_type: str (10 types)
+            'Hydrophobic': Hydrophobic interaction
+            'PiStacking_P': Pi-Pi Stacking (Parallel)
+            'PiStacking_T': Pi-Pi Stacking (T-shaped)
+            'PiCation_lring': Cation-Pi Interaction btw Protein Cation & Ligand Aromatic Ring
+            'PiCation_pring': Cation-Pi Interaction btw Protein Aromatic Ring & Ligand Cation
+            'SaltBridge_pneg': SaltBridge btw Protein Anion & Ligand Cation
+            'SaltBridge_lneg': SaltBridge btw Protein Cation & Ligand Anion
+            'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
+            'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
+            'XBond': Halogen Bond
+        - priority_score: float in [0, 1]
+        - hotspot_position: tuple[float, float, float] - (x, y, z)
+        - center: tuple[float, float, float] - (x, y, z)
+        - radius: float
+```
+
+### Python Script
+
+For feature extraction, it is recommended to use `score_threshold=0.5` instead of default setting used for pharmacophore modeling. If you want to extract more features, decrease the `score_threshold`.
+
+```python
+from pmnet.module import PharmacoNet
+
+module = PharmacoNet(
+    "cuda",
+    score_threshold = 0.5  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
+)
+
+pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
+```
+
+### Paper List
 
 - TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
-
-
 
 ## Citation
 
@@ -189,4 +223,3 @@ Paper on [arxiv](https://arxiv.org/abs/2310.00681)
   url = {https://arxiv.org/abs/2310.00681},
 }
 ```
-
