@@ -1,8 +1,8 @@
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
-**Before using PharmacoNet, also consider using PharmacoGUI - GUI powered by PharmacoNet.**
+**Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
 
-**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco) (Coming soon!)**
+**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco)**
 
 Accepted in **_NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)_** [[arxiv](https://arxiv.org/abs/2310.00681)]
 
@@ -52,7 +52,7 @@ conda activate pmnet
 
 pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
 pip install rdkit biopython omegaconf numba # Numba is optional, but recommended.
-pip install molvoxel # https://github.com/SeonghwanSeo/molvoxel.git
+pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
 ```
 
 ## Pharmacophore Modeling
@@ -139,7 +139,7 @@ python screening.py -p <MODEL_PATH> --library <LIBRARY_DIR> --out <RESULT_PATH> 
 
 # Example
 python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1
-python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 1 --hbd 5 --hba 5 --aromatic 8
+python screening.py -p ./result/6oim/6oim_D_MOV_model.pm --library examples/library --out result.csv --cpus 2 --hbd 5 --hba 5 --aromatic 8
 ```
 
 #### Example python code for ligand evaluation
@@ -167,8 +167,8 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
 ```
 
 ```bash
-PHARMACOPHORE NODE FEATURE LIST: list[dict[str, Any]]
-    PHARMACOPHORE NODE FEATURE: dict[str, Any]
+PHARMACOPHORE NODE FEATURE LIST: List[Dict[str, Any]]
+    PHARMACOPHORE NODE FEATURE: Dict[str, Any]
         - feature: NDArray[np.float32]
         - type: str (7 types)
             {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
@@ -185,8 +185,8 @@ PHARMACOPHORE NODE FEATURE LIST: list[dict[str, Any]]
             'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
             'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
             'XBond': Halogen Bond
+        - priority_score: float in [0, 1]
         - hotspot_position: tuple[float, float, float] - (x, y, z)
-        - priority_score: str in [0, 1]
         - center: tuple[float, float, float] - (x, y, z)
         - radius: float
 ```
@@ -210,7 +210,7 @@ pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, cent
 
 - TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
 
-## gCitation
+## Citation
 
 Paper on [arxiv](https://arxiv.org/abs/2310.00681)
 
