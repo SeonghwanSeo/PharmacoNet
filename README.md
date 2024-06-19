@@ -1,4 +1,7 @@
+
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
+[![DOI](https://zenodo.org/badge/699273873.svg)](https://zenodo.org/doi/10.5281/zenodo.12168474)
+
 
 **Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
 
