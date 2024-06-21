@@ -43,18 +43,18 @@ For various environment including Linux, MacOS and Window, the script installs *
 
 ```bash
 conda create -f environment.yml
-conda activate pmnet
+conda activate openph
 ```
 
 #### Manual Installation
 
 ```shell
 # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name pmnet python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
-conda activate pmnet
+conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
+conda activate openph
 
 pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install rdkit biopython omegaconf numba # Numba is optional, but recommended.
+pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
 pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
 ```
 
