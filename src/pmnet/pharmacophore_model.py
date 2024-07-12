@@ -34,6 +34,20 @@ INTERACTION_TO_PHARMACOPHORE = {
 }
 
 
+INTERACTION_TO_HOTSPOT = {
+    "Hydrophobic": "Hydrophobic",
+    "PiStacking_P": "Aromatic",
+    "PiStacking_T": "Aromatic",
+    "PiCation_lring": "Cation",
+    "PiCation_pring": "Aromatic",
+    "HBond_pdon": "HBond_donor",
+    "HBond_ldon": "HBond_acceptor",
+    "SaltBridge_pneg": "Anion",
+    "SaltBridge_lneg": "Cation",
+    "XBond": "Halogen",
+}
+
+
 # NOTE: Pickle-Friendly Object
 class PharmacophoreModel:
     def __init__(self):
@@ -99,13 +113,21 @@ class PharmacophoreModel:
         center: tuple[float, float, float],
         resolution: float,
         size: int,
-        density_maps: list[dict],
+        hotspot_infos: list[dict],
     ):
         graph = DensityMapGraph(center, resolution, size)
-        for node in density_maps:
-            graph.add_node(node["type"], node["position"], node["score"], node["map"])
-        graph.setup()
 
+        for node in hotspot_infos:
+            hotspot_type = node["nci_type"]
+            hotspot_pos = tuple(node["hotspot_position"].tolist())
+            hotspot_score = float(node["hotspot_score"])
+            map = node["point_map"]
+            graph.add_node(hotspot_type, hotspot_pos, hotspot_score, map)
+        graph.setup()
+        return cls.create_from_graph(pdbblock, graph)
+
+    @classmethod
+    def create_from_graph(cls, pdbblock: str, graph: DensityMapGraph):
         model = cls()
         model.pdbblock = pdbblock
         model.nodes = [ModelNode.create(model, node) for node in graph.nodes]

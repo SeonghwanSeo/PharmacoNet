@@ -14,12 +14,14 @@ from .atom_classes import (
     XBondAcceptor_P,
 )
 
+pybel.ob.obErrorLog.StopLogging()
 
-class Protein():
+
+class Protein:
     def __init__(
-            self,
-            pbmol: pybel.Molecule,
-            addh: bool = True,
+        self,
+        pbmol: pybel.Molecule,
+        addh: bool = True,
     ):
         """
         pbmol: Pybel Mol
@@ -43,11 +45,11 @@ class Protein():
         else:
             self.pbmol_hyd = pbmol
         self.obmol_hyd = self.pbmol_hyd.OBMol
-        self.obatoms_hyd: List[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol_hyd))[:self.num_heavyatoms]
+        self.obatoms_hyd: List[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol_hyd))[: self.num_heavyatoms]
         self.obatoms_hyd_nonwater: List[ob.OBAtom] = [
-            obatom for obatom in self.obatoms_hyd
-            if obatom.GetResidue().GetName() != 'HOH'
-            and obatom.GetAtomicNum() in [6, 7, 8, 16]
+            obatom
+            for obatom in self.obatoms_hyd
+            if obatom.GetResidue().GetName() != "HOH" and obatom.GetAtomicNum() in [6, 7, 8, 16]
         ]
         self.obresidues_hyd: List[ob.OBResidue] = list(ob.OBResidueIter(self.obmol_hyd))
 
@@ -68,27 +70,24 @@ class Protein():
 
     @classmethod
     def from_pdbfile(cls, path, addh=True, **kwargs):
-        pbmol = next(pybel.readfile('pdb', path))
+        pbmol = next(pybel.readfile("pdb", path))
         return cls(pbmol, addh, **kwargs)
 
     # Search Interactable Part
     def __find_hydrophobic_atoms(self) -> List[HydrophobicAtom_P]:
-        hydrophobics = [HydrophobicAtom_P(obatom) for obatom in self.obatoms_hyd_nonwater
-                        if obatom.GetAtomicNum() == 6
-                        and all(neigh.GetAtomicNum() in (1, 6) for neigh in ob.OBAtomAtomIter(obatom))
-                        ]
+        hydrophobics = [
+            HydrophobicAtom_P(obatom)
+            for obatom in self.obatoms_hyd_nonwater
+            if obatom.GetAtomicNum() == 6 and all(neigh.GetAtomicNum() in (1, 6) for neigh in ob.OBAtomAtomIter(obatom))
+        ]
         return hydrophobics
 
     def __find_hbond_acceptors(self) -> List[HBondAcceptor_P]:
-        acceptors = [HBondAcceptor_P(obatom) for obatom in self.obatoms_hyd_nonwater
-                     if obatom.IsHbondAcceptor()
-                     ]
+        acceptors = [HBondAcceptor_P(obatom) for obatom in self.obatoms_hyd_nonwater if obatom.IsHbondAcceptor()]
         return acceptors
 
     def __find_hbond_donors(self) -> List[HBondDonor_P]:
-        donors = [HBondDonor_P(obatom) for obatom in self.obatoms_hyd_nonwater
-                  if obatom.IsHbondDonor()
-                  ]
+        donors = [HBondDonor_P(obatom) for obatom in self.obatoms_hyd_nonwater if obatom.IsHbondDonor()]
         return donors
 
     def __find_rings(self) -> List[Ring_P]:
@@ -111,18 +110,20 @@ class Protein():
         for obresidue in self.obresidues_hyd:
             obresname = obresidue.GetName()
             if obresname in ("ARG", "HIS", "LYS"):
-                obatoms = [obatom for obatom in ob.OBResidueAtomIter(obresidue)
-                           if obatom.GetAtomicNum() == 7
-                           and obresidue.GetAtomProperty(obatom, ob.SIDECHAIN)
-                           ]
+                obatoms = [
+                    obatom
+                    for obatom in ob.OBResidueAtomIter(obresidue)
+                    if obatom.GetAtomicNum() == 7 and obresidue.GetAtomProperty(obatom, ob.SIDECHAIN)
+                ]
                 if len(obatoms) > 0:
                     pos_charged.append(PosCharged_P(obatoms))
 
             elif obresname in ("GLU", "ASP"):
-                obatoms = [obatom for obatom in ob.OBResidueAtomIter(obresidue)
-                           if obatom.GetAtomicNum() == 8
-                           and obresidue.GetAtomProperty(obatom, ob.SIDECHAIN)
-                           ]
+                obatoms = [
+                    obatom
+                    for obatom in ob.OBResidueAtomIter(obresidue)
+                    if obatom.GetAtomicNum() == 8 and obresidue.GetAtomProperty(obatom, ob.SIDECHAIN)
+                ]
                 if len(obatoms) > 0:
                     neg_charged.append(NegCharged_P(obatoms))
 
@@ -134,9 +135,7 @@ class Protein():
         for obatom in self.obatoms_hyd_nonwater:
             if obatom.GetAtomicNum() not in [8, 7, 16]:
                 continue
-            neighbors = [neigh for neigh in ob.OBAtomAtomIter(obatom)
-                         if neigh.GetAtomicNum() in [6, 7, 16]
-                         ]
+            neighbors = [neigh for neigh in ob.OBAtomAtomIter(obatom) if neigh.GetAtomicNum() in [6, 7, 16]]
             if len(neighbors) == 1:
                 O, Y = obatom, neighbors[0]
                 acceptors.append(XBondAcceptor_P(O, Y))
