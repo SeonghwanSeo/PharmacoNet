@@ -43,17 +43,19 @@ For various environment including Linux, MacOS and Window, the script installs *
 
 ```bash
 conda create -f environment.yml
-conda activate openph
+conda activate pmnet
+pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install .
 ```
 
 #### Manual Installation
 
 ```shell
 # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26
-conda activate openph
+conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26.4
+conda activate pmnet
 
-pip install torch # torch >= 1.13, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
 pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
 pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
 ```
@@ -165,33 +167,44 @@ score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the script `feature_extraction.py`.
 
 ```bash
-python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PKL_PATH>
-python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH>
+python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PT_PATH>
+python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PT_PATH>
 ```
 
 ```bash
-PHARMACOPHORE NODE FEATURE LIST: List[Dict[str, Any]]
-    PHARMACOPHORE NODE FEATURE: Dict[str, Any]
-        - feature: NDArray[np.float32]
-        - type: str (7 types)
-            {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
-             'Halogen', 'HBond_donor', 'HBond_acceptor'}
-            *** `type` is obtained from `nci_type`.
-        - nci_type: str (10 types)
-            'Hydrophobic': Hydrophobic interaction
-            'PiStacking_P': Pi-Pi Stacking (Parallel)
-            'PiStacking_T': Pi-Pi Stacking (T-shaped)
-            'PiCation_lring': Cation-Pi Interaction btw Protein Cation & Ligand Aromatic Ring
-            'PiCation_pring': Cation-Pi Interaction btw Protein Aromatic Ring & Ligand Cation
-            'SaltBridge_pneg': SaltBridge btw Protein Anion & Ligand Cation
-            'SaltBridge_lneg': SaltBridge btw Protein Cation & Ligand Anion
-            'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
-            'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
-            'XBond': Halogen Bond
-        - priority_score: float in [0, 1]
-        - hotspot_position: tuple[float, float, float] - (x, y, z)
-        - center: tuple[float, float, float] - (x, y, z)
-        - radius: float
+OUTPUT=(multi_scale_features, hotspot_info)
+  multi_scale_features: list[torch.Tensor]:
+    - torch.Tensor [96, 4, 4, 4]
+    - torch.Tensor [96, 8, 8, 8]
+    - torch.Tensor [96, 16, 16, 16]
+    - torch.Tensor [96, 32, 32, 32]
+    - torch.Tensor [96, 64, 64, 64]
+  hotspot_infos: list[hotspot_info]
+    info: dict[str, Any]
+      - hotspot_feature: torch.Tensor (192,)
+      - hotspot_position: tuple[float, float, float] - (x, y, z)
+      - hotspot_score: float in [0, 1]
+
+      - nci_type: str (10 types)
+          'Hydrophobic': Hydrophobic interaction
+          'PiStacking_P': PiStacking (Parallel)
+          'PiStacking_T': PiStacking (T-shaped)
+          'PiCation_lring': Interaction btw Protein Cation & Ligand Aromatic Ring
+          'PiCation_pring': Interaction btw Protein Aromatic Ring & Ligand Cation
+          'SaltBridge_pneg': SaltBridge btw Protein Anion & Ligand Cation
+          'SaltBridge_lneg': SaltBridge btw Protein Cation & Ligand Anion
+          'XBond': Halogen Bond
+          'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
+          'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
+
+      - hotspot_type: str (7 types)
+          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
+           'Halogen', 'HBond_donor', 'HBond_acceptor'}
+          *** `type` is obtained from `nci_type`.
+      - point_type: str (7 types)
+          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
+           'Halogen', 'HBond_donor', 'HBond_acceptor'}
+          *** `type` is obtained from `nci_type`.
 ```
 
 ### Python Script
@@ -200,13 +213,12 @@ For feature extraction, it is recommended to use `score_threshold=0.5` instead o
 
 ```python
 from pmnet.module import PharmacoNet
-
 module = PharmacoNet(
     "cuda",
     score_threshold = 0.5  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
 )
-
-pharmacophore_node_feature_list = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
+multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, <REF_LIGAND_PATH>)
+multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
 ```
 
 ### Paper List
@@ -226,3 +238,4 @@ Paper on [arxiv](https://arxiv.org/abs/2310.00681)
   url = {https://arxiv.org/abs/2310.00681},
 }
 ```
+

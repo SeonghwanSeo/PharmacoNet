@@ -33,7 +33,7 @@ class Screening_ArgParser(argparse.ArgumentParser):
 
 
 def func(file, model, weight):
-    return file.stem, model.scoring_file(file, weight)
+    return file, model.scoring_file(file, weight)
 
 
 if __name__ == "__main__":
@@ -51,8 +51,8 @@ if __name__ == "__main__":
     )
     library_path = Path(args.library_dir)
     file_list = list(library_path.rglob("*.sdf")) + list(library_path.rglob("*.mol2"))
+    print(f"find {len(file_list)} molecules")
     f = partial(func, model=model, weight=weight)
-
     with multiprocessing.Pool(args.cpus) as pool:
         result = pool.map(f, file_list)
 
