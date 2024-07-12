@@ -4,7 +4,6 @@ weights
 run.sh
 result/
 examples/library/
-pyproject.toml
 
 
 # Byte-compiled / optimized / DLL files
