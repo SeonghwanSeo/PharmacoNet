@@ -57,7 +57,8 @@ class PharmacoNet:
     ):
         running_path = Path(__file__)
         weight_path = running_path.parent / "weights" / "model.tar"
-        download_pretrained_model(weight_path)
+        if not weight_path.exists():
+            download_pretrained_model(weight_path, verbose)
         checkpoint = torch.load(weight_path, map_location="cpu")
         self.config = config = OmegaConf.create(checkpoint["config"])
         self.device = device
@@ -118,7 +119,7 @@ class PharmacoNet:
         protein_pdb_path: str,
         ref_ligand_path: str | None = None,
         center: ArrayLike | None = None,
-        return_density: bool = False,
+        return_numpy: bool = True,
     ) -> tuple[list[Tensor | NDArray[np.float32]], list[dict[str, Any]]]:
         if center is not None:
             center_array = np.array(center, dtype=np.float32)
@@ -130,7 +131,8 @@ class PharmacoNet:
             center_array = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32)
         assert center_array is not None
         assert center_array.shape == (3,)
-        return self._feature_extraction(protein_pdb_path, center_array, return_density)
+        multi_scale_features, hotspot_infos = self._feature_extraction(protein_pdb_path, center_array, return_numpy)
+        return multi_scale_features, hotspot_infos
 
     @torch.no_grad()
     def _run(
@@ -322,28 +324,24 @@ class PharmacoNet:
         )
         return hotspot_infos
 
-    def print_log(self, level, log):
-        if self.logger is None:
-            return None
-        if level == "debug":
-            self.logger.debug(log)
-        elif level == "info":
-            self.logger.info(log)
-
     def _feature_extraction(
         self,
         protein_pdb_path: str,
         center: NDArray[np.float32],
-        return_density: bool,
+        return_numpy: bool = True,
     ) -> tuple[list[Tensor | NDArray[np.float32]], list[dict[str, Any]]]:
         protein_image, mask, token_positions, tokens = self._parse_protein(protein_pdb_path, center)
-        return self._run_feature_extraction(
+        multi_scale_features, hotspot_infos = self._run_feature_extraction(
             torch.from_numpy(protein_image),
             (torch.from_numpy(mask) if mask is not None else None),
             torch.from_numpy(token_positions),
             torch.from_numpy(tokens),
-            return_density,
         )
+        if return_numpy:
+            multi_scale_features = [feat.cpu().numpy() for feat in multi_scale_features]
+            for info in hotspot_infos:
+                info["hotspot_feature"] = info["hotspot_feature"].cpu().numpy()
+        return multi_scale_features, hotspot_features
 
     def _run_feature_extraction(
         self,
@@ -351,7 +349,6 @@ class PharmacoNet:
         mask: Tensor | None,
         token_positions: Tensor,
         tokens: Tensor,
-        return_density: bool,
     ) -> tuple[list[Tensor], list[dict[str, Any]]]:
         protein_image = protein_image.to(device=self.device, dtype=torch.float)
         token_positions = token_positions.to(device=self.device, dtype=torch.float)
@@ -359,10 +356,6 @@ class PharmacoNet:
         mask = mask.to(device=self.device, dtype=torch.bool) if mask is not None else None
 
         with torch.amp.autocast(self.device, enabled=self.config.AMP_ENABLE):
-            self.print_log(
-                "debug",
-                f"Protein-based Pharmacophore Modeling... (device: {self.device})",
-            )
             protein_image = protein_image.unsqueeze(0)
             multi_scale_features = self.model.forward_feature(protein_image)  # List[[1, D, H, W, F]]
             bottom_features = multi_scale_features[-1]
@@ -386,77 +379,35 @@ class PharmacoNet:
                 if relative_score < self.score_threshold[INTERACTION_LIST[int(typ)]]:
                     continue
                 # NOTE: Check the token exists in cavity
-                if typ in C.LONG_INTERACTION:
-                    if not cavity_wide[0, x, y, z]:
-                        continue
-                else:
-                    if not cavity_narrow[0, x, y, z]:
-                        continue
+                _cavity = cavity_wide if typ in C.LONG_INTERACTION else cavity_narrow
+                if not _cavity[0, x, y, z]:
+                    continue
                 indices.append(i)
                 relative_scores.append(relative_score)
-            selected_indices = torch.tensor(indices, device=self.device, dtype=torch.long)  # [Ntoken',]
-
-            hotspots = tokens[selected_indices]  # [Ntoken',]
-            hotspot_positions = token_positions[selected_indices]  # [Ntoken', 3]
-            hotspot_features = token_features[selected_indices]  # [Ntoken', F]
-
-            if return_density:
-                density_maps_list = []
-                if self.device == "cpu":
-                    step = 1
-                else:
-                    step = 4
-                for idx in range(0, hotspots.size(0), step):
-                    _hotspots, _hotspot_features = (
-                        hotspots[idx : idx + step],
-                        hotspot_features[idx : idx + step],
-                    )
-                    density_maps = self.model.forward_segmentation(
-                        multi_scale_features, [_hotspots], [_hotspot_features]
-                    )[0]  # [[4, D, H, W]]
-                    density_maps = density_maps[0].sigmoid()  # [4, D, H, W]
-                    density_maps_list.append(density_maps)
-
-                if len(density_maps_list) > 0:
-                    density_maps = torch.cat(density_maps_list, dim=0)  # [Ntoken', D, H, W]
-                    box_area = token_inference.get_box_area(
-                        hotspots,
-                        self.config.VOXEL.RADII.PHARMACOPHORE,
-                        self.out_resolution,
-                        self.out_size,
-                    )
-                    box_area = torch.from_numpy(box_area).to(device=self.device, dtype=torch.bool)  # [Ntoken', D, H, W]
-                    unavailable_area = ~(box_area & mask & cavity_narrow)  # [Ntoken', D, H, W]
-
-                    # NOTE: masking should be performed before smoothing - masked area is not trained.
-                    density_maps.masked_fill_(unavailable_area, 0.0)
-                    density_maps = self.smoothing(density_maps)
-                    density_maps.masked_fill_(unavailable_area, 0.0)
-                    density_maps[density_maps < self.box_threshold] = 0.0
-                else:
-                    density_maps = []
-            else:
-                density_maps = [None] * len(hotspots)
+            hotspots = tokens[indices]  # [Ntoken',]
+            hotspot_positions = token_positions[indices]  # [Ntoken', 3]
+            hotspot_features = token_features[indices]  # [Ntoken', F]
 
         hotspot_infos = []
         assert len(hotspots) == len(relative_scores)
-        for hotspot, score, position, feature, map in zip(
-            hotspots, relative_scores, hotspot_positions, hotspot_features, density_maps, strict=True
-        ):
-            if map is not None:
-                if torch.all(map < 1e-6):
-                    continue
+        for hotspot, score, position, feature in zip(hotspots, relative_scores, hotspot_positions, hotspot_features):
             interaction_type = INTERACTION_LIST[int(hotspot[3])]
-            info = {
-                "nci_type": interaction_type,
-                "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
-                "hotspot_feature": feature,
-                "hotspot_position": tuple(position.tolist()),
-                "hotspot_score": float(score),
-                "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
-            }
-            if map is not None:
-                info["point_map"] = map
-            hotspot_infos.append(info)
-        multi_scale_features = [feature.squeeze(0) for feature in multi_scale_features]
+            hotspot_infos.append(
+                {
+                    "nci_type": interaction_type,
+                    "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
+                    "hotspot_feature": feature,
+                    "hotspot_position": tuple(position.tolist()),
+                    "hotspot_score": float(score),
+                    "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
+                }
+            )
         return multi_scale_features, hotspot_infos
+
+    def print_log(self, level, log):
+        if self.logger is None:
+            return None
+        if level == "debug":
+            self.logger.debug(log)
+        elif level == "info":
+            self.logger.info(log)
