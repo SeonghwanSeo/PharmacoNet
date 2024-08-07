@@ -212,13 +212,22 @@ OUTPUT=(multi_scale_features, hotspot_info)
 For feature extraction, it is recommended to use `score_threshold=0.5` instead of default setting used for pharmacophore modeling. If you want to extract more features, decrease the `score_threshold`.
 
 ```python
-from pmnet.module import PharmacoNet
+from pmnet.module import PharmacoNet, parse_protein
 module = PharmacoNet(
     "cuda",
-    score_threshold = 0.5  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
+    score_threshold = 0.5,  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
+    molvoxel_library = 'numpy' # <MOLVOXEL_LIBRARY: str, if you use it in `Dataset`, set 'numpy'>
 )
+# End-to-End calculation
 multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, <REF_LIGAND_PATH>)
 multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
+
+# Step-wise calculation
+voxelizer = module.voxelizer
+# In Dataset (Type: Tuple[Tensor, Tensor, Tensor, Tensor])
+protein_data = module.parse_protein(voxelizer, <PROTEIN_PATH>, <REF_LIGAND_PATH>, <CENTER_NOISE>)
+# In Model
+multi_scale_features, hotspot_infos = module.run_extraction(protein_data)
 ```
 
 ### Paper List

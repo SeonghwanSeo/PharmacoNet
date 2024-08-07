@@ -110,24 +110,20 @@ class PharmacophoreModel:
     def create(
         cls,
         pdbblock: str,
-        center: tuple[float, float, float],
-        resolution: float,
-        size: int,
+        center: tuple[float, float, float] | NDArray,
         hotspot_infos: list[dict],
+        resolution: float = 0.5,
+        size: int = 64,
     ):
+        assert len(center) == 3
+        if not isinstance(center, tuple):
+            x, y, z = center.tolist()
+            center = (x, y, z)
         graph = DensityMapGraph(center, resolution, size)
-
         for node in hotspot_infos:
-            hotspot_type = node["nci_type"]
-            hotspot_pos = tuple(node["hotspot_position"].tolist())
-            hotspot_score = float(node["hotspot_score"])
-            map = node["point_map"]
-            graph.add_node(hotspot_type, hotspot_pos, hotspot_score, map)
+            graph.add_node(node["type"], node["position"], node["score"], node["map"])
         graph.setup()
-        return cls.create_from_graph(pdbblock, graph)
 
-    @classmethod
-    def create_from_graph(cls, pdbblock: str, graph: DensityMapGraph):
         model = cls()
         model.pdbblock = pdbblock
         model.nodes = [ModelNode.create(model, node) for node in graph.nodes]

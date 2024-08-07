@@ -27,7 +27,7 @@ def coords_to_position(coords, center, resolution, size) -> tuple[float, float, 
 
 
 class DensityMapGraph:
-    def __init__(self, center: tuple[float, float, float], resolution: float, size: int):
+    def __init__(self, center: tuple[float, float, float], resolution: float = 0.5, size: int = 64):
         self.center: tuple[float, float, float] = center
         self.resolution: float = resolution
         self.size: int = size
