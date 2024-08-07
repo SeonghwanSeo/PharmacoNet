@@ -1,20 +1,63 @@
 import os
 import numpy as np
+import math
 
 from Bio.PDB import PDBParser, PDBIO
 from Bio.PDB.PDBIO import Select
 
+from typing import Union
 from numpy.typing import ArrayLike
+from pathlib import Path
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 AMINO_ACID = [
-    'GLY', 'ALA', 'VAL', 'LEU', 'ILE', 'PRO', 'PHE', 'TYR', 'TRP', 'SER',
-    'THR', 'CYS', 'MET', 'ASN', 'GLN', 'ASP', 'GLU', 'LYS', 'ARG', 'HIS',
-    'HIP', 'HIE', 'TPO', 'HID', 'LEV', 'MEU', 'PTR', 'GLV', 'CYT', 'SEP',
-    'HIZ', 'CYM', 'GLM', 'ASQ', 'TYS', 'CYX', 'GLZ', 'MSE', 'CSO', 'KCX',
-    'CSD', 'MLY', 'PCA', 'LLP'
+    "GLY",
+    "ALA",
+    "VAL",
+    "LEU",
+    "ILE",
+    "PRO",
+    "PHE",
+    "TYR",
+    "TRP",
+    "SER",
+    "THR",
+    "CYS",
+    "MET",
+    "ASN",
+    "GLN",
+    "ASP",
+    "GLU",
+    "LYS",
+    "ARG",
+    "HIS",
+    "HIP",
+    "HIE",
+    "TPO",
+    "HID",
+    "LEV",
+    "MEU",
+    "PTR",
+    "GLV",
+    "CYT",
+    "SEP",
+    "HIZ",
+    "CYM",
+    "GLM",
+    "ASQ",
+    "TYS",
+    "CYX",
+    "GLZ",
+    "MSE",
+    "CSO",
+    "KCX",
+    "CSD",
+    "MLY",
+    "PCA",
+    "LLP",
 ]
 
 
@@ -28,11 +71,9 @@ class DistSelect(Select):
             return 0
         if residue.get_resname() not in AMINO_ACID:
             return 0
-        residue_positions = np.array([
-            list(atom.get_vector())
-            for atom in residue.get_atoms()
-            if "H" not in atom.get_id()
-        ])
+        residue_positions = np.array(
+            [list(atom.get_vector()) for atom in residue.get_atoms() if "H" not in atom.get_id()]
+        )
         if residue_positions.shape[0] == 0:
             return 0
         min_dis = np.min(np.linalg.norm(residue_positions - self.center, axis=-1))
@@ -42,14 +83,14 @@ class DistSelect(Select):
             return 0
 
 
+DEFAULT_CUTOFF = 16 * math.sqrt(3) + 5.0
+
+
 def extract_pocket(
-    protein_pdb_path: str,
-    out_pocket_pdb_path: str,
-    center: ArrayLike,
-    cutoff: float
+    protein_pdb_path: Union[str, Path], out_pocket_pdb_path: str, center: ArrayLike, cutoff: float = DEFAULT_CUTOFF
 ):
     parser = PDBParser()
-    structure = parser.get_structure("protein", protein_pdb_path)
+    structure = parser.get_structure("protein", str(protein_pdb_path))
     io = PDBIO()
     io.set_structure(structure)
     io.save(out_pocket_pdb_path, DistSelect(center, cutoff))

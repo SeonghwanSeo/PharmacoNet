@@ -110,11 +110,15 @@ class PharmacophoreModel:
     def create(
         cls,
         pdbblock: str,
-        center: tuple[float, float, float],
-        resolution: float,
-        size: int,
+        center: tuple[float, float, float] | NDArray,
         hotspot_infos: list[dict],
+        resolution: float = 0.5,
+        size: int = 64,
     ):
+        assert len(center) == 3
+        if not isinstance(center, tuple):
+            x, y, z = center.tolist()
+            center = (x, y, z)
         graph = DensityMapGraph(center, resolution, size)
         for node in hotspot_infos:
             graph.add_node(node["type"], node["position"], node["score"], node["map"])
