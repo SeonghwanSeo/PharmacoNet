@@ -5,7 +5,6 @@ run.sh
 result/
 examples/library/
 nogit/
-test.sh
 
 
 # Byte-compiled / optimized / DLL files

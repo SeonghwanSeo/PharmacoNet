@@ -141,7 +141,7 @@ class PharmacoNet:
             extension = os.path.splitext(ref_ligand_path)[1]
             assert extension in [".sdf", ".pdb", ".mol2"]
             ref_ligand = next(pybel.readfile(extension[1:], str(ref_ligand_path)))
-            x, y, z = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32).to_list()
+            x, y, z = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32).tolist()
         return float(x), float(y), float(z)
 
     @torch.no_grad()

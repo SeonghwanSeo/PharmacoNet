@@ -121,7 +121,8 @@ class PharmacophoreModel:
             center = (x, y, z)
         graph = DensityMapGraph(center, resolution, size)
         for node in hotspot_infos:
-            graph.add_node(node["type"], node["position"], node["score"], node["map"])
+            x, y, z = tuple(node["hotspot_position"].tolist())
+            graph.add_node(node["nci_type"], (x, y, z), float(node["hotspot_score"]), node["point_map"])
         graph.setup()
 
         model = cls()
