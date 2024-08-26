@@ -1,11 +1,10 @@
 from __future__ import annotations
 import os
-import tempfile
+import tqdm
 import logging
 from pathlib import Path
 from importlib.util import find_spec
 
-import tqdm
 from openbabel import pybel
 import torch
 import numpy as np
@@ -15,15 +14,11 @@ from typing import Any
 from torch import Tensor
 from numpy.typing import NDArray
 
-from molvoxel import create_voxelizer, BaseVoxelizer
-
 from pmnet.network import build_model
 from pmnet.network.detector import PharmacoFormer
-from pmnet.data import token_inference, pointcloud
 from pmnet.data import constant as C
-from pmnet.data import INTERACTION_LIST
-from pmnet.data.objects import Protein
-from pmnet.data.extract_pocket import extract_pocket
+from pmnet.data import token_inference
+from pmnet.data.parser import ProteinParser
 from pmnet.utils.smoothing import GaussianSmoothing
 from pmnet.utils.download_weight import download_pretrained_model
 from pmnet.pharmacophore_model import PharmacophoreModel, INTERACTION_TO_PHARMACOPHORE, INTERACTION_TO_HOTSPOT
@@ -47,7 +42,7 @@ DEFAULT_SCORE_THRESHOLD = {
 class PharmacoNet:
     def __init__(
         self,
-        device: str = "cpu",
+        device: str | torch.device = "cpu",
         score_threshold: float | dict[str, float] | None = DEFAULT_SCORE_THRESHOLD,
         verbose: bool = True,
         molvoxel_library: str = "numba",
@@ -63,6 +58,7 @@ class PharmacoNet:
         assert molvoxel_library in ["numpy", "numba"]
         if molvoxel_library == "numba" and (not find_spec("numba")):
             molvoxel_library = "numpy"
+        self.parser: ProteinParser = ProteinParser(molvoxel_library=molvoxel_library)
 
         running_path = Path(__file__)
         weight_path = running_path.parent / "weights" / "model.tar"
@@ -74,7 +70,7 @@ class PharmacoNet:
         model.load_state_dict(checkpoint["model"])
         model.eval()
         self.model: PharmacoFormer = model.to(device)
-        self.device = device
+        self.smoothing = GaussianSmoothing(kernel_size=5, sigma=0.5).to(device)
         self.score_distributions = {
             typ: np.array(distribution["focus"]) for typ, distribution in checkpoint["score_distributions"].items()
         }
@@ -86,16 +82,10 @@ class PharmacoNet:
         if isinstance(score_threshold, dict):
             self.score_threshold = score_threshold
         elif isinstance(score_threshold, float):
-            self.score_threshold = {typ: score_threshold for typ in INTERACTION_LIST}
+            self.score_threshold = {typ: score_threshold for typ in C.INTERACTION_LIST}
         else:
             self.score_threshold = DEFAULT_SCORE_THRESHOLD
 
-        self.resolution = 0.5
-        self.size = 64
-        self.voxelizer: BaseVoxelizer = create_voxelizer(
-            self.resolution, self.size, sigma=(1 / 3), library=molvoxel_library
-        )
-        self.smoothing = GaussianSmoothing(kernel_size=5, sigma=0.5).to(device)
         if verbose:
             self.logger = logging.getLogger("PharmacoNet")
         else:
@@ -110,7 +100,7 @@ class PharmacoNet:
     ) -> PharmacophoreModel:
         assert (ref_ligand_path is not None) or (center is not None)
         center = self.get_center(ref_ligand_path, center)
-        protein_data = parse_protein(self.voxelizer, protein_pdb_path, center, 0.0, True)
+        protein_data = self.parser.parse(protein_pdb_path, center=center)
         hotspot_infos = self.create_density_maps(protein_data)
         with open(protein_pdb_path) as f:
             pdbblock: str = "\n".join(f.readlines())
@@ -123,10 +113,69 @@ class PharmacoNet:
         ref_ligand_path: str | Path | None = None,
         center: tuple[float, float, float] | NDArray | None = None,
     ) -> tuple[list[Tensor], list[dict[str, Any]]]:
-        assert (ref_ligand_path is not None) or (center is not None)
-        center = self.get_center(ref_ligand_path, center)
-        protein_data = parse_protein(self.voxelizer, protein_pdb_path, center, 0.0, True)
+        protein_data = self.parser.parse(protein_pdb_path, ref_ligand_path, center)
         return self.run_extraction(protein_data)
+
+    @torch.no_grad()
+    def run_extraction(
+        self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]
+    ) -> tuple[list[Tensor], list[dict[str, Any]]]:
+        protein_image, mask, token_pos, tokens = protein_data
+        protein_image = protein_image.to(device=self.device)
+        token_pos = token_pos.to(device=self.device)
+        tokens = tokens.to(device=self.device)
+        mask = mask.to(device=self.device)
+
+        multi_scale_features = self.model.forward_feature(protein_image.unsqueeze(0))  # List[[1, D, H, W, F]]
+        token_scores, token_features = self.model.forward_token_prediction(multi_scale_features[-1], [tokens])
+        token_scores = token_scores[0].sigmoid()  # [Ntoken,]
+        token_features = token_features[0]  # [Ntoken, F]
+        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(multi_scale_features[-1])
+        cavity_narrow = cavity_narrow[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
+        cavity_wide = cavity_wide[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
+
+        indices = []
+        rel_scores = []
+        for i in range(tokens.shape[0]):
+            x, y, z, typ = tokens[i].tolist()
+            # NOTE: Check the token score
+            absolute_score = token_scores[i].item()
+            relative_score = float((self.score_distributions[C.INTERACTION_LIST[int(typ)]] < absolute_score).mean())
+            if relative_score < self.score_threshold[C.INTERACTION_LIST[int(typ)]]:
+                continue
+            # NOTE: Check the token exists in cavity
+            _cavity = cavity_wide if typ in C.LONG_INTERACTION else cavity_narrow
+            if not _cavity[0, x, y, z]:
+                continue
+            indices.append(i)
+            rel_scores.append(relative_score)
+        hotspots = tokens[indices]  # [Ntoken',]
+        hotpsot_pos = token_pos[indices]  # [Ntoken', 3]
+        hotspot_features = token_features[indices]  # [Ntoken', F]
+        del protein_image, mask, token_pos, tokens
+
+        hotspot_infos = []
+        for hotspot, score, position, feature in zip(hotspots, rel_scores, hotpsot_pos, hotspot_features, strict=True):
+            interaction_type = C.INTERACTION_LIST[int(hotspot[3])]
+            hotspot_infos.append(
+                {
+                    "nci_type": interaction_type,
+                    "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
+                    "hotspot_feature": feature,
+                    "hotspot_position": tuple(position.tolist()),
+                    "hotspot_score": float(score),
+                    "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
+                }
+            )
+        return multi_scale_features, hotspot_infos
+
+    def print_log(self, level, log):
+        if self.logger is None:
+            return None
+        if level == "debug":
+            self.logger.debug(log)
+        elif level == "info":
+            self.logger.info(log)
 
     @staticmethod
     def get_center(
@@ -146,9 +195,9 @@ class PharmacoNet:
 
     @torch.no_grad()
     def create_density_maps(self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]):
-        protein_image, mask, token_positions, tokens = protein_data
+        protein_image, mask, token_pos, tokens = protein_data
         protein_image = protein_image.to(device=self.device, dtype=torch.float)
-        token_positions = token_positions.to(device=self.device, dtype=torch.float)
+        token_pos = token_pos.to(device=self.device, dtype=torch.float)
         tokens = tokens.to(device=self.device, dtype=torch.long)
         mask = mask.to(device=self.device, dtype=torch.bool)
 
@@ -156,27 +205,23 @@ class PharmacoNet:
             "debug",
             f"Protein-based Pharmacophore Modeling... (device: {self.device})",
         )
-        protein_image = protein_image.unsqueeze(0)
-        multi_scale_features = self.model.forward_feature(protein_image)  # List[[1, D, H, W, F]]
-        bottom_features = multi_scale_features[-1]
-
-        token_scores, token_features = self.model.forward_token_prediction(bottom_features, [tokens])
+        multi_scale_features = self.model.forward_feature(protein_image.unsqueeze(0))  # List[[1, D, H, W, F]]
+        token_scores, token_features = self.model.forward_token_prediction(multi_scale_features[-1], [tokens])
         token_scores = token_scores[0].sigmoid()  # [Ntoken,]
         token_features = token_features[0]  # [Ntoken, F]
-
-        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(bottom_features)
+        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(multi_scale_features[-1])
         cavity_narrow = cavity_narrow[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
         cavity_wide = cavity_wide[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
 
         num_tokens = tokens.shape[0]
         indices = []
-        relative_scores = []
+        rel_scores = []
         for i in range(num_tokens):
             x, y, z, typ = tokens[i].tolist()
             # NOTE: Check the token score
             absolute_score = token_scores[i].item()
-            relative_score = float((self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean())
-            if relative_score < self.score_threshold[INTERACTION_LIST[int(typ)]]:
+            relative_score = float((self.score_distributions[C.INTERACTION_LIST[int(typ)]] < absolute_score).mean())
+            if relative_score < self.score_threshold[C.INTERACTION_LIST[int(typ)]]:
                 continue
             # NOTE: Check the token exists in cavity
             if typ in C.LONG_INTERACTION:
@@ -186,12 +231,12 @@ class PharmacoNet:
                 if not cavity_narrow[0, x, y, z]:
                     continue
             indices.append(i)
-            relative_scores.append(relative_score)
+            rel_scores.append(relative_score)
         selected_indices = torch.tensor(indices, device=self.device, dtype=torch.long)  # [Ntoken',]
         hotspots = tokens[selected_indices]  # [Ntoken',]
-        hotspot_positions = token_positions[selected_indices]  # [Ntoken', 3]
+        hotpsot_pos = token_pos[selected_indices]  # [Ntoken', 3]
         hotspot_features = token_features[selected_indices]  # [Ntoken', F]
-        del protein_image, tokens, token_positions, token_features
+        del protein_image, tokens, token_pos, token_features
 
         density_maps_list = []
         if self.device == "cpu":
@@ -224,11 +269,10 @@ class PharmacoNet:
         density_maps[density_maps < self.box_threshold] = 0.0
 
         hotspot_infos = []
-        assert len(hotspots) == len(relative_scores)
-        for hotspot, score, position, map in zip(hotspots, relative_scores, hotspot_positions, density_maps):
+        for hotspot, score, position, map in zip(hotspots, rel_scores, hotpsot_pos, density_maps, strict=True):
             if torch.all(map < 1e-6):
                 continue
-            interaction_type = INTERACTION_LIST[int(hotspot[3])]
+            interaction_type = C.INTERACTION_LIST[int(hotspot[3])]
             hotspot_infos.append(
                 {
                     "nci_type": interaction_type,
@@ -245,108 +289,15 @@ class PharmacoNet:
         )
         return hotspot_infos
 
-    @torch.no_grad()
-    def run_extraction(
-        self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]
-    ) -> tuple[list[Tensor], list[dict[str, Any]]]:
-        protein_image, mask, token_positions, tokens = protein_data
-        protein_image = protein_image.to(device=self.device, dtype=torch.float)
-        token_positions = token_positions.to(device=self.device, dtype=torch.float)
-        tokens = tokens.to(device=self.device, dtype=torch.long)
-        mask = mask.to(device=self.device, dtype=torch.bool)
+    @property
+    def device(self):
+        return next(self.model.parameters()).device
 
-        protein_image = protein_image.unsqueeze(0)
-        multi_scale_features = self.model.forward_feature(protein_image)  # List[[1, D, H, W, F]]
-        bottom_features = multi_scale_features[-1]
+    def to(self, device):
+        self.model = self.model.to(device)
 
-        token_scores, token_features = self.model.forward_token_prediction(bottom_features, [tokens])
-        token_scores = token_scores[0].sigmoid()  # [Ntoken,]
-        token_features = token_features[0]  # [Ntoken, F]
+    def cuda(self):
+        self.model = self.model.cuda()
 
-        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(bottom_features)
-        cavity_narrow = cavity_narrow[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
-        cavity_wide = cavity_wide[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
-
-        num_tokens = tokens.shape[0]
-        indices = []
-        relative_scores = []
-        for i in range(num_tokens):
-            x, y, z, typ = tokens[i].tolist()
-            # NOTE: Check the token score
-            absolute_score = token_scores[i].item()
-            relative_score = float((self.score_distributions[INTERACTION_LIST[int(typ)]] < absolute_score).mean())
-            if relative_score < self.score_threshold[INTERACTION_LIST[int(typ)]]:
-                continue
-            # NOTE: Check the token exists in cavity
-            _cavity = cavity_wide if typ in C.LONG_INTERACTION else cavity_narrow
-            if not _cavity[0, x, y, z]:
-                continue
-            indices.append(i)
-            relative_scores.append(relative_score)
-        hotspots = tokens[indices]  # [Ntoken',]
-        hotspot_positions = token_positions[indices]  # [Ntoken', 3]
-        hotspot_features = token_features[indices]  # [Ntoken', F]
-
-        hotspot_infos = []
-        assert len(hotspots) == len(relative_scores)
-        for hotspot, score, position, feature in zip(hotspots, relative_scores, hotspot_positions, hotspot_features):
-            interaction_type = INTERACTION_LIST[int(hotspot[3])]
-            hotspot_infos.append(
-                {
-                    "nci_type": interaction_type,
-                    "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
-                    "hotspot_feature": feature,
-                    "hotspot_position": tuple(position.tolist()),
-                    "hotspot_score": float(score),
-                    "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
-                }
-            )
-        del protein_image, mask, token_positions, tokens
-        return multi_scale_features, hotspot_infos
-
-    def print_log(self, level, log):
-        if self.logger is None:
-            return None
-        if level == "debug":
-            self.logger.debug(log)
-        elif level == "info":
-            self.logger.info(log)
-
-
-# NOTE: For DL Model Training
-def parse_protein(
-    voxelizer: BaseVoxelizer,
-    protein_pdb_path: str | Path,
-    center: NDArray[np.float32] | tuple[float, float, float],
-    center_noise: float = 0.0,
-    pocket_extract: bool = True,
-) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-    if isinstance(center, tuple):
-        center = np.array(center, dtype=np.float32)
-    if center_noise > 0:
-        center = center + (np.random.rand(3) * 2 - 1) * center_noise
-
-    if pocket_extract:
-        with tempfile.TemporaryDirectory() as dirname:
-            pocket_path = os.path.join(dirname, "pocket.pdb")
-            extract_pocket(protein_pdb_path, pocket_path, center)
-            protein_obj: Protein = Protein.from_pdbfile(pocket_path)
-    else:
-        protein_obj: Protein = Protein.from_pdbfile(protein_pdb_path)
-
-    token_positions, token_classes = token_inference.get_token_informations(protein_obj)
-    tokens, filter = token_inference.get_token_and_filter(token_positions, token_classes, center)
-    token_positions = token_positions[filter]
-
-    protein_positions, protein_features = pointcloud.get_protein_pointcloud(protein_obj)
-    protein_image = np.asarray(
-        voxelizer.forward_features(protein_positions, center, protein_features, radii=1.5), np.float32
-    )
-    mask = np.logical_not(np.asarray(voxelizer.forward_single(protein_positions, center, radii=1.0), np.bool_))
-    del protein_obj
-    return (
-        torch.from_numpy(protein_image),
-        torch.from_numpy(mask),
-        torch.from_numpy(token_positions),
-        torch.from_numpy(tokens),
-    )
+    def cpu(self):
+        self.model = self.model.cpu()

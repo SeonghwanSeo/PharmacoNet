@@ -1,5 +1,6 @@
 /bin/rm -rf result/6oim
 python modeling.py --cuda --pdb 6oim
+python modeling.py --cuda --pdb 6oim -c D
 python modeling.py --cuda --pdb 6oim --ref_ligand ./result/6oim/6oim_B_MG.pdb
 python modeling.py --cuda --protein ./result/6oim/6oim.pdb --prefix 6oim
 python modeling.py --cuda --protein ./result/6oim/6oim.pdb --ref_ligand ./result/6oim/6oim_B_MG.pdb --prefix 6oim

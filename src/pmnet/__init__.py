@@ -1,6 +1,6 @@
 from .pharmacophore_model import PharmacophoreModel
 
-__version__ = "2.0.3"
+__version__ = "2.1.0"
 __citation_information__ = (
     "Seo, S., & Kim, W. Y. (2023, December). "
     "PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling. "
