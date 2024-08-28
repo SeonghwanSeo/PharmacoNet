@@ -1,9 +1,10 @@
 # NOTE: For DL Model Training
-__all__ = ["PharmacoNet", "ProteinParser", "get_pmnet_dev"]
+__all__ = ["PharmacoNet", "ProteinParser", "get_pmnet_dev", "MultiScaleFeature", "HotspotInfo"]
 
 import torch
 from pmnet.module import PharmacoNet
 from pmnet.data.parser import ProteinParser
+from . import typing
 
 
 def get_pmnet_dev(

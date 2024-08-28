@@ -42,6 +42,15 @@ appl = [
   "torch-sparse==0.6.18",
   "torch-cluster==1.6.3",
 ]
+dev = [
+  "torch==2.3.1",
+  "torch-geometric==2.4.0",
+  "torch-scatter==2.1.2",
+  "torch-sparse==0.6.18",
+  "torch-cluster==1.6.3",
+  "wandb",
+  "tensorboard",
+]
 
 [project.urls]
 Website = "https://github.com/SeonghwanSeo/PharmacoNet"

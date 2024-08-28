@@ -38,6 +38,9 @@ DEFAULT_SCORE_THRESHOLD = {
     "Hydrophobic": 0.85,
 }
 
+MultiScaleFeature = tuple[Tensor, Tensor, Tensor, Tensor, Tensor]
+HotspotInfo = dict[str, Any]
+
 
 class PharmacoNet:
     def __init__(
@@ -70,6 +73,9 @@ class PharmacoNet:
         model.load_state_dict(checkpoint["model"])
         model.eval()
         self.model: PharmacoFormer = model.to(device)
+        for param in self.model.parameters():
+            param.requires_grad = False
+
         self.smoothing = GaussianSmoothing(kernel_size=5, sigma=0.5).to(device)
         self.score_distributions = {
             typ: np.array(distribution["focus"]) for typ, distribution in checkpoint["score_distributions"].items()
@@ -112,14 +118,14 @@ class PharmacoNet:
         protein_pdb_path: str | Path,
         ref_ligand_path: str | Path | None = None,
         center: tuple[float, float, float] | NDArray | None = None,
-    ) -> tuple[list[Tensor], list[dict[str, Any]]]:
+    ) -> tuple[MultiScaleFeature, list[HotspotInfo]]:
         protein_data = self.parser.parse(protein_pdb_path, ref_ligand_path, center)
         return self.run_extraction(protein_data)
 
     @torch.no_grad()
     def run_extraction(
         self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]
-    ) -> tuple[list[Tensor], list[dict[str, Any]]]:
+    ) -> tuple[MultiScaleFeature, list[HotspotInfo]]:
         protein_image, mask, token_pos, tokens = protein_data
         protein_image = protein_image.to(device=self.device)
         token_pos = token_pos.to(device=self.device)

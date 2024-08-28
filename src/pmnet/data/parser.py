@@ -25,6 +25,9 @@ class ProteinParser:
         self.noise: float = center_noise
         self.extract: bool = pocket_extract
 
+        ob_log_handler = pybel.ob.OBMessageHandler()
+        ob_log_handler.SetOutputLevel(0)  # 0: None
+
     def __call__(
         self,
         protein_pdb_path: str | Path,
