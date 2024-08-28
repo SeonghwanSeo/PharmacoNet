@@ -14,6 +14,7 @@ Official Github for **_PharmacoNet: Accelerating Large-Scale Virtual Screening b
 1. Fully automated protein-based pharmacophore modeling based on image instance segmentation modeling
 2. Coarse-grained graph matching at the pharmacophore level for high throughput
 3. Pharmacophore-aware scoring function with parameterized analytical function for robust generalization ability
+4. Better pocket representation for deep learning developer. ([Section](#pharmacophore-feature-extraction))
 
 PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
 
@@ -164,27 +165,34 @@ score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 
 ## Pharmacophore Feature Extraction
 
-For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the script `feature_extraction.py`.
 
-```bash
-python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_PATH> --out <SAVE_PT_PATH>
-python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PT_PATH>
-```
+***See: [`./src/pmnet_appl/`](/src/pmnet_appl/).***
 
-```bash
-OUTPUT=(multi_scale_features, hotspot_info)
-  multi_scale_features: list[torch.Tensor]:
-    - torch.Tensor [96, 4, 4, 4]
-    - torch.Tensor [96, 8, 8, 8]
-    - torch.Tensor [96, 16, 16, 16]
-    - torch.Tensor [96, 32, 32, 32]
-    - torch.Tensor [96, 64, 64, 64]
-  hotspot_infos: list[hotspot_info]
-    info: dict[str, Any]
-      - hotspot_feature: torch.Tensor (192,)
+For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the python API.
+
+```python
+from pmnet.api import PharmacoNet, get_pmnet_dev, ProteinParser
+module: PharmacoNet = get_pmnet_dev('cuda') # default: score_threshold=0.5 (less threshold: more features)
+
+# End-to-End calculation
+pmnet_attr = module.feature_extraction(<PROTEIN_PATH>, ref_ligand_path=<REF_LIGAND_PATH>)
+pmnet_attr = module.feature_extraction(<PROTEIN_PATH>, center=(<CENTER_X>, <CENTER_Y>, <CENTER_Z>))
+
+# Step-wise calculation
+## In Dataset
+parser = ProteinParser(center_noise=<CENTER_NOISE>) # center_noise: for data augmentation
+## In Model (freezed, method is decorated by torch.no_grad())
+pmnet_attr = module.run_extraction(protein_data)
+
+"""
+pmnet_attr = (multi_scale_features, hotspot_infos)
+- multi_scale_features: tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
+    - [96, 4, 4, 4], [96, 8, 8, 8], [96, 16, 16, 16], [96, 32, 32, 32], [96, 64, 64, 64]
+- hotspot_infos: list[hotspot_info]
+    hotspot_info: dict[str, Any]
+      - hotspot_feature: Tensor [192,]
       - hotspot_position: tuple[float, float, float] - (x, y, z)
       - hotspot_score: float in [0, 1]
-
       - nci_type: str (10 types)
           'Hydrophobic': Hydrophobic interaction
           'PiStacking_P': PiStacking (Parallel)
@@ -197,37 +205,14 @@ OUTPUT=(multi_scale_features, hotspot_info)
           'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
           'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
 
+      # Features obtained from `nci_type`, i.e. `nci_type` is all you need.
       - hotspot_type: str (7 types)
           {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
            'Halogen', 'HBond_donor', 'HBond_acceptor'}
-          *** `type` is obtained from `nci_type`.
       - point_type: str (7 types)
           {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
            'Halogen', 'HBond_donor', 'HBond_acceptor'}
-          *** `type` is obtained from `nci_type`.
-```
-
-### Python Script
-
-For feature extraction, it is recommended to use `score_threshold=0.5` instead of default setting used for pharmacophore modeling. If you want to extract more features, decrease the `score_threshold`.
-
-```python
-from pmnet.module import PharmacoNet, parse_protein
-module = PharmacoNet(
-    "cuda",
-    score_threshold = 0.5,  # <SCORE_THRESHOLD: float | dict[str, float], recommended=0.5>,
-    molvoxel_library = 'numpy' # <MOLVOXEL_LIBRARY: str, if you use it in `Dataset`, set 'numpy'>
-)
-# End-to-End calculation
-multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, <REF_LIGAND_PATH>)
-multi_scale_features, hotspot_infos = module.feature_extraction(<PROTEIN_PATH>, center=(<X>, <Y>, <Z>))
-
-# Step-wise calculation
-voxelizer = module.voxelizer
-# In Dataset (Type: Tuple[Tensor, Tensor, Tensor, Tensor])
-protein_data = module.parse_protein(voxelizer, <PROTEIN_PATH>, <REF_LIGAND_PATH>, <CENTER_NOISE>)
-# In Model
-multi_scale_features, hotspot_infos = module.run_extraction(protein_data)
+"""
 ```
 
 ### Paper List

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pharmaconet"
-version = "2.0.3"
+version = "2.1.0"
 description = "PharmacoNet: Open-Source Software for Protein-based Pharmacophore Modeling and Virtual Screening"
 license = { text = "MIT" }
 authors = [{ name = "Seonghwan Seo", email = "shwan0106@kaist.ac.kr" }]
@@ -32,6 +32,24 @@ dependencies = [
   "molvoxel>=0.1.3",
   "gdown>=5.1.0",
   "biopython>=1.83"
+]
+
+[project.optional-dependencies]
+appl = [
+  "torch==2.3.1",
+  "torch-geometric==2.4.0",
+  "torch-scatter==2.1.2",
+  "torch-sparse==0.6.18",
+  "torch-cluster==1.6.3",
+]
+dev = [
+  "torch==2.3.1",
+  "torch-geometric==2.4.0",
+  "torch-scatter==2.1.2",
+  "torch-sparse==0.6.18",
+  "torch-cluster==1.6.3",
+  "wandb",
+  "tensorboard",
 ]
 
 [project.urls]

@@ -1,6 +1,6 @@
 import argparse
 import torch
-from pmnet.module import PharmacoNet
+from pmnet.api import get_pmnet_dev
 
 
 class ArgParser(argparse.ArgumentParser):
@@ -57,9 +57,7 @@ def main(args):
     ]
     """
     device = "cuda" if args.cuda else "cpu"
-    score_threshold = 0.5  # NOTE: RECOMMENDED_SCORE_THRESHOLD
-
-    module = PharmacoNet(device, score_threshold)
+    module = get_pmnet_dev(device)
     multi_scale_features, hotspot_infos = module.feature_extraction(args.protein, args.ref_ligand, args.center)
     torch.save([multi_scale_features, hotspot_infos], args.out)
 
