@@ -13,7 +13,7 @@ import torch.multiprocessing
 import torch.utils.tensorboard
 from torch.utils.data import DataLoader
 
-from pmnet.module import PharmacoNet
+from pmnet.api import PharmacoNet
 
 from .model import AffinityModel
 from .dataset import BaseDataset
@@ -37,7 +37,8 @@ class Trainer:
         if wandb.run is None:
             self._summary_writer = torch.utils.tensorboard.SummaryWriter(self.log_dir)
 
-        self.model = AffinityModel(config, device)
+        self.model = AffinityModel(config)
+        self.model.to(device)
         self.pmnet: PharmacoNet = self.model.pmnet
         self.setup_data()
         self.setup_train()
