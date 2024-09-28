@@ -8,7 +8,7 @@ from torch_geometric.data import Data, Batch
 
 from pmnet.api import ProteinParser
 
-from .utils import smi2graphdata
+from .data import smi2graphdata
 
 
 class BaseDataset(Dataset):

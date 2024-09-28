@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from pathlib import Path
 import numpy as np
 import itertools
 
@@ -60,7 +61,7 @@ class Ligand:
         self.graph = LigandGraph(self)
 
     @classmethod
-    def load_from_file(cls, filename: os.PathLike[str], num_conformers: int | None = None) -> Ligand:
+    def load_from_file(cls, filename: str | Path, num_conformers: int | None = None) -> Ligand:
         assert filename is not None
         extension = os.path.splitext(filename)[1]
         assert extension in [".sdf", ".pdb", ".mol2"]
