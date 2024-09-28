@@ -15,6 +15,7 @@ from __future__ import annotations
 import tqdm
 import torch
 import torch.nn as nn
+import gdown
 
 from torch import Tensor
 from pathlib import Path
@@ -28,9 +29,16 @@ Cache = Any
 
 
 class BaseProxy(nn.Module):
-    root_dir = Path(__file__).parent
+    root_dir: Path = Path(__file__).parent
+    cache_gdrive_link: dict[tuple[str, str], str] = {}
+    model_gdrive_link: dict[str, str] = {}
 
-    def __init__(self, ckpt_path: str | Path | None = None, device: str | torch.device = "cuda"):
+    def __init__(
+        self,
+        ckpt_path: str | Path | None = None,
+        device: str | torch.device = "cuda",
+        compile_pmnet: bool = False,
+    ):
         super().__init__()
         self.pmnet = None  # NOTE: Lazy
         self.ckpt_path: str | Path | None = ckpt_path
@@ -40,6 +48,7 @@ class BaseProxy(nn.Module):
         self.to(device)
         if self.ckpt_path is not None:
             self._load_checkpoint(self.ckpt_path)
+        self.compile_pmnet: bool = compile_pmnet
 
     # NOTE: Implement Here!
     def _setup_model(self):
@@ -56,8 +65,20 @@ class BaseProxy(nn.Module):
         raise NotImplementedError
 
     @classmethod
-    def _download_model(cls, train_dataset: str):
-        raise NotImplementedError
+    def _download_model(cls, suffix: str):
+        weight_dir = cls.root_dir / "weights"
+        model_path = weight_dir / f"model-{suffix}.pth"
+        if not model_path.exists():
+            id = cls.model_gdrive_link[suffix]
+            gdown.download(f"https://drive.google.com/uc?id={id}", str(model_path))
+
+    @classmethod
+    def _download_cache(cls, suffix: str, label: str):
+        weight_dir = cls.root_dir / "weights"
+        cache_path = weight_dir / f"cache-{label}-{suffix}.pt"
+        if not cache_path.exists():
+            id = cls.cache_gdrive_link[(suffix, label)]
+            gdown.download(f"https://drive.google.com/uc?id={id}", str(cache_path))
 
     # NOTE: Python Method
     @classmethod
@@ -87,18 +108,21 @@ class BaseProxy(nn.Module):
         weight_dir = cls.root_dir / "weights"
         suffix = f"{docking}-{train_dataset}"
         ckpt_path = weight_dir / f"model-{suffix}.pth"
-        if not ckpt_path.exists():
-            cls._download_model(train_dataset)
+        cls._download_model(suffix)
 
         train_cache_path = weight_dir / f"cache-train-{suffix}.pt"
         test_cache_path = weight_dir / f"cache-test-{suffix}.pt"
         if db is None:
             cache_dict = {}
         elif db == "all":
+            cls._download_cache(suffix, "train")
+            cls._download_cache(suffix, "test")
             cache_dict = torch.load(train_cache_path, "cpu") | torch.load(test_cache_path, "cpu")
         elif db == "train":
+            cls._download_cache(suffix, "train")
             cache_dict = torch.load(train_cache_path, "cpu")
         elif db == "test":
+            cls._download_cache(suffix, "test")
             cache_dict = torch.load(test_cache_path, "cpu")
         else:
             cache_dict = torch.load(db, "cpu")
@@ -243,7 +267,7 @@ class BaseProxy(nn.Module):
     def setup_pmnet(self):
         # NOTE: Lazy Load
         if self.pmnet is None:
-            self.pmnet: PharmacoNet | None = get_pmnet_dev(self.device)
+            self.pmnet: PharmacoNet | None = get_pmnet_dev(self.device, compile=self.compile_pmnet)
         if self.pmnet.device != self.device:
             self.pmnet.to(self.device)
 

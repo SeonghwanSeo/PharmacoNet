@@ -22,7 +22,11 @@ ALLOWED_DOCKING_LIST = ["QVina", "UniDock_Vina"]
 
 
 def get_docking_proxy(
-    model: str, docking: str, train_dataset: str, db: str | Path | None, device: str | torch.device
+    model: str,
+    docking: str,
+    train_dataset: str,
+    db: str | Path | None,
+    device: str | torch.device,
 ) -> BaseProxy:
     """Get Docking Proxy Model
 

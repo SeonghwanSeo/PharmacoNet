@@ -5,6 +5,7 @@ import json
 import os
 import numpy as np
 from openbabel import pybel
+from pathlib import Path
 
 from collections.abc import Iterable
 from numpy.typing import NDArray
@@ -83,7 +84,7 @@ class PharmacophoreModel:
 
     def scoring_file(
         self,
-        ligand_file: os.PathLike,
+        ligand_file: str | Path,
         weights: dict[str, float] | None = None,
         num_conformers: int | None = None,
     ) -> float:
@@ -144,7 +145,7 @@ class PharmacophoreModel:
         del graph
         return model
 
-    def save(self, save_path: str):
+    def save(self, save_path: str | Path):
         extension = os.path.splitext(save_path)[-1]
         state = self.__getstate__()
         if extension == ".pm":
@@ -157,7 +158,7 @@ class PharmacophoreModel:
             raise NotImplementedError
 
     @classmethod
-    def load(cls, save_path: str):
+    def load(cls, save_path: str | Path):
         extension = os.path.splitext(save_path)[-1]
         if extension == ".pm":
             with open(save_path, "rb") as f:

@@ -41,6 +41,16 @@ Cache = tuple[Tensor, Tensor]
 
 class TacoGFN_Proxy(BaseProxy):
     root_dir = Path(__file__).parent
+    cache_gdrive_link: dict[tuple[str, str], str] = {
+        ("QVina-ZINCDock15M", "train"): "1VibvAjhir5oXx5cmzfE0F2UVTSDsGH3v",
+        ("QVina-ZINCDock15M", "test"): "1F05JjkJuc6FwU4h8MLUEan34ovewGPLz",
+        ("QVina-CrossDocked2020", "train"): "1-5he-ItdtcZvlGqyI_rVU0XIk0XGzFC-",
+        ("QVina-CrossDocked2020", "test"): "1Ps3-Mj2GHH_FLtnjAD1riYiRyK01C_T8",
+    }
+    model_gdrive_link: dict[str, str] = {
+        "QVina-ZINCDock15M": "1lrH79-6YI2CfEP5sWIWzgboZsONXWkIZ",
+        "QVina-CrossDocked2020": "1Kjn4xNc8458Ibf-ckWjtuUotuhGFLiHK",
+    }
 
     def _setup_model(self):
         self.model: AffinityHead = AffinityHead()

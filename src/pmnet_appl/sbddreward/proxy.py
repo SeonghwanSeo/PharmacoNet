@@ -41,12 +41,26 @@ class SBDDReward_Proxy(BaseProxy):
     @torch.no_grad()
     def _scoring_list(self, cache: Cache, smiles_list: list[str], return_sigma: bool = False) -> Tensor:
         cache = (cache[0].to(self.device), cache[1].to(self.device), cache[2].to(self.device), cache[3], cache[4])
-        ligand_batch = gd.Batch.from_data_list([smi2graph(smiles) for smiles in smiles_list])
-        return self.model.scoring(cache, ligand_batch.to(self.device), return_sigma)
 
-    @classmethod
-    def _download_model(cls, train_dataset: str):
-        raise NotImplementedError
+        ligand_graphs = []
+        flag = []
+        for smi in smiles_list:
+            try:
+                graph = smi2graph(smi)
+            except:
+                flag.append(False)
+            else:
+                flag.append(True)
+                ligand_graphs.append(graph)
+        if not any(flag):
+            return torch.zeros(len(smiles_list), dtype=torch.float32, device=self.device)
+        ligand_batch: gd.Batch = gd.Batch.from_data_list(ligand_graphs).to(self.device)
+        if all(flag):
+            return self.model.scoring(cache, ligand_batch, return_sigma)
+        else:
+            result = torch.zeros(len(smiles_list), dtype=torch.float32, device=self.device)
+            result[flag] = self.model.scoring(cache, ligand_batch, return_sigma)
+            return result
 
     @classmethod
     def load(
@@ -154,4 +168,5 @@ if __name__ == "__main__":
     proxy = SBDDReward_Proxy.load("UniDock_Vina", "ZINC", "test", "cpu")
     print("proxy is loaded")
     print(proxy.scoring("14gs_A", "c1ccccc1"))
-    print(proxy.scoring_list("14gs_A", ["c1ccccc1", "C1CCCCC1"]))
+    print(proxy.scoring("14gs_A", "c11"))
+    print(proxy.scoring_list("14gs_A", ["c1ccccc1", "C1CCCCC1", "c11"]))
