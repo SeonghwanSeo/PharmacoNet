@@ -67,6 +67,7 @@ class BaseProxy(nn.Module):
     @classmethod
     def _download_model(cls, suffix: str):
         weight_dir = cls.root_dir / "weights"
+        weight_dir.mkdir(parents=True, exist_ok=True)
         model_path = weight_dir / f"model-{suffix}.pth"
         if not model_path.exists():
             id = cls.model_gdrive_link[suffix]
