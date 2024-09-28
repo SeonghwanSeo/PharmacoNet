@@ -22,6 +22,17 @@ If you have any problems or need help with the code, please add an github issue 
 
 ![](images/overview.png)
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Pharmacophore Modeling](#pharmacophore-modeling)
+- [Virtual Screening](#virtual-screening)
+- [Pharmacophore Feature Extraction](#pharmacophore-feature-extraction)
+- [Pre-trained Docking Proxy](#pretrained-docking-proxy)
+- [Citation](#citation)
+
+
 ## Quick Start
 
 ```bash
@@ -38,28 +49,27 @@ python feature_extraction.py --protein <PROTEIN_PATH> --ref_ligand <REF_LIGAND_P
 python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out <SAVE_PKL_PATH> --cuda
 ```
 
-#### Installation with `environment.yml`
+## Installation
+- Using `environment.yml`
+  For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
 
-For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
+  ```bash
+  conda create -f environment.yml
+  conda activate pmnet
+  pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+  pip install .
+  ```
 
-```bash
-conda create -f environment.yml
-conda activate pmnet
-pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install .
-```
+- Manual Installation
+  ```bash
+  # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
+  conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26.4
+  conda activate pmnet
 
-#### Manual Installation
-
-```shell
-# Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
-conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26.4
-conda activate pmnet
-
-pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
-pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
-pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
-```
+  pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+  pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
+  pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
+  ```
 
 ## Pharmacophore Modeling
 
@@ -165,8 +175,7 @@ score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 
 ## Pharmacophore Feature Extraction
 
-
-***See: [`./src/pmnet_appl/`](/src/pmnet_appl/).***
+***See: [`./developer/`](/developer/), [`./src/pmnet_appl/`](/src/pmnet_appl/).***
 
 For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the python API.
 
@@ -215,9 +224,20 @@ pmnet_attr = (multi_scale_features, hotspot_infos)
 """
 ```
 
-### Paper List
+## Pretrained Docking Proxy
+***See: [`./src/pmnet_appl/`](/src/pmnet_appl/).***
 
-- TacoGFN [[paper](https://arxiv.org/abs/2310.03223)]
+We provide pre-trained docking proxy models which predict docking score against arbitrary protein using PharmacoNet.
+We hope this implementation prompts the molecule optimization.
+
+If you use this implementation, please cite PharmacoNet with original papers.
+
+Implementation List:
+- TacoGFN: Target-conditioned GFlowNet for Structure-based Drug Design [[paper](https://arxiv.org/abs/2310.03223)]
+
+Related Works:
+- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [paper]
+
 
 ## Citation
 

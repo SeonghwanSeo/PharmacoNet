@@ -1,5 +1,5 @@
-from pmnet_appl.examples.src.config import Config
-from pmnet_appl.examples.src.trainer import Trainer
+from src.config import Config
+from src.trainer import Trainer
 
 
 config = Config()

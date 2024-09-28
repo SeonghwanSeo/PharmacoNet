@@ -1,40 +1,27 @@
-# Applications of PharmacoNet
-
-## Using PharmacoNet's protein representation
-
-Example scripts to use PharmacoNet's protein pharmacophore representation, which depend on `torch-geometric`.
-
-```bash
-# construct conda environment; pymol-open-source is not required.
-conda create -n pmnet-dev python=3.10 openbabel=3.1.1
-conda activate pmnet-dev
-# install PharmacoNet & torch_geometric & wandb & tensorboard
-pip install -e '.[dev]' --find-links https://data.pyg.org/whl/torch-2.3.1+cu121.html
-```
-
-Example datasets (100 or 1,000 pockets) can be available at [Google Drive](https://drive.google.com/drive/folders/1o8tDCsjIqaPRoJhs5SKW4yi0geA9h_Nv?usp=sharing), which are constructed by CrossDocked2020 and QuickVina 2.1.
-
-
-## Pre-trained Docking Proxy Models
+# Pre-trained Docking Proxy Models
 
 Easy-to-use docking score prediction models.
 
+Implementation List:
 - TacoGFN: Target-conditioned GFlowNet for Structure-based Drug Design [[paper](https://arxiv.org/abs/2310.03223)]
 
-### Install
+If you use this implementation, please cite PharmacoNet with related papers:
+
+## Install
 
 To use the pre-trained proxy model, you need to install torch geometric and associated libraries.
 You can simply install them with following scheme at the root directory:
 
 ```bash
+# install openbabel; pymol-open-source is not required.
 conda install openbabel=3.1.1
-# Case 1. Install only PharmacoNet (already torch-geometric is installed)
-pip install -e .
-# Case 2. Install both PharmacoNet and torch-geometric
+# Case 1. Install both PharmacoNet and torch-geometric
 pip install -e '.[appl]' --find-links https://data.pyg.org/whl/torch-2.3.1+cu121.html
+# Case 2. Install only PharmacoNet (already torch-geometric is installed)
+pip install -e .
 ```
 
-### Load Pretrained Model
+## Load Pretrained Model
 ```python
 from pmnet_appl import get_docking_proxy
 from pmnet_appl.tacogfn_reward import TacoGFN_Proxy
@@ -54,7 +41,7 @@ print(proxy.scoring("14gs_A", "c1ccccc1"))
 print(proxy.scoring_list("14gs_A", ["c1ccccc1", "C1CCCCC1"]))
 ```
 
-### Use custom target cache
+## Use custom target cache
 
 ```python
 proxy = get_docking_proxy("TacoGFN_Reward", "QVina", "ZINCDock15M", None, device)
