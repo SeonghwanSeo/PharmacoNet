@@ -1,26 +1,26 @@
-
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
+
 [![DOI](https://zenodo.org/badge/699273873.svg)](https://zenodo.org/doi/10.5281/zenodo.12168474)
+[![license: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
+![](images/overview.png)
 
-**Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
+**Before using PharmacoNet, consider using [OpenPharmaco](https://github.com/SeonghwanSeo/OpenPharmaco): GUI powered by PharmacoNet.**
 
-**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco)**
+**Chemical Science (Open Access)** [[paper](https://doi.org/10.1039/D4SC04854G)]
 
-Accepted in **_NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)_** [[arxiv](https://arxiv.org/abs/2310.00681)]
+Official Github for **_PharmacoNet: deep learning-guided pharmacophore modeling for ultra-large-scale virtual screening_** by Seonghwan Seo\* and Woo Youn Kim.
 
-Official Github for **_PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling_** by Seonghwan Seo\* and Woo Youn Kim.
+PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability:
 
 1. Fully automated protein-based pharmacophore modeling based on image instance segmentation modeling
-2. Coarse-grained graph matching at the pharmacophore level for high throughput
+2. Coarse-grained graph matching at the pharmacophore level for high throughput virtual screening
 3. Pharmacophore-aware scoring function with parameterized analytical function for robust generalization ability
-4. Better pocket representation for deep learning developer. ([Section](#pharmacophore-feature-extraction))
-
-PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
+4. Better pocket representation for deep learning developer ([section](#pharmacophore-feature-extraction))
 
 If you have any problems or need help with the code, please add an github issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
-![](images/overview.png)
+\* You can read the previous NeurIPS 2023 Workshop version at [arXiv](https://arxiv.org/abs/2310.00681).
 
 ## Table of Contents
 
@@ -31,7 +31,6 @@ If you have any problems or need help with the code, please add an github issue 
 - [Pharmacophore Feature Extraction](#pharmacophore-feature-extraction)
 - [Pre-trained Docking Proxy](#pretrained-docking-proxy)
 - [Citation](#citation)
-
 
 ## Quick Start
 
@@ -50,6 +49,7 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
 ```
 
 ## Installation
+
 - Using `environment.yml`
   For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
 
@@ -61,11 +61,12 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
   ```
 
 - Manual Installation
+
   ```bash
   # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
   conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26.4
   conda activate pmnet
-
+  
   pip install torch # 1.13<=torch<=2.3.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
   pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
   pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
@@ -175,7 +176,7 @@ score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 
 ## Pharmacophore Feature Extraction
 
-***See: [`./developer/`](/developer/), [`./src/pmnet_appl/`](/src/pmnet_appl/).***
+**_See: [`./developer/`](/developer/), [`./src/pmnet_appl/`](/src/pmnet_appl/)._**
 
 For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the python API.
 
@@ -225,7 +226,8 @@ pmnet_attr = (multi_scale_features, hotspot_infos)
 ```
 
 ## Pretrained Docking Proxy
-***See: [`./src/pmnet_appl/`](/src/pmnet_appl/).***
+
+**_See: [`./src/pmnet_appl/`](/src/pmnet_appl/)._**
 
 We provide pre-trained docking proxy models which predict docking score against arbitrary protein using PharmacoNet.
 We hope this implementation prompts the molecule optimization.
@@ -233,23 +235,24 @@ We hope this implementation prompts the molecule optimization.
 If you use this implementation, please cite PharmacoNet with original papers.
 
 Implementation List:
+
 - TacoGFN: Target-conditioned GFlowNet for Structure-based Drug Design [[paper](https://arxiv.org/abs/2310.03223)]
 
 Related Works:
-- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [paper]
 
+- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [[paper](https://arxiv.org/abs/2410.04542)]
 
 ## Citation
 
-Paper on [arxiv](https://arxiv.org/abs/2310.00681)
+Paper on [Chemical Science](https://doi.org/10.1039/D4SC04854G), [arXiv](https://arxiv.org/abs/2310.00681).
 
-```
-@article{seo2023pharmaconet,
-  title = {PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling},
-  author = {Seo, Seonghwan and Kim, Woo Youn},
-  journal = {arXiv preprint arXiv:2310.00681},
-  year = {2023},
-  url = {https://arxiv.org/abs/2310.00681},
+```bibtex
+@article{seo2024pharmaconet,
+  title={PharmacoNet: deep learning-guided pharmacophore modeling for ultra-large-scale virtual screening},
+  author={Seo, Seonghwan and Kim, Woo Youn},
+  journal={Chemical Science},
+  year={2024},
+  publisher={Royal Society of Chemistry}
 }
 ```
 
