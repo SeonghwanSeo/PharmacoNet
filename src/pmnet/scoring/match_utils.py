@@ -79,7 +79,7 @@ def scoring_matching_pair(
 
     return tuple(
         float(score) if num_fail <= match_threshold else -1
-        for score, num_fail in zip(match_scores, num_fails)
+        for score, num_fail in zip(match_scores, num_fails, strict=False)
     )
 
 

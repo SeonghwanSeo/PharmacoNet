@@ -3,13 +3,12 @@ from openbabel.pybel import ob
 import numpy as np
 
 from collections.abc import Sequence
-from typing import Sequence, List, Tuple
 from numpy.typing import NDArray
 from functools import cached_property
 
 from . import utils
 
-Tuple3D = Tuple[float, float, float]
+Tuple3D = tuple[float, float, float]
 
 
 @dataclass
@@ -49,7 +48,7 @@ class Point3D(Sequence):
 
 
 @dataclass
-class BaseInteractablePart():
+class BaseInteractablePart:
 
     @property
     def small(self):
@@ -58,7 +57,7 @@ class BaseInteractablePart():
         return self.__small
 
     def to_small(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 @dataclass
@@ -123,7 +122,7 @@ class BaseRing(BaseInteractablePart):
         self.normal = utils.normalize(np.cross(v1, v2))
 
     @property
-    def indices(self) -> List[int]:
+    def indices(self) -> list[int]:
         return [obatom.GetIdx() - 1 for obatom in self.obatoms]
 
 
@@ -141,7 +140,7 @@ class BaseCharged(BaseInteractablePart):
                 self.center = Point3D.from_array(np.mean(coords_list, axis=0))
 
     @property
-    def indices(self) -> List[int]:
+    def indices(self) -> list[int]:
         return [obatom.GetIdx() - 1 for obatom in self.obatoms]
 
 
@@ -180,7 +179,7 @@ class BaseXBondDonor(BaseInteractablePart):
         return self.C.GetIdx() - 1
 
     @property
-    def indices(self) -> List[int]:
+    def indices(self) -> list[int]:
         return [self.X_index, self.C_index]
 
 
@@ -204,7 +203,7 @@ class BaseXBondAcceptor(BaseInteractablePart):
         return self.Y.GetIdx() - 1
 
     @property
-    def indices(self) -> List[int]:
+    def indices(self) -> list[int]:
         return [self.O_index, self.Y_index]
 
 

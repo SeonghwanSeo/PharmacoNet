@@ -1,3 +1,4 @@
+from pathlib import Path
 from openbabel import pybel
 import pymol
 import numpy as np
@@ -5,9 +6,7 @@ import os
 from dataclasses import dataclass
 from urllib.request import urlopen
 
-
-from os import PathLike
-from typing import List, Tuple, Optional
+PathLike = str | Path
 
 
 @dataclass
@@ -17,10 +16,10 @@ class LigandInform:
     pdbchain: str
     authchain: str
     residx: int
-    center: Tuple[float, float, float]
-    file_path: PathLike[str]
-    name: Optional[str]
-    synonyms: Optional[str]
+    center: tuple[float, float, float]
+    file_path: PathLike
+    name: str | None
+    synonyms: str | None
 
     def __str__(self) -> str:
         x, y, z = self.center
@@ -36,7 +35,7 @@ class LigandInform:
         return string
 
 
-def download_pdb(pdb_code: str, output_file: PathLike[str]):
+def download_pdb(pdb_code: str, output_file: PathLike):
     url = f"https://files.rcsb.org/download/{pdb_code.lower()}.pdb"
     try:
         with urlopen(url) as response:
@@ -47,13 +46,15 @@ def download_pdb(pdb_code: str, output_file: PathLike[str]):
         print(f"Error downloading PDB file: {e}")
 
 
-def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str]) -> List[LigandInform]:
+def parse_pdb(
+    pdb_code: str, protein_path: PathLike, save_dir: PathLike
+) -> list[LigandInform]:
     protein: pybel.Molecule = next(pybel.readfile("pdb", str(protein_path)))
 
     if "HET" not in protein.data.keys():
         return []
-    het_lines = protein.data["HET"].split("\n")
-    hetnam_lines = protein.data["HETNAM"].split("\n")
+    het_lines: list[str] = protein.data["HET"].split("\n")
+    hetnam_lines: list[str] = protein.data["HETNAM"].split("\n")
     if "HETSYN" in protein.data.keys():
         hetsyn_lines = protein.data["HETSYN"].split("\n")
     else:
@@ -63,7 +64,7 @@ def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str
 
     ligand_name_dict = {}
     for line in hetnam_lines:
-        line: str = line.strip()
+        line = line.strip()
         if line.startswith(het_id_list):
             key, *strings = line.split()
             assert key not in ligand_name_dict
@@ -105,7 +106,11 @@ def parse_pdb(pdb_code: str, protein_path: PathLike[str], save_dir: PathLike[str
                 ligid,
                 authchain,
                 residue_idx,
-            ) = vs[0], vs[1][0], vs[1][1:]
+            ) = (
+                vs[0],
+                vs[1][0],
+                vs[1][1:],
+            )
         pdbchain = chr(ord(last_chain) + idx + 1)
         identify_key = f"{pdb_code}_{pdbchain}_{ligid}"
         ligand_path = os.path.join(save_dir, f"{identify_key}.pdb")

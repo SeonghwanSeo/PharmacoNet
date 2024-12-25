@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from typing import Sequence, List, Optional, Tuple, Optional
+from collections.abc import Sequence
 from torch import Tensor, IntTensor
 
 from .feature_embedding import FeaturePyramidNetwork
@@ -20,7 +20,7 @@ class PharmacoFormer(nn.Module):
         mask_head: MaskHead,
         num_interactions: int,
     ):
-        super(PharmacoFormer, self).__init__()
+        super().__init__()
         self.num_interactions = num_interactions
         self.embedding = embedding
         self.cavity_head = cavity_head
@@ -35,7 +35,7 @@ class PharmacoFormer(nn.Module):
     def setup_train(self, criterion: nn.Module):
         self.criterion = criterion
 
-    def forward_feature(self, in_image: Tensor) -> Tuple[Tensor, ...]:
+    def forward_feature(self, in_image: Tensor) -> tuple[Tensor, ...]:
         """Feature Embedding
         Args:
             in_image: FloatTensor [N, C, Din, Hin, Win]
@@ -44,7 +44,7 @@ class PharmacoFormer(nn.Module):
         """
         return tuple(self.embedding.forward(in_image))
 
-    def forward_cavity_extraction(self, features: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward_cavity_extraction(self, features: Tensor) -> tuple[Tensor, Tensor]:
         """Cavity Extraction
         Args:
             features: FloatTensor [N, F, Dout, Hout, Wout]
@@ -58,7 +58,7 @@ class PharmacoFormer(nn.Module):
         self,
         features: Tensor,
         tokens_list: Sequence[IntTensor],
-    ) -> Tuple[List[Tensor], List[Tensor]]:
+    ) -> tuple[list[Tensor], list[Tensor]]:
         """token Selection Network
 
         Args:
@@ -69,16 +69,18 @@ class PharmacoFormer(nn.Module):
             token_scores_list: List[FloatTensor [Ntoken,] $\\in$ [0, 1]]
             token_features_list: List[FloatTensor [Ntoken, F]]
         """
-        token_scores_list, token_features_list = self.token_head.forward(features, tokens_list)
+        token_scores_list, token_features_list = self.token_head.forward(
+            features, tokens_list
+        )
         return token_scores_list, token_features_list
 
     def forward_segmentation(
         self,
-        multi_scale_features: Tuple[Tensor, ...],
+        multi_scale_features: tuple[Tensor, ...],
         box_tokens_list: Sequence[IntTensor],
         box_token_features_list: Sequence[Tensor],
         return_aux: bool = False,
-    ) -> Tuple[List[Tensor], Optional[List[List[Tensor]]]]:
+    ) -> tuple[list[Tensor], list[list[Tensor]] | None]:
         """Mask Prediction
 
         Args:
@@ -90,4 +92,6 @@ class PharmacoFormer(nn.Module):
             box_masks_list: List[FloatTensor [Nbox, D, H, W]]
             aux_box_masks_list: List[List[FloatTensor [Nbox, D_scale, H_scale, W_scale]]]
         """
-        return self.mask_head.forward(multi_scale_features, box_tokens_list, box_token_features_list, return_aux)
+        return self.mask_head.forward(
+            multi_scale_features, box_tokens_list, box_token_features_list, return_aux
+        )

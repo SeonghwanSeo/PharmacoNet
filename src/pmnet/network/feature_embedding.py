@@ -1,6 +1,6 @@
 from torch import nn
 
-from typing import Sequence, Optional
+from collections.abc import Sequence
 from torch import Tensor
 
 from .builder import EMBEDDING
@@ -12,11 +12,11 @@ class FeaturePyramidNetwork(nn.Module):
         self,
         backbone: nn.Module,
         decoder: nn.Module,
-        neck: Optional[nn.Module] = None,
-        feature_indices: Optional[Sequence[int]] = None,
+        neck: nn.Module | None = None,
+        feature_indices: Sequence[int] | None = None,
         set_input_to_bottom: bool = True,
     ):
-        super(FeaturePyramidNetwork, self).__init__()
+        super().__init__()
         self.backbone = backbone
         self.decoder = decoder
         self.feature_indices = feature_indices
@@ -43,7 +43,9 @@ class FeaturePyramidNetwork(nn.Module):
         """
         bottom_up_features: Sequence[Tensor] = self.backbone(in_image)
         if self.feature_indices is not None:
-            bottom_up_features = [bottom_up_features[index] for index in self.feature_indices]
+            bottom_up_features = [
+                bottom_up_features[index] for index in self.feature_indices
+            ]
         if self.input_is_bottom:
             bottom_up_features = [in_image, *bottom_up_features]
         if self.with_neck:

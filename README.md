@@ -1,7 +1,6 @@
-
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
-[![DOI](https://zenodo.org/badge/699273873.svg)](https://zenodo.org/doi/10.5281/zenodo.12168474)
 
+[![DOI](https://zenodo.org/badge/699273873.svg)](https://zenodo.org/doi/10.5281/zenodo.12168474)
 
 **Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
 
@@ -32,7 +31,6 @@ If you have any problems or need help with the code, please add an github issue 
 - [Pre-trained Docking Proxy](#pretrained-docking-proxy)
 - [Citation](#citation)
 
-
 ## Quick Start
 
 ```bash
@@ -50,6 +48,7 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
 ```
 
 ## Installation
+
 - Using `environment.yml`
   For various environment including Linux, MacOS and Window, the script installs **cpu-only version of PyTorch** by default. You can install a cuda-available version by modifying `environment.yml` or installing PyTorch manually.
 
@@ -61,8 +60,9 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
   ```
 
 - Manual Installation
+
   ```bash
-  # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12 - best)
+  # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12(best))
   conda create --name openph python=3.10 openbabel=3.1.1 pymol-open-source=3.0.0 numpy=1.26.4
   conda activate pmnet
 
@@ -140,6 +140,15 @@ INFO:root:Save Pharmacophore Model to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pm
 INFO:root:Save Pymol Visualization Session to result/6OIM/6OIM_2.0_-8.0_-1.0_model.pse
 ```
 
+#### Example with custom model weight file (offline)
+
+PharmacoNet's weight file is automatically downloaded during `modeling.py`.
+If your environment is offline, you can download the weight files from [Google Drive](https://drive.google.com/uc?id=1gzjdM7bD3jPm23LBcDXtkSk18nETL04p).
+
+```bash
+> python modeling.py --pdb 6oim --weight_path <WEIGHT_PATH>
+```
+
 ## Virtual Screening
 
 We provide the simple script for screening.
@@ -175,7 +184,7 @@ score = model.scoring_smiles(<SMILES>, <NUM_CONFORMERS>)
 
 ## Pharmacophore Feature Extraction
 
-***See: [`./developer/`](/developer/), [`./src/pmnet_appl/`](/src/pmnet_appl/).***
+**_See: [`./developer/`](/developer/), [`./src/pmnet_appl/`](/src/pmnet_appl/)._**
 
 For deep learning researcher who want to use PharmacoNet as pre-trained model for feature extraction, we provide the python API.
 
@@ -225,7 +234,8 @@ pmnet_attr = (multi_scale_features, hotspot_infos)
 ```
 
 ## Pretrained Docking Proxy
-***See: [`./src/pmnet_appl/`](/src/pmnet_appl/).***
+
+**_See: [`./src/pmnet_appl/`](/src/pmnet_appl/)._**
 
 We provide pre-trained docking proxy models which predict docking score against arbitrary protein using PharmacoNet.
 We hope this implementation prompts the molecule optimization.
@@ -233,11 +243,12 @@ We hope this implementation prompts the molecule optimization.
 If you use this implementation, please cite PharmacoNet with original papers.
 
 Implementation List:
+
 - TacoGFN: Target-conditioned GFlowNet for Structure-based Drug Design [[paper](https://arxiv.org/abs/2310.03223)]
 
 Related Works:
-- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [paper]
 
+- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [paper]
 
 ## Citation
 
@@ -252,4 +263,3 @@ Paper on [arxiv](https://arxiv.org/abs/2310.00681)
   url = {https://arxiv.org/abs/2310.00681},
 }
 ```
-

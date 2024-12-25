@@ -1,6 +1,5 @@
 import os
 import argparse
-import logging
 
 import tempfile
 import pymol
@@ -9,7 +8,6 @@ from pymol import cmd
 from pmnet import PharmacophoreModel
 
 
-from typing import Optional, Dict, Tuple
 
 
 class Visualize_ArgParser(argparse.ArgumentParser):
@@ -49,8 +47,8 @@ INTERACTION_COLOR_DICT = {
 
 def visualize_single(
     model: PharmacophoreModel,
-    protein_path: Optional[str],
-    ligand_path: Optional[str],
+    protein_path: str | None,
+    ligand_path: str | None,
     prefix: str,
     save_path: str,
 ):
@@ -108,7 +106,7 @@ def visualize_single(
     cmd.color('gray90', f'{prefix}Protein and (name C*)')
 
     cmd.set('sphere_scale', 0.3, '*hotspot*')
-    cmd.set('sphere_transparency', 0.2, f'*point*')
+    cmd.set('sphere_transparency', 0.2, '*point*')
     cmd.set('dash_gap', 0.2, '*interaction*')
     cmd.set('dash_length', 0.4, '*interaction*')
     cmd.hide('label', '*interaction*')
@@ -124,7 +122,7 @@ def visualize_single(
 
 
 def visualize_multiple(
-    model_dict: Dict[str, Tuple[PharmacophoreModel, str]],
+    model_dict: dict[str, tuple[PharmacophoreModel, str]],
     protein_path: str,
     pdb: str,
     save_path: str,

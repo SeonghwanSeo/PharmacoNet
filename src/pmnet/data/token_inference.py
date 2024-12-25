@@ -1,14 +1,13 @@
 import numpy as np
 import math
 
-from typing import Tuple, List
 from numpy.typing import NDArray, ArrayLike
 
 from .objects import Protein
 from . import constant as C
 
 
-def get_token_informations(protein_obj: Protein) -> Tuple[NDArray[np.float32], NDArray[np.int16]]:
+def get_token_informations(protein_obj: Protein) -> tuple[NDArray[np.float32], NDArray[np.int16]]:
     """get token information
 
     Args:
@@ -28,8 +27,8 @@ def get_token_informations(protein_obj: Protein) -> Tuple[NDArray[np.float32], N
         + len(protein_obj.xbond_acceptors_all)
     )
 
-    positions: List[Tuple[float, float, float]] = []
-    classes: List[int] = []
+    positions: list[tuple[float, float, float]] = []
+    classes: list[int] = []
 
     # NOTE: Hydrophobic
     positions.extend(tuple(hydrop.coords) for hydrop in protein_obj.hydrophobic_atoms_all)
@@ -82,7 +81,7 @@ def get_token_and_filter(
     positions: NDArray[np.float32],
     classes: NDArray[np.int16],
     center: NDArray[np.float32],
-) -> Tuple[NDArray[np.int16], NDArray[np.int16]]:
+) -> tuple[NDArray[np.int16], NDArray[np.int16]]:
     """Create token and Filtering valid instances
 
     Args:
@@ -103,7 +102,7 @@ def get_token_and_filter(
     x_start = x_center - (dimension / 2) * resolution
     y_start = y_center - (dimension / 2) * resolution
     z_start = z_center - (dimension / 2) * resolution
-    for i, ((x, y, z), c) in enumerate(zip(positions, classes)):
+    for i, ((x, y, z), c) in enumerate(zip(positions, classes, strict=False)):
         _x = int((x - x_start) // resolution)
         _y = int((y - y_start) // resolution)
         _z = int((z - z_start) // resolution)

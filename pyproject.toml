@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pharmaconet"
-version = "2.1.0"
+version = "2.1.1"
 description = "PharmacoNet: Open-Source Software for Protein-based Pharmacophore Modeling and Virtual Screening"
 license = { text = "MIT" }
 authors = [{ name = "Seonghwan Seo", email = "shwan0106@kaist.ac.kr" }]
@@ -31,7 +31,8 @@ dependencies = [
   "omegaconf>=2.3.0",
   "molvoxel>=0.1.3",
   "gdown>=5.1.0",
-  "biopython>=1.83"
+  "biopython>=1.83",
+  "ruff>=0.8.4",
 ]
 
 [project.optional-dependencies]
@@ -68,19 +69,22 @@ line-length = 120
 select = ["E", "F", "B", "UP", "T203",]
 ignore = ["E501"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
     "F401", # imported but unused
     "E402", # Module level import not at top of file
 ]
 
-[tool.pyright]
+[tool.basedpyright]
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
 diagnosticMode = "openFilesOnly"
 reportImplicitStringConcatenation = false
+useLibraryCodeForTypes = true
 reportGeneralTypeIssues = "warning"
 reportDeprecated = "warning"
 reportUnusedVariable = false
 reportUnusedImport = false
-
+venvPath = '.'
+venv = '.venv'
+exclude = [".venv/"]

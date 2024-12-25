@@ -39,7 +39,7 @@ class PharmacophoreEncoder(nn.Module):
             hotspot_positions = torch.zeros((0, 3), device=dev)
             hotspot_features = torch.zeros((0, self.hidden_dim), device=dev)
         pocket_features: Tensor = torch.cat(
-            [mlp(feat.squeeze(0)).mean((-1, -2, -3)) for mlp, feat in zip(self.pocket_mlp_list, multi_scale_features)],
+            [mlp(feat.squeeze(0)).mean((-1, -2, -3)) for mlp, feat in zip(self.pocket_mlp_list, multi_scale_features, strict=False)],
             dim=-1,
         )
         pocket_features = self.pocket_layer(pocket_features)

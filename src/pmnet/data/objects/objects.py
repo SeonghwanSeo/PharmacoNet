@@ -2,7 +2,6 @@ from __future__ import annotations
 from openbabel import pybel
 from openbabel.pybel import ob
 
-from typing import List, Tuple
 
 from .atom_classes import (
     HydrophobicAtom_P,
@@ -35,7 +34,7 @@ class Protein:
         self.pbmol = pbmol.clone
         self.pbmol.removeh()
         self.obmol = self.pbmol.OBMol
-        self.obatoms: List[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol))
+        self.obatoms: list[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol))
         self.num_heavyatoms = len(self.obatoms)
 
         self.pbmol_hyd: pybel.Molecule
@@ -45,21 +44,21 @@ class Protein:
         else:
             self.pbmol_hyd = pbmol
         self.obmol_hyd = self.pbmol_hyd.OBMol
-        self.obatoms_hyd: List[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol_hyd))[: self.num_heavyatoms]
-        self.obatoms_hyd_nonwater: List[ob.OBAtom] = [
+        self.obatoms_hyd: list[ob.OBAtom] = list(ob.OBMolAtomIter(self.obmol_hyd))[: self.num_heavyatoms]
+        self.obatoms_hyd_nonwater: list[ob.OBAtom] = [
             obatom
             for obatom in self.obatoms_hyd
             if obatom.GetResidue().GetName() != "HOH" and obatom.GetAtomicNum() in [6, 7, 8, 16]
         ]
-        self.obresidues_hyd: List[ob.OBResidue] = list(ob.OBResidueIter(self.obmol_hyd))
+        self.obresidues_hyd: list[ob.OBResidue] = list(ob.OBResidueIter(self.obmol_hyd))
 
-        self.hydrophobic_atoms_all: List[HydrophobicAtom_P]
-        self.rings_all: List[Ring_P]
-        self.pos_charged_atoms_all: List[PosCharged_P]
-        self.neg_charged_atoms_all: List[NegCharged_P]
-        self.hbond_donors_all: List[HBondDonor_P]
-        self.hbond_acceptors_all: List[HBondAcceptor_P]
-        self.xbond_acceptors_all: List[XBondAcceptor_P]
+        self.hydrophobic_atoms_all: list[HydrophobicAtom_P]
+        self.rings_all: list[Ring_P]
+        self.pos_charged_atoms_all: list[PosCharged_P]
+        self.neg_charged_atoms_all: list[NegCharged_P]
+        self.hbond_donors_all: list[HBondDonor_P]
+        self.hbond_acceptors_all: list[HBondAcceptor_P]
+        self.xbond_acceptors_all: list[XBondAcceptor_P]
 
         self.hydrophobic_atoms_all = self.__find_hydrophobic_atoms()
         self.rings_all = self.__find_rings()
@@ -74,7 +73,7 @@ class Protein:
         return cls(pbmol, addh, **kwargs)
 
     # Search Interactable Part
-    def __find_hydrophobic_atoms(self) -> List[HydrophobicAtom_P]:
+    def __find_hydrophobic_atoms(self) -> list[HydrophobicAtom_P]:
         hydrophobics = [
             HydrophobicAtom_P(obatom)
             for obatom in self.obatoms_hyd_nonwater
@@ -82,15 +81,15 @@ class Protein:
         ]
         return hydrophobics
 
-    def __find_hbond_acceptors(self) -> List[HBondAcceptor_P]:
+    def __find_hbond_acceptors(self) -> list[HBondAcceptor_P]:
         acceptors = [HBondAcceptor_P(obatom) for obatom in self.obatoms_hyd_nonwater if obatom.IsHbondAcceptor()]
         return acceptors
 
-    def __find_hbond_donors(self) -> List[HBondDonor_P]:
+    def __find_hbond_donors(self) -> list[HBondDonor_P]:
         donors = [HBondDonor_P(obatom) for obatom in self.obatoms_hyd_nonwater if obatom.IsHbondDonor()]
         return donors
 
-    def __find_rings(self) -> List[Ring_P]:
+    def __find_rings(self) -> list[Ring_P]:
         rings = []
         ring_candidates = self.pbmol_hyd.sssr
         for ring in ring_candidates:
@@ -103,7 +102,7 @@ class Protein:
             rings.append(Ring_P(obatoms))
         return rings
 
-    def __find_charged_atoms(self) -> Tuple[List[PosCharged_P], List[NegCharged_P]]:
+    def __find_charged_atoms(self) -> tuple[list[PosCharged_P], list[NegCharged_P]]:
         pos_charged = []
         neg_charged = []
 
@@ -129,7 +128,7 @@ class Protein:
 
         return pos_charged, neg_charged
 
-    def __find_xbond_acceptors(self) -> List[XBondAcceptor_P]:
+    def __find_xbond_acceptors(self) -> list[XBondAcceptor_P]:
         """Look for halogen bond acceptors (Y-{O|N|S}, with Y=N,C)"""
         acceptors = []
         for obatom in self.obatoms_hyd_nonwater:

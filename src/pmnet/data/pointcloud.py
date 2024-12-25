@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Sequence
+from collections.abc import Sequence
 from openbabel.pybel import ob
 from numpy.typing import NDArray
 
@@ -23,7 +23,7 @@ PROTEIN_CHANNEL_LIST: Sequence[str] = protein_atom_symbol_list + protein_aminoac
 NUM_PROTEIN_CHANNEL = len(PROTEIN_CHANNEL_LIST)
 
 
-def get_position(obatom: ob.OBAtom) -> Tuple[float, float, float]:
+def get_position(obatom: ob.OBAtom) -> tuple[float, float, float]:
     return (obatom.x(), obatom.y(), obatom.z())
 
 
@@ -41,7 +41,7 @@ def protein_atom_function(atom: ob.OBAtom, out: NDArray, **kwargs) -> NDArray[np
     return out
 
 
-def get_protein_pointcloud(pocket_obj: Protein) -> Tuple[NDArray[np.float32], NDArray[np.float32]]:
+def get_protein_pointcloud(pocket_obj: Protein) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
     positions = np.array(
         [(obatom.x(), obatom.y(), obatom.z()) for obatom in pocket_obj.obatoms],
         dtype=np.float32

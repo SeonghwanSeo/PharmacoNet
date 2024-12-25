@@ -22,7 +22,11 @@ from pathlib import Path
 from pmnet.api.typing import HotspotInfo, MultiScaleFeature
 from pmnet_appl.base.proxy import BaseProxy
 
-from pmnet_appl.sbddreward.network import PharmacophoreEncoder, GraphEncoder, AffinityHead
+from pmnet_appl.sbddreward.network import (
+    PharmacophoreEncoder,
+    GraphEncoder,
+    AffinityHead,
+)
 from pmnet_appl.sbddreward.data import NUM_ATOM_FEATURES, NUM_BOND_FEATURES, smi2graph
 
 
@@ -35,30 +39,44 @@ class SBDDReward_Proxy(BaseProxy):
     def _setup_model(self):
         self.model = _RewardNetwork()
 
-    def _get_cache(self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]) -> Cache:
+    def _get_cache(
+        self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]
+    ) -> Cache:
         return self.model.get_cache(pmnet_attr)
 
     @torch.no_grad()
-    def _scoring_list(self, cache: Cache, smiles_list: list[str], return_sigma: bool = False) -> Tensor:
-        cache = (cache[0].to(self.device), cache[1].to(self.device), cache[2].to(self.device), cache[3], cache[4])
+    def _scoring_list(
+        self, cache: Cache, smiles_list: list[str], return_sigma: bool = False
+    ) -> Tensor:
+        cache = (
+            cache[0].to(self.device),
+            cache[1].to(self.device),
+            cache[2].to(self.device),
+            cache[3],
+            cache[4],
+        )
 
         ligand_graphs = []
         flag = []
         for smi in smiles_list:
             try:
                 graph = smi2graph(smi)
-            except:
+            except Exception:
                 flag.append(False)
             else:
                 flag.append(True)
                 ligand_graphs.append(graph)
         if not any(flag):
-            return torch.zeros(len(smiles_list), dtype=torch.float32, device=self.device)
+            return torch.zeros(
+                len(smiles_list), dtype=torch.float32, device=self.device
+            )
         ligand_batch: gd.Batch = gd.Batch.from_data_list(ligand_graphs).to(self.device)
         if all(flag):
             return self.model.scoring(cache, ligand_batch, return_sigma)
         else:
-            result = torch.zeros(len(smiles_list), dtype=torch.float32, device=self.device)
+            result = torch.zeros(
+                len(smiles_list), dtype=torch.float32, device=self.device
+            )
             result[flag] = self.model.scoring(cache, ligand_batch, return_sigma)
             return result
 
@@ -110,7 +128,9 @@ class SBDDReward_Proxy(BaseProxy):
         """
         return self._scoring_list(self._cache[target], [smiles], return_sigma)
 
-    def scoring_list(self, target: str, smiles_list: list[str], return_sigma: bool = False) -> Tensor:
+    def scoring_list(
+        self, target: str, smiles_list: list[str], return_sigma: bool = False
+    ) -> Tensor:
         """Scoring multiple molecules with their SMILES
 
         Parameters
@@ -139,27 +159,43 @@ class _RewardNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         self.pharmacophore_encoder: PharmacophoreEncoder = PharmacophoreEncoder(128)
-        self.ligand_encoder: GraphEncoder = GraphEncoder(NUM_ATOM_FEATURES, NUM_BOND_FEATURES, 128, 128, 4)
+        self.ligand_encoder: GraphEncoder = GraphEncoder(
+            NUM_ATOM_FEATURES, NUM_BOND_FEATURES, 128, 128, 4
+        )
         self.head: AffinityHead = AffinityHead(128, 3)
 
     def get_cache(self, pmnet_attr) -> Cache:
-        X_protein, pos_protein, Z_protein = self.pharmacophore_encoder.forward(pmnet_attr)
+        X_protein, pos_protein, Z_protein = self.pharmacophore_encoder.forward(
+            pmnet_attr
+        )
         mu, std = self.head.cal_mu(Z_protein), self.head.cal_std(Z_protein)
-        return X_protein.cpu(), pos_protein.cpu(), Z_protein.cpu(), mu.item(), std.item()
+        return (
+            X_protein.cpu(),
+            pos_protein.cpu(),
+            Z_protein.cpu(),
+            mu.item(),
+            std.item(),
+        )
 
     def scoring(self, cache: Cache, ligand_batch: gd.Batch, return_sigma: bool = False):
         X_protein, pos_protein, Z_protein, mu, std = cache
         X_ligand, Z_ligand = self.ligand_encoder.forward(ligand_batch)
-        sigma = self.head.cal_sigma(X_protein, pos_protein, Z_protein, X_ligand, Z_ligand, ligand_batch.batch)
+        sigma = self.head.cal_sigma(
+            X_protein, pos_protein, Z_protein, X_ligand, Z_ligand, ligand_batch.batch
+        )
         if return_sigma:
             return sigma
         else:
             return sigma * std + mu
 
-    def get_info(self, cache: Cache, ligand_batch: gd.Batch) -> tuple[float, float, Tensor]:
+    def get_info(
+        self, cache: Cache, ligand_batch: gd.Batch
+    ) -> tuple[float, float, Tensor]:
         X_protein, pos_protein, Z_protein, mu, std = cache
         X_ligand, Z_ligand = self.ligand_encoder.forward(ligand_batch)
-        sigma = self.head.cal_sigma(X_protein, pos_protein, Z_protein, X_ligand, Z_ligand, ligand_batch.batch)
+        sigma = self.head.cal_sigma(
+            X_protein, pos_protein, Z_protein, X_ligand, Z_ligand, ligand_batch.batch
+        )
         return mu, std, sigma
 
 

@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import Sequence, Optional, Type, List
+from collections.abc import Sequence
 from torch import Tensor
 
 from ..nn.layers import BaseConv3d
@@ -20,15 +20,15 @@ class FPNDecoder(nn.Module):
         feature_channels: Sequence[int],
         num_convs: Sequence[int],
         channels: int = 64,
-        interpolate_mode: str = 'nearest',
+        interpolate_mode: str = "nearest",
         align_corners: bool = False,
-        norm_layer: Optional[Type[nn.Module]] = nn.BatchNorm3d,
-        act_layer: Optional[Type[nn.Module]] = nn.ReLU,
+        norm_layer: type[nn.Module] | None = nn.BatchNorm3d,
+        act_layer: type[nn.Module] | None = nn.ReLU,
     ):
-        super(FPNDecoder, self).__init__()
+        super().__init__()
         self.feature_channels = feature_channels
         self.interpolate_mode = interpolate_mode
-        if interpolate_mode == 'trilinear':
+        if interpolate_mode == "trilinear":
             self.align_corners = align_corners
         else:
             self.align_corners = None
@@ -36,23 +36,45 @@ class FPNDecoder(nn.Module):
 
         lateral_conv_list = []
         fpn_convs_list = []
-        for level, (channels, num_conv) in enumerate(zip(self.feature_channels, num_convs)):
-            if level == (len(self.feature_channels) - 1):  # Lowest-Resolution Channels (Top)
+        for level, (channels, num_conv) in enumerate(
+            zip(self.feature_channels, num_convs, strict=False)
+        ):
+            if level == (
+                len(self.feature_channels) - 1
+            ):  # Lowest-Resolution Channels (Top)
                 lateral_conv = nn.Identity()
-                fpn_convs = nn.Sequential(*[
-                    BaseConv3d(
-                        channels if i == 0 else self.channels, self.channels,
-                        kernel_size=3, norm_layer=norm_layer, act_layer=act_layer,
-                    ) for i in range(num_conv)
-                ])
+                fpn_convs = nn.Sequential(
+                    *[
+                        BaseConv3d(
+                            channels if i == 0 else self.channels,
+                            self.channels,
+                            kernel_size=3,
+                            norm_layer=norm_layer,
+                            act_layer=act_layer,
+                        )
+                        for i in range(num_conv)
+                    ]
+                )
             else:
-                lateral_conv = BaseConv3d(channels, self.channels, kernel_size=1, norm_layer=norm_layer, act_layer=act_layer)
-                fpn_convs = nn.Sequential(*[
-                    BaseConv3d(
-                        self.channels, self.channels,
-                        kernel_size=3, norm_layer=norm_layer, act_layer=act_layer,
-                    ) for _ in range(num_conv)
-                ])
+                lateral_conv = BaseConv3d(
+                    channels,
+                    self.channels,
+                    kernel_size=1,
+                    norm_layer=norm_layer,
+                    act_layer=act_layer,
+                )
+                fpn_convs = nn.Sequential(
+                    *[
+                        BaseConv3d(
+                            self.channels,
+                            self.channels,
+                            kernel_size=3,
+                            norm_layer=norm_layer,
+                            act_layer=act_layer,
+                        )
+                        for _ in range(num_conv)
+                    ]
+                )
             lateral_conv_list.append(lateral_conv)
             fpn_convs_list.append(fpn_convs)
 
@@ -67,7 +89,7 @@ class FPNDecoder(nn.Module):
             for m in seqm.children():
                 m.initialize_weights()
 
-    def forward(self, features: Sequence[Tensor]) -> List[Tensor]:
+    def forward(self, features: Sequence[Tensor]) -> list[Tensor]:
         """Forward function.
         Args:
             features: Bottom-Up, [Highest-Resolution Feature Map, ..., Lowest-Resolution Feature Map]
@@ -83,12 +105,17 @@ class FPNDecoder(nn.Module):
             lateral_conv = self.lateral_conv_list[level]
             fpn_convs = self.fpn_convs_list[level]
             current_fpn = lateral_conv(feature)
-            if level == (num_levels - 1):    # Top
+            if level == (num_levels - 1):  # Top
                 assert fpn is None
                 fpn = current_fpn
             else:
                 assert fpn is not None
-                fpn = current_fpn + F.interpolate(fpn, size=current_fpn.size()[-3:], mode=self.interpolate_mode, align_corners=self.align_corners)
+                fpn = current_fpn + F.interpolate(
+                    fpn,
+                    size=current_fpn.size()[-3:],
+                    mode=self.interpolate_mode,
+                    align_corners=self.align_corners,
+                )
             fpn = fpn_convs(fpn)
             multi_scale_features.append(fpn)
         return multi_scale_features

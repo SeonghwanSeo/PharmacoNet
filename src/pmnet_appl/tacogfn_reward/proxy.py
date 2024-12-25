@@ -201,7 +201,7 @@ class AffinityHead(nn.Module):
             token_features_list: List[FloatTensor [Nbox, F_hidden]]
         """
         multi_scale_features = multi_scale_features[::-1]  # Top-Down -> Bottom-Up
-        multi_scale_features = [layer(feature) for layer, feature in zip(self.pocket_mlp_list, multi_scale_features)]
+        multi_scale_features = [layer(feature) for layer, feature in zip(self.pocket_mlp_list, multi_scale_features, strict=False)]
         pocket_features: Tensor = self.pocket_mlp(
             torch.cat([feature.mean(dim=(-1, -2, -3)) for feature in multi_scale_features], dim=-1)
         )  # [N, Fh]

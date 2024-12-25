@@ -1,4 +1,4 @@
-from typing import Sequence, Set
+from collections.abc import Sequence
 
 INTERACTION_LIST: Sequence[str] = (
     "Hydrophobic",
@@ -40,7 +40,7 @@ INTERACTION_DIST = {
     XBOND: 4.5,  # 4.0 + 0.5
 }
 
-LONG_INTERACTION: Set[int] = {
+LONG_INTERACTION: set[int] = {
     PISTACKING_P,
     PISTACKING_T,
     PICATION_PRING,
@@ -49,7 +49,7 @@ LONG_INTERACTION: Set[int] = {
     SALTBRIDGE_PNEG,
 }
 
-SHORT_INTERACTION: Set[int] = {
+SHORT_INTERACTION: set[int] = {
     HYDROPHOBIC,
     HBOND_LDON,
     HBOND_PDON,

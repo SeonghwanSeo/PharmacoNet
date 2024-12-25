@@ -2,7 +2,6 @@ from torch import nn
 
 from functools import partial
 
-from typing import Tuple, Type, Optional
 from torch import Tensor
 
 from .builder import HEAD
@@ -15,17 +14,29 @@ class CavityHead(nn.Module):
         self,
         feature_dim: int,
         hidden_dim: int,
-        norm_layer: Optional[Type[nn.Module]] = nn.BatchNorm3d,
-        act_layer: Optional[Type[nn.Module]] = partial(nn.ReLU, inplace=True),
+        norm_layer: type[nn.Module] | None = nn.BatchNorm3d,
+        act_layer: type[nn.Module] | None = partial(nn.ReLU, inplace=True),
     ):
-        super(CavityHead, self).__init__()
+        super().__init__()
 
         self.short_head = nn.Sequential(
-            BaseConv3d(feature_dim, hidden_dim, kernel_size=3, norm_layer=norm_layer, act_layer=act_layer),
+            BaseConv3d(
+                feature_dim,
+                hidden_dim,
+                kernel_size=3,
+                norm_layer=norm_layer,
+                act_layer=act_layer,
+            ),
             BaseConv3d(hidden_dim, 1, kernel_size=1, norm_layer=None, act_layer=None),
         )
         self.long_head = nn.Sequential(
-            BaseConv3d(feature_dim, hidden_dim, kernel_size=3, norm_layer=norm_layer, act_layer=act_layer),
+            BaseConv3d(
+                feature_dim,
+                hidden_dim,
+                kernel_size=3,
+                norm_layer=norm_layer,
+                act_layer=act_layer,
+            ),
             BaseConv3d(hidden_dim, 1, kernel_size=1, norm_layer=None, act_layer=None),
         )
 
@@ -38,7 +49,7 @@ class CavityHead(nn.Module):
     def forward(
         self,
         features: Tensor,
-    ) -> Tuple[Tensor, Tensor]:
+    ) -> tuple[Tensor, Tensor]:
         """Pocket Extraction Function
 
         Args:

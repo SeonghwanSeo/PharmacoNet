@@ -20,7 +20,7 @@ class GaussianSmoothing(nn.Module):
         kernel_size: int | tuple[int, int, int],
         sigma: float | tuple[float, float, float],
     ):
-        super(GaussianSmoothing, self).__init__()
+        super().__init__()
         kernel_size = to_3tuple(kernel_size)
         sigma = to_3tuple(sigma)
 
@@ -31,7 +31,7 @@ class GaussianSmoothing(nn.Module):
             indexing="ij",
         )
         kernel: torch.Tensor = None
-        for size, std, mgrid in zip(kernel_size, sigma, meshgrids):
+        for size, std, mgrid in zip(kernel_size, sigma, meshgrids, strict=False):
             mean = (size - 1) / 2
             # _kernel = 1 / (std * math.sqrt(2 * math.pi)) * torch.exp(-((mgrid - mean) / (2 * std)) ** 2)
             _kernel = torch.exp(

@@ -1,9 +1,9 @@
-from typing import Any, Dict, Optional, Callable
+from typing import Any
 from collections.abc import MutableMapping
 import copy
 
 
-def convert_dict_key_to_lower_case(dictionary: MutableMapping) -> Dict:
+def convert_dict_key_to_lower_case(dictionary: MutableMapping) -> dict:
     out = {}
     for key, value in dictionary.items():
         if isinstance(value, MutableMapping):
@@ -12,12 +12,12 @@ def convert_dict_key_to_lower_case(dictionary: MutableMapping) -> Dict:
     return out
 
 
-class Registry():
+class Registry:
     __OBJ_DICT__ = {}
 
     def __init__(self, name: str):
         self._name = name
-        self._module_dict: Dict[str, Any] = dict()
+        self._module_dict: dict[str, Any] = dict()
         self.__OBJ_DICT__[name] = self
 
     def __len__(self):
@@ -42,12 +42,10 @@ class Registry():
     def _do_register(self, name: str, obj: Any) -> None:
         assert (
             name not in self._module_dict
-        ), "An object named '{}' was already registered in '{}' registry!".format(
-            name, self._name
-        )
+        ), f"An object named '{name}' was already registered in '{self._name}' registry!"
         self._module_dict[name] = obj
 
-    def register(self, module: Optional[Any] = None) -> Any:
+    def register(self, module: Any | None = None) -> Any:
         if module is None:
             def deco(_module: Any) -> Any:
                 name = _module.__name__

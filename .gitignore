@@ -1,11 +1,12 @@
 # USER
 .DS_Store
-weights
+weights/
 run.sh
 result/
 examples/library/
 nogit/
 maintain_test/
+uv.lock
 
 
 # Byte-compiled / optimized / DLL files

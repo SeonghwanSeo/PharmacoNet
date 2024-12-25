@@ -85,7 +85,7 @@ class DensityMapGraph:
             grid_scores: list[float] - [score]
         """
         x_indices, y_indices, z_indices = np.where(mask > 0.0)
-        points = {(int(x), int(y), int(z)) for x, y, z in zip(x_indices, y_indices, z_indices)}
+        points = {(int(x), int(y), int(z)) for x, y, z in zip(x_indices, y_indices, z_indices, strict=False)}
         while len(points) > 0:
             point = x, y, z = points.pop()
             cluster = [point]

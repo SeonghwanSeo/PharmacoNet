@@ -3,7 +3,7 @@ import math
 
 from openbabel.pybel import ob
 
-from typing import Sequence, Tuple, Union
+from collections.abc import Sequence
 from numpy.typing import NDArray
 
 
@@ -34,12 +34,12 @@ def angle_btw_vectors(vec1: NDArray, vec2: NDArray, degree=True, normalized=Fals
     return math.degrees(angle) if degree else angle
 
 
-def vector(p1: Union[Sequence[float], NDArray], p2: Union[Sequence[float], NDArray]) -> NDArray:
+def vector(p1: Sequence[float] | NDArray, p2: Sequence[float] | NDArray) -> NDArray:
     return np.subtract(p2, p1)
 
 
-def euclidean3d(p1: Union[Sequence[float], NDArray], p2: Union[Sequence[float], NDArray]) -> float:
-    return math.sqrt(sum([(a - b) ** 2 for a, b in zip(p1, p2)]))
+def euclidean3d(p1: Sequence[float] | NDArray, p2: Sequence[float] | NDArray) -> float:
+    return math.sqrt(sum([(a - b) ** 2 for a, b in zip(p1, p2, strict=False)]))
 
 
 def normalize(vec: NDArray) -> NDArray:
@@ -48,7 +48,7 @@ def normalize(vec: NDArray) -> NDArray:
     return vec / norm
 
 
-def projection(point: Union[Sequence[float], NDArray], origin: Union[Sequence[float], NDArray],
+def projection(point: Sequence[float] | NDArray, origin: Sequence[float] | NDArray,
                normal: NDArray) -> NDArray:
     """
     point: point to be projected
@@ -58,5 +58,5 @@ def projection(point: Union[Sequence[float], NDArray], origin: Union[Sequence[fl
     return np.subtract(point, c * normal)
 
 
-def ob_coords(obatom: ob.OBAtom) -> Tuple[float, float, float]:
+def ob_coords(obatom: ob.OBAtom) -> tuple[float, float, float]:
     return (obatom.x(), obatom.y(), obatom.z())
