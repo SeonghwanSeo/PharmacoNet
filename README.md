@@ -1,25 +1,24 @@
 # PharmacoNet: Open-source Protein-based Pharmacophore Modeling
 
 [![DOI](https://zenodo.org/badge/699273873.svg)](https://zenodo.org/doi/10.5281/zenodo.12168474)
+[![license: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-**Before using PharmacoNet, consider using OpenPharmaco - GUI powered by PharmacoNet.**
+**Before using PharmacoNet, consider using [OpenPharmaco](https://github.com/SeonghwanSeo/OpenPharmaco): GUI powered by PharmacoNet.**
 
-**[OpenPharmaco Github](https://github.com/SeonghwanSeo/OpenPharmaco)**
+**Chemical Science (Open Access)** [[paper](https://doi.org/10.1039/D4SC04854G)]
 
-Accepted in **_NeurIPS Workshop 2023 (AI4D3 | New Frontiers of AI for Drug Discovery and Development)_** [[arxiv](https://arxiv.org/abs/2310.00681)]
+Official Github for **_PharmacoNet: deep learning-guided pharmacophore modeling for ultra-large-scale virtual screening_** by Seonghwan Seo\* and Woo Youn Kim.
 
-Official Github for **_PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling_** by Seonghwan Seo\* and Woo Youn Kim.
+PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability:
 
 1. Fully automated protein-based pharmacophore modeling based on image instance segmentation modeling
-2. Coarse-grained graph matching at the pharmacophore level for high throughput
+2. Coarse-grained graph matching at the pharmacophore level for high throughput virtual screening
 3. Pharmacophore-aware scoring function with parameterized analytical function for robust generalization ability
-4. Better pocket representation for deep learning developer. ([Section](#pharmacophore-feature-extraction))
-
-PharmacoNet is an extremely rapid yet reasonably accurate ligand evaluation tool with high generation ability.
+4. Better pocket representation for deep learning developer ([section](#pharmacophore-feature-extraction))
 
 If you have any problems or need help with the code, please add an github issue or contact [shwan0106@kaist.ac.kr](mailto:shwan0106@kaist.ac.kr).
 
-![](images/overview.png)
+\* You can read the previous NeurIPS 2023 Workshop version at [arXiv](https://arxiv.org/abs/2310.00681).
 
 ## Table of Contents
 
@@ -248,18 +247,18 @@ Implementation List:
 
 Related Works:
 
-- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [paper]
+- RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [[paper](https://arxiv.org/abs/2410.04542)]
 
 ## Citation
 
-Paper on [arxiv](https://arxiv.org/abs/2310.00681)
+Paper on [Chemical Science](https://doi.org/10.1039/D4SC04854G), [arXiv](https://arxiv.org/abs/2310.00681).
 
-```
-@article{seo2023pharmaconet,
-  title = {PharmacoNet: Accelerating Large-Scale Virtual Screening by Deep Pharmacophore Modeling},
-  author = {Seo, Seonghwan and Kim, Woo Youn},
-  journal = {arXiv preprint arXiv:2310.00681},
-  year = {2023},
-  url = {https://arxiv.org/abs/2310.00681},
+```bibtex
+@article{seo2024pharmaconet,
+  title={PharmacoNet: deep learning-guided pharmacophore modeling for ultra-large-scale virtual screening},
+  author={Seo, Seonghwan and Kim, Woo Youn},
+  journal={Chemical Science},
+  year={2024},
+  publisher={Royal Society of Chemistry}
 }
 ```
