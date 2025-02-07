@@ -3,6 +3,7 @@
 Easy-to-use docking score prediction models.
 
 Implementation List:
+
 - TacoGFN: Target-conditioned GFlowNet for Structure-based Drug Design [[paper](https://arxiv.org/abs/2310.03223)]
 
 If you use this implementation, please cite PharmacoNet with related papers:
@@ -13,15 +14,16 @@ To use the pre-trained proxy model, you need to install torch geometric and asso
 You can simply install them with following scheme at the root directory:
 
 ```bash
-# install openbabel; pymol-open-source is not required.
-conda install openbabel=3.1.1
 # Case 1. Install both PharmacoNet and torch-geometric
 pip install -e '.[appl]' --find-links https://data.pyg.org/whl/torch-2.3.1+cu121.html
 # Case 2. Install only PharmacoNet (already torch-geometric is installed)
 pip install -e .
+# Case 3. In your project (already torch-geometric is installed)
+pip install pharmaconet @ git+https://github.com/SeonghwanSeo/PharmacoNet.git
 ```
 
 ## Load Pretrained Model
+
 ```python
 from pmnet_appl import get_docking_proxy
 from pmnet_appl.tacogfn_reward import TacoGFN_Proxy
@@ -56,3 +58,4 @@ proxy.get_cache_database(protein_info_dict, save_cache_path, verbose=False)
 proxy = get_docking_proxy("TacoGFN_Reward", "QVina", "ZINCDock15M", save_cache_path, device)
 proxy.scoring("key1", "c1ccccc1")
 proxy.scoring_list("key2", ["c1ccccc1", "C1CCCCC1"])
+```

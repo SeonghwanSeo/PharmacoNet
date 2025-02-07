@@ -11,4 +11,3 @@ pip install -e '.[dev]' --find-links https://data.pyg.org/whl/torch-2.3.1+cu121.
 ```
 
 Example datasets (100 or 1,000 pockets) can be available at [Google Drive](https://drive.google.com/drive/folders/1o8tDCsjIqaPRoJhs5SKW4yi0geA9h_Nv?usp=sharing), which are constructed by CrossDocked2020 and QuickVina 2.1.
-
