@@ -2,23 +2,23 @@ from collections.abc import Sequence
 
 from torch import Tensor, nn
 
-from .builder import EMBEDDING
+from pmnet.network.backbones.swinv2 import SwinTransformerV2
+from pmnet.network.decoders.fpn_decoder import FPNDecoder
 
 
-@EMBEDDING.register()
 class FeaturePyramidNetwork(nn.Module):
     def __init__(
         self,
-        backbone: nn.Module,
-        decoder: nn.Module,
+        backbone: SwinTransformerV2,
+        decoder: FPNDecoder,
         neck: nn.Module | None = None,
-        feature_indices: Sequence[int] | None = None,
+        feature_indices: tuple[int, ...] = (0, 1, 2, 3),
         set_input_to_bottom: bool = True,
     ):
         super().__init__()
-        self.backbone = backbone
-        self.decoder = decoder
-        self.feature_indices = feature_indices
+        self.backbone: SwinTransformerV2 = backbone
+        self.decoder: FPNDecoder = decoder
+        self.feature_indices: tuple[int, ...] = feature_indices
         self.input_is_bottom = set_input_to_bottom
 
         if neck is not None:

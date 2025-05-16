@@ -3,18 +3,17 @@ from collections.abc import Sequence
 import torch
 from torch import Tensor, nn
 
-from .builder import HEAD
+from pmnet.network.decoders.fpn_decoder import FPNDecoder
 
 
-@HEAD.register()
 class MaskHead(nn.Module):
     def __init__(
         self,
-        decoder: nn.Module,
-        token_feature_dim: int,
+        decoder: FPNDecoder,
+        token_feature_dim: int = 192,
     ):
         super().__init__()
-        feature_channels_list: list[int] = decoder.feature_channels
+        feature_channels_list: list[int] = list(decoder.feature_channels)
         self.point_mlp_list = nn.ModuleList(
             [nn.Linear(token_feature_dim, channels) for channels in feature_channels_list]
         )

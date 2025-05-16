@@ -3,18 +3,15 @@ from collections.abc import Sequence
 import torch
 from torch import Tensor, nn
 
-from .builder import HEAD
 
-
-@HEAD.register()
 class TokenHead(nn.Module):
     def __init__(
         self,
-        feature_dim: int,
-        num_interactions: int,
-        token_feature_dim: int,
-        num_feature_mlp_layers: int,
-        num_score_mlp_layers: int,
+        feature_dim: int = 96,
+        num_interactions: int = 10,
+        token_feature_dim: int = 192,
+        num_feature_mlp_layers: int = 3,
+        num_score_mlp_layers: int = 3,
     ):
         super().__init__()
         self.interaction_embedding = nn.Embedding(num_interactions, feature_dim)

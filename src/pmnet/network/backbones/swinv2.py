@@ -13,7 +13,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from ..builder import BACKBONE
 from .swin import Mlp, window_partition, window_reverse
 from .timm import DropPath, to_3tuple, trunc_normal_
 
@@ -501,7 +500,6 @@ class PatchEmbed(nn.Module):
         return x
 
 
-@BACKBONE.register()
 class SwinTransformerV2(nn.Module):
     r"""Swin Transformer
         A PyTorch impl of : `Swin Transformer: Hierarchical Vision Transformer using Shifted Windows`  -
@@ -531,12 +529,12 @@ class SwinTransformerV2(nn.Module):
     def __init__(
         self,
         in_channels: int,
-        image_size: int = 48,
-        patch_size: int = 4,
+        image_size: int = 64,
+        patch_size: int = 2,
         embed_dim: int = 96,
-        depths: Sequence[int] = [2, 2, 6, 2],
+        depths: Sequence[int] = [2, 6, 2, 2],
         num_heads: Sequence[int] = [3, 6, 12, 24],
-        window_size: int = 7,
+        window_size: int = 4,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
         drop_rate: float = 0.0,

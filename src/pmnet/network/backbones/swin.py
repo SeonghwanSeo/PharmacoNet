@@ -13,7 +13,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from ..builder import BACKBONE
 from .timm import DropPath, to_3tuple, trunc_normal_
 
 
@@ -552,7 +551,6 @@ class PatchEmbed(nn.Module):
         return x
 
 
-@BACKBONE.register()
 class SwinTransformer(nn.Module):
     """Swin Transformer backbone.
         A PyTorch impl of : `Swin Transformer: Hierarchical Vision Transformer using Shifted Windows`  -

@@ -2,16 +2,14 @@ from functools import partial
 
 from torch import Tensor, nn
 
-from .builder import HEAD
 from .nn import BaseConv3d
 
 
-@HEAD.register()
 class CavityHead(nn.Module):
     def __init__(
         self,
-        feature_dim: int,
-        hidden_dim: int,
+        feature_dim: int = 96,
+        hidden_dim: int = 96,
         norm_layer: type[nn.Module] | None = nn.BatchNorm3d,
         act_layer: type[nn.Module] | None = partial(nn.ReLU, inplace=True),  # noqa
     ):

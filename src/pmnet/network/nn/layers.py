@@ -8,7 +8,7 @@ class BaseConv3d(nn.Module):
         out_channels: int,
         kernel_size: int,
         stride: int = 1,
-        padding: int = None,
+        padding: int | None = None,
         dilation: int = 1,
         groups: int = 1,
         norm_layer: type[nn.Module] | None = nn.BatchNorm3d,

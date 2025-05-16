@@ -4,11 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from ..builder import DECODER
 from ..nn.layers import BaseConv3d
 
 
-@DECODER.register()
 class FPNDecoder(nn.Module):
     """
     Modified FPN Structure [https://arxiv.org/abs/1807.10221]
@@ -17,9 +15,9 @@ class FPNDecoder(nn.Module):
 
     def __init__(
         self,
-        feature_channels: Sequence[int],
-        num_convs: Sequence[int],
-        channels: int = 64,
+        feature_channels: Sequence[int] = (33, 96, 192, 384, 768),
+        num_convs: Sequence[int] = (1, 2, 2, 2, 2),
+        channels: int = 96,
         interpolate_mode: str = "nearest",
         align_corners: bool = False,
         norm_layer: type[nn.Module] | None = nn.BatchNorm3d,

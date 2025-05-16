@@ -3,14 +3,12 @@ from collections.abc import Sequence
 import torch.nn as nn
 from torch import IntTensor, Tensor
 
-from .builder import MODEL
 from .cavity_head import CavityHead
 from .feature_embedding import FeaturePyramidNetwork
 from .mask_head import MaskHead
 from .token_head import TokenHead
 
 
-@MODEL.register()
 class PharmacoNetModel(nn.Module):
     def __init__(
         self,
