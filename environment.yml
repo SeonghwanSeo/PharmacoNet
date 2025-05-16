@@ -3,6 +3,5 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - pip=24.0
-  - numpy=1.26.4
-  - pymol-open-source=3.0.0
+  - pip>=24.0
+  - pymol-open-source
