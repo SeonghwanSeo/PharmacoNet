@@ -1,32 +1,24 @@
-import torch
-from torch import nn
-
 from collections.abc import Sequence
-from torch import Tensor
 
-from .builder import HEAD
+import torch
+from torch import Tensor, nn
+
+from pmnet.network.decoders.fpn_decoder import FPNDecoder
 
 
-@HEAD.register()
 class MaskHead(nn.Module):
     def __init__(
         self,
-        decoder: nn.Module,
-        token_feature_dim: int,
+        decoder: FPNDecoder,
+        token_feature_dim: int = 192,
     ):
         super().__init__()
-        feature_channels_list: list[int] = decoder.feature_channels
+        feature_channels_list: list[int] = list(decoder.feature_channels)
         self.point_mlp_list = nn.ModuleList(
-            [
-                nn.Linear(token_feature_dim, channels)
-                for channels in feature_channels_list
-            ]
+            [nn.Linear(token_feature_dim, channels) for channels in feature_channels_list]
         )
         self.background_mlp_list = nn.ModuleList(
-            [
-                nn.Linear(token_feature_dim, channels)
-                for channels in feature_channels_list
-            ]
+            [nn.Linear(token_feature_dim, channels) for channels in feature_channels_list]
         )
         self.decoder = decoder
         self.conv_logits = nn.Conv3d(decoder.channels, 1, kernel_size=1)
@@ -69,10 +61,7 @@ class MaskHead(nn.Module):
             aux_masks_list = []
             for image_idx in range(num_images):
                 out = self.do_predict_w_aux(
-                    [
-                        multi_scale_features[level][image_idx]
-                        for level in range(len(multi_scale_features))
-                    ],
+                    [multi_scale_features[level][image_idx] for level in range(len(multi_scale_features))],
                     tokens_list[image_idx],
                     token_features_list[image_idx],
                 )
@@ -82,10 +71,7 @@ class MaskHead(nn.Module):
             aux_masks_list = None
             out_masks_list = [
                 self.do_predict_single(
-                    [
-                        multi_scale_features[level][image_idx]
-                        for level in range(len(multi_scale_features))
-                    ],
+                    [multi_scale_features[level][image_idx] for level in range(len(multi_scale_features))],
                     tokens_list[image_idx],
                     token_features_list[image_idx],
                 )
@@ -113,9 +99,7 @@ class MaskHead(nn.Module):
         multi_scale_size = [features.size()[1:] for features in multi_scale_features]
         if Nbox > 0:
             Dout, Hout, Wout = multi_scale_size[0]
-            token_indices = torch.split(
-                tokens, 1, dim=1
-            )  # (x_list, y_list, z_list, i_list)
+            token_indices = torch.split(tokens, 1, dim=1)  # (x_list, y_list, z_list, i_list)
             xs, ys, zs, _ = token_indices
 
             bottom_up_box_features = []
@@ -125,15 +109,11 @@ class MaskHead(nn.Module):
                 _xs = torch.div(xs, Dout // D, rounding_mode="trunc")
                 _ys = torch.div(ys, Hout // H, rounding_mode="trunc")
                 _zs = torch.div(zs, Wout // W, rounding_mode="trunc")
-                box_features = self.get_box_features(
-                    features, (_xs, _ys, _zs), token_features, level
-                )
+                box_features = self.get_box_features(features, (_xs, _ys, _zs), token_features, level)
                 bottom_up_box_features.append(box_features)
 
             top_down_features = self.decoder(bottom_up_box_features)
-            top_down_box_masks = [
-                self.conv_logits(features).squeeze(1) for features in top_down_features
-            ]
+            top_down_box_masks = [self.conv_logits(features).squeeze(1) for features in top_down_features]
             return top_down_box_masks
         else:
             return [
@@ -165,9 +145,7 @@ class MaskHead(nn.Module):
         multi_scale_size = [features.size()[1:] for features in multi_scale_features]
         Dout, Hout, Wout = multi_scale_size[0]
         if Nbox > 0:
-            token_indices = torch.split(
-                tokens, 1, dim=1
-            )  # (x_list, y_list, z_list, i_list)
+            token_indices = torch.split(tokens, 1, dim=1)  # (x_list, y_list, z_list, i_list)
             xs, ys, zs, _ = token_indices
 
             bottom_up_box_features = []
@@ -177,9 +155,7 @@ class MaskHead(nn.Module):
                 _xs = torch.div(xs, Dout // D, rounding_mode="trunc")
                 _ys = torch.div(ys, Hout // H, rounding_mode="trunc")
                 _zs = torch.div(zs, Wout // W, rounding_mode="trunc")
-                box_features = self.get_box_features(
-                    features, (_xs, _ys, _zs), token_features, level
-                )
+                box_features = self.get_box_features(features, (_xs, _ys, _zs), token_features, level)
                 bottom_up_box_features.append(box_features)
 
             top_down_features = self.decoder(bottom_up_box_features)
@@ -212,13 +188,9 @@ class MaskHead(nn.Module):
         xs, ys, zs = token_indices
         Nbox = token_features.size(0)
         Nboxs = torch.arange(Nbox, dtype=xs.dtype, device=xs.device)
-        background_features = self.background_mlp_list[level](
-            token_features
-        )  # [Nbox, F]
+        background_features = self.background_mlp_list[level](token_features)  # [Nbox, F]
         point_features = self.point_mlp_list[level](token_features)  # [Nbox, F]
-        box_features = background_features.view(Nbox, F, 1, 1, 1).repeat(
-            1, 1, D, H, W
-        )  # [Nbox, F, D, H, W]
+        box_features = background_features.view(Nbox, F, 1, 1, 1).repeat(1, 1, D, H, W)  # [Nbox, F, D, H, W]
         box_features[Nboxs, :, xs, ys, zs] += point_features
         features = features.unsqueeze(0) + box_features
         return features

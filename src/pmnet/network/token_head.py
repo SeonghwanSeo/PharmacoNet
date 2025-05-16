@@ -1,21 +1,17 @@
-import torch
-from torch import nn
-
 from collections.abc import Sequence
-from torch import Tensor
 
-from .builder import HEAD
+import torch
+from torch import Tensor, nn
 
 
-@HEAD.register()
 class TokenHead(nn.Module):
     def __init__(
         self,
-        feature_dim: int,
-        num_interactions: int,
-        token_feature_dim: int,
-        num_feature_mlp_layers: int,
-        num_score_mlp_layers: int,
+        feature_dim: int = 96,
+        num_interactions: int = 10,
+        token_feature_dim: int = 192,
+        num_feature_mlp_layers: int = 3,
+        num_score_mlp_layers: int = 3,
     ):
         super().__init__()
         self.interaction_embedding = nn.Embedding(num_interactions, feature_dim)
@@ -51,9 +47,7 @@ class TokenHead(nn.Module):
         for m in [self.feature_mlp, self.score_mlp, self.skip]:
             m.apply(_init_weight)
 
-    def forward(
-        self, features: Tensor, tokens_list: Sequence[Tensor]
-    ) -> tuple[list[Tensor], list[Tensor]]:
+    def forward(self, features: Tensor, tokens_list: Sequence[Tensor]) -> tuple[list[Tensor], list[Tensor]]:
         """Token Scoring Function
 
         Args:
@@ -66,13 +60,9 @@ class TokenHead(nn.Module):
         """
         num_images = len(tokens_list)
         token_features_list = [
-            self.extract_token_features(features[idx], tokens_list[idx])
-            for idx in range(num_images)
+            self.extract_token_features(features[idx], tokens_list[idx]) for idx in range(num_images)
         ]
-        token_scores_list = [
-            self.score_mlp(token_features).squeeze(-1)
-            for token_features in token_features_list
-        ]
+        token_scores_list = [self.score_mlp(token_features).squeeze(-1) for token_features in token_features_list]
         return token_scores_list, token_features_list
 
     def extract_token_features(self, features: Tensor, tokens: Tensor) -> Tensor:
@@ -86,19 +76,11 @@ class TokenHead(nn.Module):
             token_features: FloatTensor [Ntoken, Fh]
         """
         if tokens.size(0) == 0:
-            return torch.empty(
-                [0, self.token_feature_dim], dtype=torch.float, device=features.device
-            )
+            return torch.empty([0, self.token_feature_dim], dtype=torch.float, device=features.device)
         else:
             features = features.permute(1, 2, 3, 0).contiguous()  # [D, H, W, F]
-            x_list, y_list, z_list, i_list = torch.split(
-                tokens, 1, dim=1
-            )  # (x_list, y_list, z_list, i_list)
+            x_list, y_list, z_list, i_list = torch.split(tokens, 1, dim=1)  # (x_list, y_list, z_list, i_list)
             token_features = features[x_list, y_list, z_list].squeeze(1)  # [Ntoken, F]
             embeddings = self.interaction_embedding(i_list).squeeze(1)  # [Ntoken, F]
-            token_features = torch.cat(
-                [token_features, embeddings], dim=1
-            )  # [Ntoken, 2F]
-            return self.skip(token_features) + self.feature_mlp(
-                token_features
-            )  # [Ntoken, Fh]
+            token_features = torch.cat([token_features, embeddings], dim=1)  # [Ntoken, 2F]
+            return self.skip(token_features) + self.feature_mlp(token_features)  # [Ntoken, Fh]

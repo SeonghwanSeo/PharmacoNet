@@ -1,7 +1,6 @@
+import torch
 from openbabel import pybel
 from openbabel.pybel import ob
-
-import torch
 from torch_geometric.data import Data as Data
 
 ob_log_handler = pybel.ob.OBMessageHandler()
@@ -62,7 +61,9 @@ def get_atom_features(pbmol: pybel.Molecule) -> list[list[float]]:
     return features
 
 
-def get_bond_features(pbmol: pybel.Molecule) -> tuple[list[list[float]], tuple[list[int], list[int]]]:
+def get_bond_features(
+    pbmol: pybel.Molecule,
+) -> tuple[list[list[float]], tuple[list[int], list[int]]]:
     edge_index_row = []
     edge_index_col = []
     edge_attr = []

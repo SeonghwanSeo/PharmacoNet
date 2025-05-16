@@ -12,10 +12,12 @@ Copyright: if you use this script, please cite:
 """
 
 from __future__ import annotations
-import torch
-from pathlib import Path
-from pmnet_appl.base import BaseProxy
 
+from pathlib import Path
+
+import torch
+
+from pmnet_appl.base import BaseProxy
 
 ALLOWED_MODEL_LIST = ["TacoGFN_Reward", "SBDDReward"]
 ALLOWED_DOCKING_LIST = ["QVina", "UniDock_Vina"]

@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 import torch
 from torch import nn
 
-from .layers.triangular_attention import TriangleAttention
 from .layers.pair_transition import PairTransition
+from .layers.triangular_attention import TriangleAttention
 from .layers.triangular_multiplicative_update import DirectTriangleMultiplicativeUpdate
 
 

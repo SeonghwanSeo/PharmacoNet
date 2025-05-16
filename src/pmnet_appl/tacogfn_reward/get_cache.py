@@ -1,6 +1,5 @@
 from pmnet_appl.tacogfn_reward import TacoGFN_Proxy
 
-
 docking = "QVina"
 train_dataset = "ZincDock15M"  # or "CrossDocked2020"
 proxy = TacoGFN_Proxy.load(docking, train_dataset, None, "cuda")

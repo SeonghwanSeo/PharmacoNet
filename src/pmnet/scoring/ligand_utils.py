@@ -1,8 +1,7 @@
 import numpy as np
+from numpy.typing import NDArray
 from openbabel import pybel
 from openbabel.pybel import ob
-
-from numpy.typing import NDArray
 
 
 class PharmacophoreNode:
@@ -37,23 +36,16 @@ def get_pharmacophore_nodes(
     hydrophobics = [
         PharmacophoreNode(idx)
         for idx, obatom in enumerate(obatoms)
-        if obatom.GetAtomicNum() == 6
-        and all(neigh.GetAtomicNum() in (1, 6) for neigh in ob.OBAtomAtomIter(obatom))
+        if obatom.GetAtomicNum() == 6 and all(neigh.GetAtomicNum() in (1, 6) for neigh in ob.OBAtomAtomIter(obatom))
     ]
     hbond_acceptors = [
         PharmacophoreNode(idx)
         for idx, obatom in enumerate(obatoms)
         if obatom.GetAtomicNum() not in [9, 17, 35, 53] and obatom.IsHbondAcceptor()
     ]
-    hbond_donors = [
-        PharmacophoreNode(idx)
-        for idx, obatom in enumerate(obatoms_hyd)
-        if obatom.IsHbondDonor()
-    ]
+    hbond_donors = [PharmacophoreNode(idx) for idx, obatom in enumerate(obatoms_hyd) if obatom.IsHbondDonor()]
     rings = [
-        PharmacophoreNode(
-            tuple(sorted(idx - 1 for idx in ring._path))
-        )  # start from 1 -> minus
+        PharmacophoreNode(tuple(sorted(idx - 1 for idx in ring._path)))  # start from 1 -> minus
         for ring in pbmol.sssr
         if ring.IsAromatic()
     ]
@@ -68,11 +60,7 @@ def get_pharmacophore_nodes(
 
     for idx, obatom in enumerate(obatoms):
         if is_guanidine_C(obatom):
-            nitrogens = tuple(
-                neigh.GetIdx() - 1
-                for neigh in ob.OBAtomAtomIter(obatom)
-                if neigh.GetAtomicNum() == 7
-            )
+            nitrogens = tuple(neigh.GetIdx() - 1 for neigh in ob.OBAtomAtomIter(obatom) if neigh.GetAtomicNum() == 7)
             pos_charged.append(PharmacophoreNode((idx,) + nitrogens, idx))
 
         elif is_phosphate_P(obatom) or is_sulfate_S(obatom):
@@ -80,26 +68,14 @@ def get_pharmacophore_nodes(
             neg_charged.append(PharmacophoreNode((idx,) + neighbors, idx))
 
         elif is_sulfonicacid_S(obatom):
-            oxygens = tuple(
-                neigh.GetIdx() - 1
-                for neigh in ob.OBAtomAtomIter(obatom)
-                if neigh.GetAtomicNum() == 8
-            )
+            oxygens = tuple(neigh.GetIdx() - 1 for neigh in ob.OBAtomAtomIter(obatom) if neigh.GetAtomicNum() == 8)
             neg_charged.append(PharmacophoreNode((idx,) + oxygens, idx))
 
         elif is_carboxylate_C(obatom):
-            oxygens = tuple(
-                neigh.GetIdx() - 1
-                for neigh in ob.OBAtomAtomIter(obatom)
-                if neigh.GetAtomicNum() == 8
-            )
+            oxygens = tuple(neigh.GetIdx() - 1 for neigh in ob.OBAtomAtomIter(obatom) if neigh.GetAtomicNum() == 8)
             neg_charged.append(PharmacophoreNode((idx,) + oxygens, oxygens))
 
-    xbond_donors = [
-        PharmacophoreNode(idx)
-        for idx, obatom in enumerate(obatoms)
-        if is_halocarbon_X(obatom)
-    ]
+    xbond_donors = [PharmacophoreNode(idx) for idx, obatom in enumerate(obatoms) if is_halocarbon_X(obatom)]
 
     return {
         "Hydrophobic": hydrophobics,
@@ -128,11 +104,7 @@ def is_quartamine_N(obatom: ob.OBAtom):
 
 
 def is_tertamine_N(obatom: ob.OBAtom):  # Nitrogen
-    return (
-        obatom.GetAtomicNum() == 7
-        and obatom.GetHyb() == 3
-        and obatom.GetHvyDegree() == 3
-    )
+    return obatom.GetAtomicNum() == 7 and obatom.GetHyb() == 3 and obatom.GetHvyDegree() == 3
 
 
 def is_sulfonium_S(obatom: ob.OBAtom):

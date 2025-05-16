@@ -1,8 +1,7 @@
 from __future__ import annotations
-import torch
-from torch import nn
 
-from torch import Tensor
+import torch
+from torch import Tensor, nn
 from torch_geometric.utils import to_dense_batch
 
 from .block import ComplexFormerBlock
@@ -24,14 +23,22 @@ class AffinityHead(nn.Module):
         )
 
         self.mlp_mu: nn.Module = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim), nn.LeakyReLU(), nn.Linear(hidden_dim, 1), nn.Sigmoid()
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.LeakyReLU(),
+            nn.Linear(hidden_dim, 1),
+            nn.Sigmoid(),
         )
         self.mlp_std: nn.Module = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim), nn.LeakyReLU(), nn.Linear(hidden_dim, 1), nn.Sigmoid()
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.LeakyReLU(),
+            nn.Linear(hidden_dim, 1),
+            nn.Sigmoid(),
         )
 
         self.mlp_sigma_bias: nn.Module = nn.Sequential(
-            nn.Linear(hidden_dim * 2, hidden_dim), nn.LeakyReLU(), nn.Linear(hidden_dim, 1)
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.LeakyReLU(),
+            nn.Linear(hidden_dim, 1),
         )
         self.mlp_sigma: nn.Module = nn.Linear(hidden_dim, 1)
         self.gate_sigma: nn.Module = nn.Sequential(nn.Linear(hidden_dim, 1), nn.Sigmoid())
@@ -63,7 +70,11 @@ class AffinityHead(nn.Module):
 
     def cal_sigma(self, X_protein, pos_protein, Z_protein, X_ligand, Z_ligand, ligand_batch) -> torch.Tensor:
         Z_complex, mask_complex = self._embedding(X_protein, pos_protein, X_ligand, ligand_batch, Z_ligand.shape[0])
-        Z_protein, Z_ligand, Z_complex = self.dropout(Z_protein), self.dropout(Z_ligand), self.dropout(Z_complex)
+        Z_protein, Z_ligand, Z_complex = (
+            self.dropout(Z_protein),
+            self.dropout(Z_ligand),
+            self.dropout(Z_complex),
+        )
         z_sigma = self.mlp_sigma(Z_complex) * self.gate_sigma(Z_complex)
         sigma = (z_sigma.squeeze(-1) * mask_complex).sum((1, 2))
         bias = self.mlp_sigma_bias(torch.cat([Z_protein.view(1, -1).repeat(Z_ligand.size(0), 1), Z_ligand], dim=-1))

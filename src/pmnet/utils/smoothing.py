@@ -34,9 +34,7 @@ class GaussianSmoothing(nn.Module):
         for size, std, mgrid in zip(kernel_size, sigma, meshgrids, strict=False):
             mean = (size - 1) / 2
             # _kernel = 1 / (std * math.sqrt(2 * math.pi)) * torch.exp(-((mgrid - mean) / (2 * std)) ** 2)
-            _kernel = torch.exp(
-                -(((mgrid - mean) / (std)) ** 2) / 2
-            )  # omit constant part
+            _kernel = torch.exp(-(((mgrid - mean) / (std)) ** 2) / 2)  # omit constant part
             if kernel is None:
                 kernel = _kernel
             else:

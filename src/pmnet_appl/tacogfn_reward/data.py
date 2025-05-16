@@ -1,8 +1,7 @@
-from openbabel import pybel
-from openbabel.pybel import ob
 import torch
 import torch_geometric.data as gd
-
+from openbabel import pybel
+from openbabel.pybel import ob
 
 ATOM_DICT = {
     6: 0,

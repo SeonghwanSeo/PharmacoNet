@@ -1,10 +1,10 @@
-from dataclasses import dataclass, field
-from openbabel.pybel import ob
-import numpy as np
-
 from collections.abc import Sequence
-from numpy.typing import NDArray
+from dataclasses import dataclass, field
 from functools import cached_property
+
+import numpy as np
+from numpy.typing import NDArray
+from openbabel.pybel import ob
 
 from . import utils
 
@@ -95,9 +95,7 @@ class BaseHBondDonor(BaseInteractablePart):
 
     def __post_init__(self):
         self.coords = Point3D.from_obatom(self.obatom)
-        hydrogens = [neigh for neigh in ob.OBAtomAtomIter(self.obatom)
-                     if neigh.GetAtomicNum() == 1
-                     ]
+        hydrogens = [neigh for neigh in ob.OBAtomAtomIter(self.obatom) if neigh.GetAtomicNum() == 1]
         self.hydrogens = hydrogens
         self.hydrogen_coords_list = [Point3D.from_obatom(h) for h in hydrogens]
 
@@ -113,9 +111,7 @@ class BaseRing(BaseInteractablePart):
     normal: NDArray = field(init=False)
 
     def __post_init__(self):
-        coords_list = np.array(
-            [utils.ob_coords(obatom) for obatom in self.obatoms]
-        )
+        coords_list = np.array([utils.ob_coords(obatom) for obatom in self.obatoms])
         self.center = Point3D.from_array(np.mean(coords_list, axis=0))
         p1, p2, p3 = coords_list[0], coords_list[2], coords_list[4]
         v1, v2 = utils.vector(p1, p2), utils.vector(p1, p3)

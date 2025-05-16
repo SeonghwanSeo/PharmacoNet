@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
-from torch import Tensor
 from omegaconf import DictConfig
+from torch import Tensor
 
 from pmnet.api import PharmacoNet, get_pmnet_dev
 
-from .network import PharmacophoreEncoder, GraphEncoder, AffinityHead
-from .data import NUM_ATOM_FEATURES, NUM_BOND_FEATURES
 from .config import Config
+from .data import NUM_ATOM_FEATURES, NUM_BOND_FEATURES
+from .network import AffinityHead, GraphEncoder, PharmacophoreEncoder
 
 Cache = tuple[Tensor, Tensor, Tensor]
 
@@ -20,7 +20,11 @@ class AffinityModel(nn.Module):
         self.cfg = config.model
         self.pharmacophore_encoder: PharmacophoreEncoder = PharmacophoreEncoder(self.cfg.hidden_dim)
         self.ligand_encoder: GraphEncoder = GraphEncoder(
-            NUM_ATOM_FEATURES, NUM_BOND_FEATURES, self.cfg.hidden_dim, self.cfg.hidden_dim, self.cfg.ligand_num_convs
+            NUM_ATOM_FEATURES,
+            NUM_BOND_FEATURES,
+            self.cfg.hidden_dim,
+            self.cfg.hidden_dim,
+            self.cfg.ligand_num_convs,
         )
         self.head: AffinityHead = AffinityHead(self.cfg.hidden_dim)
         self.l2_loss: nn.MSELoss = nn.MSELoss()

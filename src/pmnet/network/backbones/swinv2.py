@@ -5,17 +5,16 @@
 # Written by Ze Liu
 # --------------------------------------------------------
 
+from collections.abc import Sequence
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-
-from collections.abc import Sequence
 from torch import Tensor
 
-from .timm import DropPath, to_3tuple, trunc_normal_
 from .swin import Mlp, window_partition, window_reverse
-from ..builder import BACKBONE
+from .timm import DropPath, to_3tuple, trunc_normal_
 
 
 class WindowAttention(nn.Module):
@@ -49,7 +48,9 @@ class WindowAttention(nn.Module):
 
         # mlp to generate continuous relative position bias
         self.cpb_mlp = nn.Sequential(
-            nn.Linear(3, 512, bias=True), nn.ReLU(inplace=True), nn.Linear(512, num_heads, bias=False)
+            nn.Linear(3, 512, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, num_heads, bias=False),
         )
 
         # get relative_coords_table
@@ -57,7 +58,12 @@ class WindowAttention(nn.Module):
         relative_coords_h = torch.arange(-(self.window_size[1] - 1), self.window_size[1], dtype=torch.float32)
         relative_coords_w = torch.arange(-(self.window_size[2] - 1), self.window_size[2], dtype=torch.float32)
         relative_coords_table = (
-            torch.stack(torch.meshgrid([relative_coords_d, relative_coords_h, relative_coords_w], indexing="ij"))
+            torch.stack(
+                torch.meshgrid(
+                    [relative_coords_d, relative_coords_h, relative_coords_w],
+                    indexing="ij",
+                )
+            )
             .permute(1, 2, 3, 0)
             .contiguous()
             .unsqueeze(0)
@@ -109,10 +115,20 @@ class WindowAttention(nn.Module):
         B_, N, C = x.shape
         qkv_bias = None
         if self.q_bias is not None:
-            qkv_bias = torch.cat((self.q_bias, torch.zeros_like(self.v_bias, requires_grad=False), self.v_bias))
+            qkv_bias = torch.cat(
+                (
+                    self.q_bias,
+                    torch.zeros_like(self.v_bias, requires_grad=False),
+                    self.v_bias,
+                )
+            )
         qkv = F.linear(input=x, weight=self.qkv.weight, bias=qkv_bias)
         qkv = qkv.reshape(B_, N, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
+        q, k, v = (
+            qkv[0],
+            qkv[1],
+            qkv[2],
+        )  # make torchscript happy (cannot use tensor as tuple)
 
         # cosine attention
         attn = F.normalize(q, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1)
@@ -206,7 +222,12 @@ class SwinTransformerBlock(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=dim,
+            hidden_features=mlp_hidden_dim,
+            act_layer=act_layer,
+            drop=drop,
+        )
 
         if self.shift_size > 0:
             # calculate attention mask for SW-MSA
@@ -299,7 +320,12 @@ class PatchMerging(nn.Module):
         norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm
     """
 
-    def __init__(self, input_resolution: tuple[int, int, int], dim: int, norm_layer: type[nn.Module] = nn.LayerNorm):
+    def __init__(
+        self,
+        input_resolution: tuple[int, int, int],
+        dim: int,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+    ):
         super().__init__()
         self.input_resolution = input_resolution
         self.dim = dim
@@ -388,7 +414,7 @@ class BasicLayer(nn.Module):
                     qkv_bias=qkv_bias,
                     drop=drop,
                     attn_drop=attn_drop,
-                    drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path,
+                    drop_path=(drop_path[i] if isinstance(drop_path, list) else drop_path),
                     norm_layer=norm_layer,
                 )
                 for i in range(depth)
@@ -443,7 +469,11 @@ class PatchEmbed(nn.Module):
         super().__init__()
         img_size = to_3tuple(img_size)
         patch_size = to_3tuple(patch_size)
-        patches_resolution = [img_size[0] // patch_size[0], img_size[1] // patch_size[1], img_size[2] // patch_size[2]]
+        patches_resolution = [
+            img_size[0] // patch_size[0],
+            img_size[1] // patch_size[1],
+            img_size[2] // patch_size[2],
+        ]
         self.img_size = img_size
         self.patch_size = patch_size
         self.patches_resolution = patches_resolution
@@ -470,7 +500,6 @@ class PatchEmbed(nn.Module):
         return x
 
 
-@BACKBONE.register()
 class SwinTransformerV2(nn.Module):
     r"""Swin Transformer
         A PyTorch impl of : `Swin Transformer: Hierarchical Vision Transformer using Shifted Windows`  -
@@ -500,12 +529,12 @@ class SwinTransformerV2(nn.Module):
     def __init__(
         self,
         in_channels: int,
-        image_size: int = 48,
-        patch_size: int = 4,
+        image_size: int = 64,
+        patch_size: int = 2,
         embed_dim: int = 96,
-        depths: Sequence[int] = [2, 2, 6, 2],
+        depths: Sequence[int] = [2, 6, 2, 2],
         num_heads: Sequence[int] = [3, 6, 12, 24],
-        window_size: int = 7,
+        window_size: int = 4,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
         drop_rate: float = 0.0,

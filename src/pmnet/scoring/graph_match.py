@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import itertools
+import math
+from typing import TYPE_CHECKING
 
 import numpy as np
-import math
-
-from typing import TYPE_CHECKING
 from numpy.typing import NDArray
 
 from .tree import ClusterMatchTreeRoot
@@ -17,12 +16,13 @@ except Exception:
 
 
 if TYPE_CHECKING:
-    from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
     from pmnet.pharmacophore_model import (
-        PharmacophoreModel,
-        ModelNodeCluster,
         ModelNode,
+        ModelNodeCluster,
+        PharmacophoreModel,
     )
+
+    from .ligand import Ligand, LigandGraph, LigandNode, LigandNodeCluster
 
     LigandClusterPair = tuple[LigandNodeCluster, LigandNodeCluster]
     ModelClusterPair = tuple[ModelNodeCluster, ModelNodeCluster]
@@ -212,9 +212,9 @@ class GraphMatcher:
             for model_cluster in self.cluster_match_dict[ligand_cluster]:
                 node_match_list = self.node_match_dict[ligand_cluster, model_cluster]
                 self_pair_score = scoring_matching_self(node_match_list, self.num_conformers)
-                matching_pair_scores_dict[ligand_cluster, ligand_cluster][model_cluster, model_cluster] = (
-                    self_pair_score
-                )
+                matching_pair_scores_dict[ligand_cluster, ligand_cluster][
+                    model_cluster, model_cluster
+                ] = self_pair_score
 
         return matching_pair_scores_dict
 

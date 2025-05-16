@@ -1,14 +1,12 @@
-import os
-import numpy as np
 import math
-
-from Bio.PDB import PDBParser, PDBIO
-from Bio.PDB.PDBIO import Select
-
-from numpy.typing import ArrayLike
+import os
+import warnings
 from pathlib import Path
 
-import warnings
+import numpy as np
+from Bio.PDB import PDBIO, PDBParser
+from Bio.PDB.PDBIO import Select
+from numpy.typing import ArrayLike
 
 warnings.filterwarnings("ignore")
 
@@ -86,7 +84,10 @@ DEFAULT_CUTOFF = 16 * math.sqrt(3) + 5.0
 
 
 def extract_pocket(
-    protein_pdb_path: str | Path, out_pocket_pdb_path: str, center: ArrayLike, cutoff: float = DEFAULT_CUTOFF
+    protein_pdb_path: str | Path,
+    out_pocket_pdb_path: str,
+    center: ArrayLike,
+    cutoff: float = DEFAULT_CUTOFF,
 ):
     parser = PDBParser()
     structure = parser.get_structure("protein", str(protein_pdb_path))

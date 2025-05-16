@@ -1,10 +1,11 @@
-from pathlib import Path
-from openbabel import pybel
-import pymol
-import numpy as np
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.request import urlopen
+
+import numpy as np
+import pymol
+from openbabel import pybel
 
 PathLike = str | Path
 
@@ -46,9 +47,7 @@ def download_pdb(pdb_code: str, output_file: PathLike):
         print(f"Error downloading PDB file: {e}")
 
 
-def parse_pdb(
-    pdb_code: str, protein_path: PathLike, save_dir: PathLike
-) -> list[LigandInform]:
+def parse_pdb(pdb_code: str, protein_path: PathLike, save_dir: PathLike) -> list[LigandInform]:
     protein: pybel.Molecule = next(pybel.readfile("pdb", str(protein_path)))
 
     if "HET" not in protein.data.keys():

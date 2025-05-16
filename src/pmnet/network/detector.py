@@ -1,17 +1,15 @@
-import torch.nn as nn
-
 from collections.abc import Sequence
-from torch import Tensor, IntTensor
 
-from .feature_embedding import FeaturePyramidNetwork
-from .token_head import TokenHead
+import torch.nn as nn
+from torch import IntTensor, Tensor
+
 from .cavity_head import CavityHead
+from .feature_embedding import FeaturePyramidNetwork
 from .mask_head import MaskHead
-from .builder import MODEL
+from .token_head import TokenHead
 
 
-@MODEL.register()
-class PharmacoFormer(nn.Module):
+class PharmacoNetModel(nn.Module):
     def __init__(
         self,
         embedding: FeaturePyramidNetwork,
@@ -69,9 +67,7 @@ class PharmacoFormer(nn.Module):
             token_scores_list: List[FloatTensor [Ntoken,] $\\in$ [0, 1]]
             token_features_list: List[FloatTensor [Ntoken, F]]
         """
-        token_scores_list, token_features_list = self.token_head.forward(
-            features, tokens_list
-        )
+        token_scores_list, token_features_list = self.token_head.forward(features, tokens_list)
         return token_scores_list, token_features_list
 
     def forward_segmentation(
@@ -92,6 +88,4 @@ class PharmacoFormer(nn.Module):
             box_masks_list: List[FloatTensor [Nbox, D, H, W]]
             aux_box_masks_list: List[List[FloatTensor [Nbox, D_scale, H_scale, W_scale]]]
         """
-        return self.mask_head.forward(
-            multi_scale_features, box_tokens_list, box_token_features_list, return_aux
-        )
+        return self.mask_head.forward(multi_scale_features, box_tokens_list, box_token_features_list, return_aux)

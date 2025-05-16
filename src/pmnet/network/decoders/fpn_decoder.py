@@ -1,14 +1,12 @@
+from collections.abc import Sequence
+
 import torch.nn as nn
 import torch.nn.functional as F
-
-from collections.abc import Sequence
 from torch import Tensor
 
 from ..nn.layers import BaseConv3d
-from ..builder import DECODER
 
 
-@DECODER.register()
 class FPNDecoder(nn.Module):
     """
     Modified FPN Structure [https://arxiv.org/abs/1807.10221]
@@ -17,9 +15,9 @@ class FPNDecoder(nn.Module):
 
     def __init__(
         self,
-        feature_channels: Sequence[int],
-        num_convs: Sequence[int],
-        channels: int = 64,
+        feature_channels: Sequence[int] = (33, 96, 192, 384, 768),
+        num_convs: Sequence[int] = (1, 2, 2, 2, 2),
+        channels: int = 96,
         interpolate_mode: str = "nearest",
         align_corners: bool = False,
         norm_layer: type[nn.Module] | None = nn.BatchNorm3d,
@@ -36,12 +34,8 @@ class FPNDecoder(nn.Module):
 
         lateral_conv_list = []
         fpn_convs_list = []
-        for level, (channels, num_conv) in enumerate(
-            zip(self.feature_channels, num_convs, strict=False)
-        ):
-            if level == (
-                len(self.feature_channels) - 1
-            ):  # Lowest-Resolution Channels (Top)
+        for level, (channels, num_conv) in enumerate(zip(self.feature_channels, num_convs, strict=False)):
+            if level == (len(self.feature_channels) - 1):  # Lowest-Resolution Channels (Top)
                 lateral_conv = nn.Identity()
                 fpn_convs = nn.Sequential(
                     *[

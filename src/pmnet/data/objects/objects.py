@@ -1,15 +1,15 @@
 from __future__ import annotations
+
 from openbabel import pybel
 from openbabel.pybel import ob
 
-
 from .atom_classes import (
-    HydrophobicAtom_P,
     HBondAcceptor_P,
     HBondDonor_P,
-    Ring_P,
-    PosCharged_P,
+    HydrophobicAtom_P,
     NegCharged_P,
+    PosCharged_P,
+    Ring_P,
     XBondAcceptor_P,
 )
 

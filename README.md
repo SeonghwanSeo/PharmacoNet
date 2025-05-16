@@ -61,10 +61,10 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
 
   ```bash
   # Required python>=3.9, Best Performance at higher version. (3.9, 3.10, 3.11, 3.12(best))
-  conda create --name pmnet python=3.12 pymol-open-source=3.0.0 numpy=1.26.4
+  conda create --name pmnet python=3.12 pymol-open-source
   conda activate pmnet
 
-  pip install torch # 1.13<=torch<=2.5.1, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
+  pip install torch # 1.13<=torch, CUDA acceleration is available. 1min for 1 cpu, 10s for 1 gpu
   pip install rdkit biopython omegaconf tdqm numba # Numba is optional, but recommended.
   pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
   ```

@@ -12,18 +12,19 @@ Copyright: if you use this script, please cite:
 """
 
 from __future__ import annotations
-import tqdm
-import torch
-import torch.nn as nn
-import gdown
 
-from torch import Tensor
 from pathlib import Path
-from numpy.typing import NDArray
 from typing import Any
 
-from pmnet.api import get_pmnet_dev, PharmacoNet
-from pmnet.api.typing import MultiScaleFeature, HotspotInfo
+import gdown
+import torch
+import torch.nn as nn
+import tqdm
+from numpy.typing import NDArray
+from torch import Tensor
+
+from pmnet.api import PharmacoNet, get_pmnet_dev
+from pmnet.api.typing import HotspotInfo, MultiScaleFeature
 
 Cache = Any
 

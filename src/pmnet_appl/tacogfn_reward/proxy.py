@@ -20,21 +20,18 @@ Copyright: if you use this script, please cite:
 
 from __future__ import annotations
 
-from pathlib import Path
-import torch
-from torch import nn
-import torch_geometric.nn as pygnn
-from torch_scatter import scatter_sum, scatter_mean
-
-from torch import Tensor
-import torch_geometric.data as gd
 from collections.abc import Sequence
+from pathlib import Path
 
-from pmnet.api.typing import MultiScaleFeature, HotspotInfo
+import torch
+import torch_geometric.data as gd
+import torch_geometric.nn as pygnn
+from torch import Tensor, nn
+from torch_scatter import scatter_mean, scatter_sum
+
+from pmnet.api.typing import HotspotInfo, MultiScaleFeature
 from pmnet_appl.base.proxy import BaseProxy
-
 from pmnet_appl.tacogfn_reward.data import smi2graph
-
 
 Cache = tuple[Tensor, Tensor]
 
@@ -150,7 +147,9 @@ class AffinityHead(nn.Module):
             self.ligand_layer_graph = nn.Identity()
 
         self.energy_bias_mlp: nn.Module = nn.Sequential(
-            nn.Linear(hidden_dim * 2, hidden_dim), nn.LeakyReLU(), nn.Linear(hidden_dim, 1)
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.LeakyReLU(),
+            nn.Linear(hidden_dim, 1),
         )
         self.interaction_mlp: nn.Module = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
@@ -201,9 +200,14 @@ class AffinityHead(nn.Module):
             token_features_list: List[FloatTensor [Nbox, F_hidden]]
         """
         multi_scale_features = multi_scale_features[::-1]  # Top-Down -> Bottom-Up
-        multi_scale_features = [layer(feature) for layer, feature in zip(self.pocket_mlp_list, multi_scale_features, strict=False)]
+        multi_scale_features = [
+            layer(feature) for layer, feature in zip(self.pocket_mlp_list, multi_scale_features, strict=False)
+        ]
         pocket_features: Tensor = self.pocket_mlp(
-            torch.cat([feature.mean(dim=(-1, -2, -3)) for feature in multi_scale_features], dim=-1)
+            torch.cat(
+                [feature.mean(dim=(-1, -2, -3)) for feature in multi_scale_features],
+                dim=-1,
+            )
         )  # [N, Fh]
 
         token_features_list = [
@@ -233,14 +237,19 @@ class AffinityHead(nn.Module):
         num_images = len(token_features_list)
         total_pred_list = [
             self._calculate_affinity_single(
-                pocket_features[image_idx], token_features_list[image_idx], ligand_graph_list[image_idx]
+                pocket_features[image_idx],
+                token_features_list[image_idx],
+                ligand_graph_list[image_idx],
             )
             for image_idx in range(num_images)
         ]
         return torch.stack(total_pred_list)
 
     def _calculate_affinity_single(
-        self, pocket_features: Tensor, token_features: Tensor, ligand_graph: gd.Data | gd.Batch
+        self,
+        pocket_features: Tensor,
+        token_features: Tensor,
+        ligand_graph: gd.Data | gd.Batch,
     ) -> Tensor:
         X, Z = self.ligand_encoder(ligand_graph)
         ligand_atom_features = self.ligand_layer_atom(X)  # [Natom, Fh]

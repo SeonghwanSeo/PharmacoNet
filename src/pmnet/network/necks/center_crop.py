@@ -1,9 +1,6 @@
-from torch import nn, Tensor
-
-from ..builder import NECK
+from torch import Tensor, nn
 
 
-@NECK.register()
 class MultipleCenterCrop(nn.Module):
     def __init__(self, crop_sizes: list[int]):
         super().__init__()
@@ -26,7 +23,6 @@ class MultipleCenterCrop(nn.Module):
         pass
 
 
-@NECK.register()
 class CenterCrop(nn.Module):
     def __init__(self, crop_size: int):
         super().__init__()

@@ -1,7 +1,7 @@
 import argparse
-from pathlib import Path
 import multiprocessing
 from functools import partial
+from pathlib import Path
 
 from pmnet import PharmacophoreModel
 
@@ -18,12 +18,23 @@ class Screening_ArgParser(argparse.ArgumentParser):
             help="path of pharmacophore model (.pm | .json)",
             required=True,
         )
-        cfg_args.add_argument("-d", "--library_dir", type=str, help="molecular library directory path", required=True)
+        cfg_args.add_argument(
+            "-d",
+            "--library_dir",
+            type=str,
+            help="molecular library directory path",
+            required=True,
+        )
         cfg_args.add_argument("-o", "--out", type=str, help="result file path", required=True)
         cfg_args.add_argument("--cpus", type=int, help="number of cpus", default=1)
 
         param_args = self.add_argument_group("parameter")
-        param_args.add_argument("--hydrophobic", type=float, help="weight for hydrophobic carbon", default=1.0)
+        param_args.add_argument(
+            "--hydrophobic",
+            type=float,
+            help="weight for hydrophobic carbon",
+            default=1.0,
+        )
         param_args.add_argument("--aromatic", type=float, help="weight for aromatic ring", default=4.0)
         param_args.add_argument("--hba", type=float, help="weight for hbond acceptor", default=4.0)
         param_args.add_argument("--hbd", type=float, help="weight for hbond donor", default=4.0)

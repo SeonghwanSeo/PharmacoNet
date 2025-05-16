@@ -1,16 +1,16 @@
 from __future__ import annotations
-import os
-from pathlib import Path
-import numpy as np
-import itertools
 
+import itertools
+import os
+from collections.abc import Iterator, Sequence
+from pathlib import Path
+
+import numpy as np
+from numpy.typing import NDArray
 from openbabel import pybel
 from openbabel.pybel import ob
 
-from collections.abc import Sequence, Iterator
-from numpy.typing import NDArray
-
-from .ligand_utils import get_pharmacophore_nodes, PharmacophoreNode
+from .ligand_utils import PharmacophoreNode, get_pharmacophore_nodes
 
 
 class Ligand:
@@ -86,6 +86,7 @@ class Ligand:
     @classmethod
     def load_from_smiles(cls, smiles: str, num_conformers: int) -> Ligand:
         import tempfile
+
         from rdkit import Chem
         from rdkit.Chem import rdDistGeom
 

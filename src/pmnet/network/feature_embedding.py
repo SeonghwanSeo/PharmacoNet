@@ -1,25 +1,24 @@
-from torch import nn
-
 from collections.abc import Sequence
-from torch import Tensor
 
-from .builder import EMBEDDING
+from torch import Tensor, nn
+
+from pmnet.network.backbones.swinv2 import SwinTransformerV2
+from pmnet.network.decoders.fpn_decoder import FPNDecoder
 
 
-@EMBEDDING.register()
 class FeaturePyramidNetwork(nn.Module):
     def __init__(
         self,
-        backbone: nn.Module,
-        decoder: nn.Module,
+        backbone: SwinTransformerV2,
+        decoder: FPNDecoder,
         neck: nn.Module | None = None,
-        feature_indices: Sequence[int] | None = None,
+        feature_indices: tuple[int, ...] = (0, 1, 2, 3),
         set_input_to_bottom: bool = True,
     ):
         super().__init__()
-        self.backbone = backbone
-        self.decoder = decoder
-        self.feature_indices = feature_indices
+        self.backbone: SwinTransformerV2 = backbone
+        self.decoder: FPNDecoder = decoder
+        self.feature_indices: tuple[int, ...] = feature_indices
         self.input_is_bottom = set_input_to_bottom
 
         if neck is not None:
@@ -43,9 +42,7 @@ class FeaturePyramidNetwork(nn.Module):
         """
         bottom_up_features: Sequence[Tensor] = self.backbone(in_image)
         if self.feature_indices is not None:
-            bottom_up_features = [
-                bottom_up_features[index] for index in self.feature_indices
-            ]
+            bottom_up_features = [bottom_up_features[index] for index in self.feature_indices]
         if self.input_is_bottom:
             bottom_up_features = [in_image, *bottom_up_features]
         if self.with_neck:

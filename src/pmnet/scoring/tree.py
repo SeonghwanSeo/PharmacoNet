@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from .ligand import LigandNodeCluster
     from pmnet.pharmacophore_model import ModelNodeCluster
+
+    from .ligand import LigandNodeCluster
 
     LigandClusterPair = tuple[LigandNodeCluster, LigandNodeCluster]
     ModelClusterPair = tuple[ModelNodeCluster, ModelNodeCluster]
@@ -32,13 +32,11 @@ class ClusterMatchTree:
         self.pair_scores: dict[int, float]
         if model_cluster is not None:
             assert pair_scores is not None
-            self_pair_scores = self.root.matching_pair_scores_dict[
-                ligand_cluster, ligand_cluster
-            ][model_cluster, model_cluster]
+            self_pair_scores = self.root.matching_pair_scores_dict[ligand_cluster, ligand_cluster][
+                model_cluster, model_cluster
+            ]
             self.pair_scores = {
-                conformer_id: parent.pair_scores[conformer_id]
-                + self_pair_scores[conformer_id]
-                + score
+                conformer_id: parent.pair_scores[conformer_id] + self_pair_scores[conformer_id] + score
                 for conformer_id, score in pair_scores.items()
             }
         else:
@@ -66,33 +64,24 @@ class ClusterMatchTree:
             model_cluster_dict: candidate model cluster
                 ModelCluster: {conformer_id: accumulate_score}
         """
-        upd_match_dict: dict[
-            LigandNodeCluster, dict[ModelNodeCluster, dict[int, float]]
-        ] = {}
+        upd_match_dict: dict[LigandNodeCluster, dict[ModelNodeCluster, dict[int, float]]] = {}
         if self.model_cluster is not None:
             for ligand_cluster, model_cluster_dict in match_dict.items():
                 upd_model_cluster_dict = {}
-                matching_pair_scores_dict = self.root.matching_pair_scores_dict[
-                    self.ligand_cluster, ligand_cluster
-                ]
+                matching_pair_scores_dict = self.root.matching_pair_scores_dict[self.ligand_cluster, ligand_cluster]
                 for (
                     model_cluster,
                     conformer_pair_score_dict,
                 ) in model_cluster_dict.items():
-                    pair_score_list: tuple[float, ...] = matching_pair_scores_dict[
-                        self.model_cluster, model_cluster
-                    ]
+                    pair_score_list: tuple[float, ...] = matching_pair_scores_dict[self.model_cluster, model_cluster]
                     # NOTE: Update Model Cluster list accoring to Validity of Pair (Use only Valid Conformer)
                     upd_conformer_pair_score_dict: dict[int, float] = {
                         conformer_id: total_score + pair_score_list[conformer_id]
                         for conformer_id, total_score in conformer_pair_score_dict.items()
-                        if conformer_id in self.conformer_ids
-                        and pair_score_list[conformer_id] > 0
+                        if conformer_id in self.conformer_ids and pair_score_list[conformer_id] > 0
                     }
                     if len(upd_conformer_pair_score_dict) > 0:
-                        upd_model_cluster_dict[model_cluster] = (
-                            upd_conformer_pair_score_dict
-                        )
+                        upd_model_cluster_dict[model_cluster] = upd_conformer_pair_score_dict
                 upd_match_dict[ligand_cluster] = upd_model_cluster_dict
         else:
             upd_match_dict = match_dict.copy()
@@ -201,9 +190,7 @@ class ClusterMatchTreeRoot(ClusterMatchTree):
         self,
         ligand_cluster_list: list[LigandNodeCluster],
         cluster_match_dict: dict[LigandNodeCluster, list[ModelNodeCluster]],
-        matching_pair_score_dict: dict[
-            LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]
-        ],
+        matching_pair_score_dict: dict[LigandClusterPair, dict[ModelClusterPair, tuple[float, ...]]],
         num_conformers: int,
     ):
         self.root = self
@@ -212,18 +199,14 @@ class ClusterMatchTreeRoot(ClusterMatchTree):
         self.num_conformers: int = num_conformers
         self.children: list[ClusterMatchTree] = []
         self.ligand_cluster_list: list[LigandNodeCluster] = ligand_cluster_list
-        self.cluster_match_dict: dict[LigandNodeCluster, list[ModelNodeCluster]] = (
-            cluster_match_dict
-        )
+        self.cluster_match_dict: dict[LigandNodeCluster, list[ModelNodeCluster]] = cluster_match_dict
         self.matching_pair_scores_dict: dict[
             tuple[LigandNodeCluster, LigandNodeCluster],
             dict[tuple[ModelNodeCluster, ModelNodeCluster], tuple[float, ...]],
         ] = matching_pair_score_dict
 
         self.model_cluster = None
-        self.pair_scores: dict[int, float] = {
-            conformer_id: 0.0 for conformer_id in range(num_conformers)
-        }
+        self.pair_scores: dict[int, float] = {conformer_id: 0.0 for conformer_id in range(num_conformers)}
 
     def __repr__(self):
         repr = "Root\n"
@@ -236,9 +219,7 @@ class ClusterMatchTreeRoot(ClusterMatchTree):
     def run(self):
         match_dict = {
             ligand_cluster: {
-                model_cluster: {
-                    conformer_id: 0.0 for conformer_id in range(self.num_conformers)
-                }
+                model_cluster: {conformer_id: 0.0 for conformer_id in range(self.num_conformers)}
                 for model_cluster in self.cluster_match_dict[ligand_cluster]
             }
             for ligand_cluster in self.ligand_cluster_list

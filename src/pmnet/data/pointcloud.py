@@ -1,19 +1,45 @@
-import numpy as np
 from collections.abc import Sequence
-from openbabel.pybel import ob
+
+import numpy as np
 from numpy.typing import NDArray
+from openbabel.pybel import ob
 
 from .objects import Protein
 
-
 protein_atom_num_list = (6, 7, 8, 16, -1)
-protein_atom_symbol_list = ('C', 'N', 'O', 'S', 'UNK_ATOM')
+protein_atom_symbol_list = ("C", "N", "O", "S", "UNK_ATOM")
 protein_aminoacid_list = (
-    'GLY', 'ALA', 'VAL', 'LEU', 'ILE', 'PRO', 'PHE', 'TYR', 'TRP', 'SER',
-    'THR', 'CYS', 'MET', 'ASN', 'GLN', 'ASP', 'GLU', 'LYS', 'ARG', 'HIS',
-    'UNK_AA',
+    "GLY",
+    "ALA",
+    "VAL",
+    "LEU",
+    "ILE",
+    "PRO",
+    "PHE",
+    "TYR",
+    "TRP",
+    "SER",
+    "THR",
+    "CYS",
+    "MET",
+    "ASN",
+    "GLN",
+    "ASP",
+    "GLU",
+    "LYS",
+    "ARG",
+    "HIS",
+    "UNK_AA",
 )
-protein_interactable_list = ('HydrophobicAtom', 'Ring', 'HBondDonor', 'HBondAcceptor', 'Cation', 'Anion', 'XBondAcceptor')
+protein_interactable_list = (
+    "HydrophobicAtom",
+    "Ring",
+    "HBondDonor",
+    "HBondAcceptor",
+    "Cation",
+    "Anion",
+    "XBondAcceptor",
+)
 
 NUM_PROTEIN_ATOMIC_NUM = len(protein_atom_num_list)
 NUM_PROTEIN_AMINOACID_NUM = len(protein_aminoacid_list)
@@ -41,10 +67,12 @@ def protein_atom_function(atom: ob.OBAtom, out: NDArray, **kwargs) -> NDArray[np
     return out
 
 
-def get_protein_pointcloud(pocket_obj: Protein) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+def get_protein_pointcloud(
+    pocket_obj: Protein,
+) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
     positions = np.array(
         [(obatom.x(), obatom.y(), obatom.z()) for obatom in pocket_obj.obatoms],
-        dtype=np.float32
+        dtype=np.float32,
     )
 
     channels = np.zeros((pocket_obj.num_heavyatoms, NUM_PROTEIN_CHANNEL), dtype=np.float32)

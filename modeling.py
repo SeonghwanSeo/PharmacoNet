@@ -1,14 +1,13 @@
 import argparse
-from pathlib import Path
 import logging
 import os
+from pathlib import Path
 
 import pmnet
-from pmnet.module import PharmacoNet
 from pmnet import PharmacophoreModel
-from utils.parse_rcsb_pdb import download_pdb, parse_pdb
+from pmnet.module import PharmacoNet
 from utils import visualize
-
+from utils.parse_rcsb_pdb import download_pdb, parse_pdb
 
 SUCCESS = 0
 EXIT = 1
@@ -24,13 +23,9 @@ class Modeling_ArgParser(argparse.ArgumentParser):
         cfg_args = self.add_argument_group("config")
         cfg_args.add_argument("--pdb", type=str, help="RCSB PDB code")
         cfg_args.add_argument("-l", "--ligand_id", type=str, help="RCSB ligand code")
-        cfg_args.add_argument(
-            "-p", "--protein", type=str, help="custom path of protein pdb file (.pdb)"
-        )
+        cfg_args.add_argument("-p", "--protein", type=str, help="custom path of protein pdb file (.pdb)")
         cfg_args.add_argument("-c", "--chain", type=str, help="Chain")
-        cfg_args.add_argument(
-            "-a", "--all", action="store_true", help="use all binding sites"
-        )
+        cfg_args.add_argument("-a", "--all", action="store_true", help="use all binding sites")
         cfg_args.add_argument(
             "--out_dir",
             type=str,
@@ -47,15 +42,9 @@ class Modeling_ArgParser(argparse.ArgumentParser):
 
         # system config
         env_args = self.add_argument_group("environment")
-        env_args.add_argument(
-            "--weight_path", type=str, help="(Optional) custom pharmaconet weight path"
-        )
-        env_args.add_argument(
-            "--cuda", action="store_true", help="use gpu acceleration with CUDA"
-        )
-        env_args.add_argument(
-            "--force", action="store_true", help="force to save the pharmacophore model"
-        )
+        env_args.add_argument("--weight_path", type=str, help="(Optional) custom pharmaconet weight path")
+        env_args.add_argument("--cuda", action="store_true", help="use gpu acceleration with CUDA")
+        env_args.add_argument("--force", action="store_true", help="force to save the pharmacophore model")
         env_args.add_argument("-v", "--verbose", action="store_true", help="verbose")
 
         # config
@@ -65,16 +54,12 @@ class Modeling_ArgParser(argparse.ArgumentParser):
             type=str,
             help="path of ligand to define the center of box (.sdf, .pdb, .mol2)",
         )
-        adv_args.add_argument(
-            "--center", nargs="+", type=float, help="coordinate of the center"
-        )
+        adv_args.add_argument("--center", nargs="+", type=float, help="coordinate of the center")
 
 
 def main(args):
     logging.info(pmnet.__description__)
-    assert (
-        args.prefix is not None or args.pdb is not None
-    ), "MISSING PREFIX: `--prefix` or `--pdb`"
+    assert args.prefix is not None or args.pdb is not None, "MISSING PREFIX: `--prefix` or `--pdb`"
     PREFIX = args.prefix if args.prefix else args.pdb
 
     # NOTE: Setting
@@ -112,17 +97,13 @@ def main(args):
             logging.warning(f"Modeling Pass - {model_path} exists")
             pharmacophore_model = PharmacophoreModel.load(str(model_path))
         else:
-            pharmacophore_model = module.run(
-                protein_path, ref_ligand_path=ligand_path, center=center
-            )
+            pharmacophore_model = module.run(protein_path, ref_ligand_path=ligand_path, center=center)
             pharmacophore_model.save(str(model_path))
             logging.info(f"Save Pharmacophore Model to {model_path}")
         if (not args.force) and os.path.exists(pymol_path):
             logging.warning(f"Visualizing Pass - {pymol_path} exists\n")
         else:
-            visualize.visualize_single(
-                pharmacophore_model, protein_path, ligand_path, PREFIX, str(pymol_path)
-            )
+            visualize.visualize_single(pharmacophore_model, protein_path, ligand_path, PREFIX, str(pymol_path))
             logging.info(f"Save Pymol Visualization Session to {pymol_path}\n")
         return pharmacophore_model
 
@@ -181,7 +162,7 @@ def main(args):
 
     # NOTE: Case 3-2: with `all` option
     if args.all:
-        logging.info(f"Use All Binding Site (-a | --all)")
+        logging.info("Use All Binding Site (-a | --all)")
         model_dict = {}
         for inform in inform_list:
             model_dict[f"{PREFIX}_{inform.pdbchain}_{inform.id}"] = (
@@ -189,26 +170,20 @@ def main(args):
                 inform.file_path,
             )
         pymol_path = SAVE_DIR / f"{PREFIX}.pse"
-        logging.info(f"Visualize all pharmacophore models...")
+        logging.info("Visualize all pharmacophore models...")
         if (not args.force) and os.path.exists(pymol_path):
             logging.warning(f"Visualizing Pass - {pymol_path} exists\n")
         else:
-            visualize.visualize_multiple(
-                model_dict, protein_path, PREFIX, str(pymol_path)
-            )
+            visualize.visualize_multiple(model_dict, protein_path, PREFIX, str(pymol_path))
             logging.info(f"Save Pymol Visualization Session to {pymol_path}\n")
         return
 
     inform_list_text = "\n\n".join(str(inform) for inform in inform_list)
-    logging.info(
-        f"A total of {len(inform_list)} ligand(s) are detected!\n{inform_list_text}\n"
-    )
+    logging.info(f"A total of {len(inform_list)} ligand(s) are detected!\n{inform_list_text}\n")
 
     # NOTE: Case 3-3: pattern matching
     if args.ligand_id is not None or args.chain is not None:
-        logging.info(
-            f"Filtering with matching pattern - ligand id: {args.ligand_id}, chain: {args.chain}"
-        )
+        logging.info(f"Filtering with matching pattern - ligand id: {args.ligand_id}, chain: {args.chain}")
         filtered_inform_list = []
         for inform in inform_list:
             if args.ligand_id is not None and args.ligand_id.upper() != inform.id:
@@ -223,13 +198,11 @@ def main(args):
         del filtered_inform_list
 
         if len(inform_list) == 0:
-            logging.warning(f"No matching pattern!")
+            logging.warning("No matching pattern!")
             return FAIL
         if len(inform_list) > 1:
             inform_list_text = "\n\n".join(str(inform) for inform in inform_list)
-            logging.info(
-                f"A total of {len(inform_list)} ligands are selected!\n{inform_list_text}\n"
-            )
+            logging.info(f"A total of {len(inform_list)} ligands are selected!\n{inform_list_text}\n")
 
     if len(inform_list) == 1:
         run_pmnet_inform(inform_list[0])

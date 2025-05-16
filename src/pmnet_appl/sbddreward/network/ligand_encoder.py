@@ -1,11 +1,10 @@
 from __future__ import annotations
-import torch
-from torch import nn
 
-from torch import Tensor
+import torch
 import torch_geometric.nn as pygnn
-from torch_scatter import scatter_sum, scatter_mean
+from torch import Tensor, nn
 from torch_geometric.data import Batch, Data
+from torch_scatter import scatter_mean, scatter_sum
 
 
 class GraphEncoder(nn.Module):

@@ -1,10 +1,9 @@
-import math
-import numpy as np
-import numba as nb
 import itertools
+import math
 
+import numba as nb
+import numpy as np
 from numpy.typing import NDArray
-
 
 DISTANCE_SIGMA_THRESHOLD = 2.0
 PASS_THRESHOLD = 0.5
@@ -172,11 +171,7 @@ def scoring_matching_pair(
     num_conformers: int,
     """
 
-    match_threshold = (
-        len(cluster_node_match_list1)
-        * len(cluster_node_match_list2)
-        * (1 - PASS_THRESHOLD)
-    )
+    match_threshold = len(cluster_node_match_list1) * len(cluster_node_match_list2) * (1 - PASS_THRESHOLD)
 
     match_scores = np.zeros((num_conformers,), dtype=np.float32)
     num_fails = np.zeros((num_conformers,), dtype=np.int16)
@@ -187,17 +182,12 @@ def scoring_matching_pair(
 
             mean_stds = np.array(
                 [
-                    [
-                        __get_distance_mean_std(model_node1, model_node2)
-                        for model_node2 in model_node_list2
-                    ]
+                    [__get_distance_mean_std(model_node1, model_node2) for model_node2 in model_node_list2]
                     for model_node1 in model_node_list1
                 ],
                 dtype=np.float32,
             )  # [M, N, 2]
-            __numba_run(
-                distances, mean_stds, weights1, weights2, match_scores, num_fails
-            )
+            __numba_run(distances, mean_stds, weights1, weights2, match_scores, num_fails)
             if min(num_fails) > match_threshold:
                 return (-1,) * num_conformers
 
@@ -225,10 +215,7 @@ def scoring_matching_self(
 
         mean_stds = np.array(
             [
-                [
-                    __get_distance_mean_std(model_node1, model_node2)
-                    for model_node2 in model_node_list2
-                ]
+                [__get_distance_mean_std(model_node1, model_node2) for model_node2 in model_node_list2]
                 for model_node1 in model_node_list1
             ],
             dtype=np.float32,

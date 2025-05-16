@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 import torch
-from torch import nn
-from torch import Tensor
-from pmnet.api.typing import MultiScaleFeature, HotspotInfo
+from torch import Tensor, nn
+
+from pmnet.api.typing import HotspotInfo, MultiScaleFeature
 
 
 class PharmacophoreEncoder(nn.Module):
@@ -16,7 +17,10 @@ class PharmacophoreEncoder(nn.Module):
             [nn.Sequential(nn.SiLU(), nn.Conv3d(channels, hidden_dim, 3)) for channels in self.multi_scale_dims]
         )
         self.pocket_layer: nn.Module = nn.Sequential(
-            nn.SiLU(), nn.Linear(5 * hidden_dim, hidden_dim), nn.SiLU(), nn.Linear(hidden_dim, hidden_dim)
+            nn.SiLU(),
+            nn.Linear(5 * hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
         )
 
     def init_weight(self):
@@ -39,7 +43,10 @@ class PharmacophoreEncoder(nn.Module):
             hotspot_positions = torch.zeros((0, 3), device=dev)
             hotspot_features = torch.zeros((0, self.hidden_dim), device=dev)
         pocket_features: Tensor = torch.cat(
-            [mlp(feat.squeeze(0)).mean((-1, -2, -3)) for mlp, feat in zip(self.pocket_mlp_list, multi_scale_features, strict=False)],
+            [
+                mlp(feat.squeeze(0)).mean((-1, -2, -3))
+                for mlp, feat in zip(self.pocket_mlp_list, multi_scale_features, strict=False)
+            ],
             dim=-1,
         )
         pocket_features = self.pocket_layer(pocket_features)
