@@ -1,5 +1,7 @@
 import argparse
+
 import torch
+
 from pmnet.api import get_pmnet_dev
 
 
@@ -14,7 +16,13 @@ class ArgParser(argparse.ArgumentParser):
             help="custom path of protein pdb file (.pdb)",
             required=True,
         )
-        self.add_argument("-o", "--out", type=str, help="save path of features (torch object)", required=True)
+        self.add_argument(
+            "-o",
+            "--out",
+            type=str,
+            help="save path of features (torch object)",
+            required=True,
+        )
         self.add_argument(
             "--ref_ligand",
             type=str,

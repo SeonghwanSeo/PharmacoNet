@@ -1,7 +1,5 @@
 import torch
-from torch import nn
-
-from torch import Tensor
+from torch import Tensor, nn
 from torch_geometric.utils import to_dense_batch
 
 
@@ -26,7 +24,13 @@ class AffinityHead(nn.Module):
 
         self.apply(_init_weight)
 
-    def forward(self, x_protein: Tensor, x_ligand: Tensor, ligand_batch: Tensor, num_ligands: int) -> Tensor:
+    def forward(
+        self,
+        x_protein: Tensor,
+        x_ligand: Tensor,
+        ligand_batch: Tensor,
+        num_ligands: int,
+    ) -> Tensor:
         """
         affinity predict header for (single protein - multi ligands)
         output: (N_ligand,)

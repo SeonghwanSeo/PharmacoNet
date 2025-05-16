@@ -1,13 +1,15 @@
-import numpy as np
 import math
 
-from numpy.typing import NDArray, ArrayLike
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
-from .objects import Protein
 from . import constant as C
+from .objects import Protein
 
 
-def get_token_informations(protein_obj: Protein) -> tuple[NDArray[np.float32], NDArray[np.int16]]:
+def get_token_informations(
+    protein_obj: Protein,
+) -> tuple[NDArray[np.float32], NDArray[np.int16]]:
     """get token information
 
     Args:
@@ -127,7 +129,15 @@ def get_box_area(tokens: ArrayLike) -> NDArray[np.bool_]:
     resolution, dimension, pharmacophore_size = 0.5, 64, 1.0
     num_tokens = len(tokens)
     box_areas = np.zeros((num_tokens, dimension, dimension, dimension), dtype=np.bool_)
-    grids = np.stack(np.meshgrid(np.arange(dimension), np.arange(dimension), np.arange(dimension), indexing="ij"), 3)
+    grids = np.stack(
+        np.meshgrid(
+            np.arange(dimension),
+            np.arange(dimension),
+            np.arange(dimension),
+            indexing="ij",
+        ),
+        3,
+    )
     for i, (x, y, z, t) in enumerate(tokens):
         x, y, z, t = int(x), int(y), int(z), int(t)
         distances = np.linalg.norm(grids - np.array([[x, y, z]]), axis=-1)

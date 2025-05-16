@@ -1,23 +1,23 @@
-import sys
-import random
 import gc
 import logging
-from pathlib import Path
+import random
+import sys
 import time
-from omegaconf import OmegaConf
-import wandb
+from pathlib import Path
 
 import numpy as np
 import torch
 import torch.multiprocessing
 import torch.utils.tensorboard
+import wandb
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 
 from pmnet.api import PharmacoNet
 
-from .model import AffinityModel
-from .dataset import BaseDataset
 from .config import Config
+from .dataset import BaseDataset
+from .model import AffinityModel
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -170,7 +170,8 @@ class Trainer:
         )
 
         self.lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.optimizer, lr_lambda=lambda steps: 2 ** (-steps / self.config.train.lr_scheduler.lr_decay)
+            self.optimizer,
+            lr_lambda=lambda steps: 2 ** (-steps / self.config.train.lr_scheduler.lr_decay),
         )
 
     def save_checkpoint(self, filename: str):

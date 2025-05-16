@@ -1,7 +1,7 @@
 import torch
-from torch import nn
-from torch import Tensor
-from pmnet.api.typing import MultiScaleFeature, HotspotInfo
+from torch import Tensor, nn
+
+from pmnet.api.typing import HotspotInfo, MultiScaleFeature
 
 
 class PharmacophoreEncoder(nn.Module):
@@ -15,7 +15,10 @@ class PharmacophoreEncoder(nn.Module):
             [nn.Sequential(nn.SiLU(), nn.Conv3d(channels, hidden_dim, 3)) for channels in self.multi_scale_dims]
         )
         self.pocket_layer: nn.Module = nn.Sequential(
-            nn.SiLU(), nn.Linear(5 * hidden_dim, hidden_dim), nn.SiLU(), nn.Linear(hidden_dim, hidden_dim)
+            nn.SiLU(),
+            nn.Linear(5 * hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
         )
 
     def initialize_weights(self):

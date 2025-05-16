@@ -2,8 +2,10 @@
 __all__ = ["PharmacoNet", "ProteinParser", "get_pmnet_dev"]
 
 import torch
-from pmnet.module import PharmacoNet
+
 from pmnet.data.parser import ProteinParser
+from pmnet.module import PharmacoNet
+
 from . import typing
 
 

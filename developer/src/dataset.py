@@ -1,10 +1,10 @@
 import pickle
 from pathlib import Path
-import torch
 
+import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import Batch, Data
 
 from pmnet.api import ProteinParser
 

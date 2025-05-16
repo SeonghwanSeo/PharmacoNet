@@ -1,31 +1,31 @@
 from __future__ import annotations
-import os
-import tqdm
+
 import logging
-from pathlib import Path
+import os
 from importlib.util import find_spec
-
-from openbabel import pybel
-import torch
-import numpy as np
-from omegaconf import OmegaConf
-
+from pathlib import Path
 from typing import Any
-from torch import Tensor
-from numpy.typing import NDArray
 
-from pmnet.network import build_model
-from pmnet.network.detector import PharmacoFormer
+import numpy as np
+import torch
+import tqdm
+from numpy.typing import NDArray
+from omegaconf import OmegaConf
+from openbabel import pybel
+from torch import Tensor
+
 from pmnet.data import constant as C
 from pmnet.data import token_inference
 from pmnet.data.parser import ProteinParser
-from pmnet.utils.smoothing import GaussianSmoothing
-from pmnet.utils.download_weight import download_pretrained_model
+from pmnet.network import build_model
+from pmnet.network.detector import PharmacoNetModel
 from pmnet.pharmacophore_model import (
-    PharmacophoreModel,
-    INTERACTION_TO_PHARMACOPHORE,
     INTERACTION_TO_HOTSPOT,
+    INTERACTION_TO_PHARMACOPHORE,
+    PharmacophoreModel,
 )
+from pmnet.utils.download_weight import download_pretrained_model
+from pmnet.utils.smoothing import GaussianSmoothing
 
 DEFAULT_FOCUS_THRESHOLD = 0.5
 DEFAULT_BOX_THRESHOLD = 0.5
@@ -63,11 +63,13 @@ class PharmacoNet:
         molvoxel_library: str
             If you want to use PharmacoNet in DL model training, recommend to use 'numpy'
         """
+        # load parser
         assert molvoxel_library in ["numpy", "numba"]
         if molvoxel_library == "numba" and (not find_spec("numba")):
             molvoxel_library = "numpy"
         self.parser: ProteinParser = ProteinParser(molvoxel_library=molvoxel_library)
 
+        # download model
         running_path = Path(__file__)
         if weight_path is None:
             weight_path = running_path.parent / "weights" / "model.tar"
@@ -75,22 +77,23 @@ class PharmacoNet:
                 download_pretrained_model(weight_path, verbose)
         else:
             weight_path = Path(weight_path)
+
+        # build model
         checkpoint = torch.load(weight_path, map_location="cpu")
         config = OmegaConf.create(checkpoint["config"])
         model = build_model(config.MODEL)
         model.load_state_dict(checkpoint["model"])
         model.eval()
-        self.model: PharmacoFormer = model.to(device)
-        for param in self.model.parameters():
+        for param in model.parameters():
             param.requires_grad = False
-
+        self.model: PharmacoNetModel = model.to(device)
         self.smoothing = GaussianSmoothing(kernel_size=5, sigma=0.5).to(device)
         self.score_distributions = {
-            typ: np.array(distribution["focus"])
-            for typ, distribution in checkpoint["score_distributions"].items()
+            typ: np.array(distribution["focus"]) for typ, distribution in checkpoint["score_distributions"].items()
         }
         del checkpoint
 
+        # thresholds
         self.focus_threshold: float = DEFAULT_FOCUS_THRESHOLD
         self.box_threshold: float = DEFAULT_BOX_THRESHOLD
         self.score_threshold: dict[str, float]
@@ -141,20 +144,12 @@ class PharmacoNet:
         tokens = tokens.to(device=self.device)
         mask = mask.to(device=self.device)
 
-        multi_scale_features = self.model.forward_feature(
-            protein_image.unsqueeze(0)
-        )  # List[[1, D, H, W, F]]
-        token_scores, token_features = self.model.forward_token_prediction(
-            multi_scale_features[-1], [tokens]
-        )
+        multi_scale_features = self.model.forward_feature(protein_image.unsqueeze(0))  # List[[1, D, H, W, F]]
+        token_scores, token_features = self.model.forward_token_prediction(multi_scale_features[-1], [tokens])
         token_scores = token_scores[0].sigmoid()  # [Ntoken,]
         token_features = token_features[0]  # [Ntoken, F]
-        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(
-            multi_scale_features[-1]
-        )
-        cavity_narrow = (
-            cavity_narrow[0].sigmoid() > self.focus_threshold
-        )  # [1, D, H, W]
+        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(multi_scale_features[-1])
+        cavity_narrow = cavity_narrow[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
         cavity_wide = cavity_wide[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
 
         indices = []
@@ -163,12 +158,7 @@ class PharmacoNet:
             x, y, z, typ = tokens[i].tolist()
             # NOTE: Check the token score
             absolute_score = token_scores[i].item()
-            relative_score = float(
-                (
-                    self.score_distributions[C.INTERACTION_LIST[int(typ)]]
-                    < absolute_score
-                ).mean()
-            )
+            relative_score = float((self.score_distributions[C.INTERACTION_LIST[int(typ)]] < absolute_score).mean())
             if relative_score < self.score_threshold[C.INTERACTION_LIST[int(typ)]]:
                 continue
             # NOTE: Check the token exists in cavity
@@ -183,9 +173,7 @@ class PharmacoNet:
         del protein_image, mask, token_pos, tokens
 
         hotspot_infos = []
-        for hotspot, score, position, feature in zip(
-            hotspots, rel_scores, hotpsot_pos, hotspot_features, strict=True
-        ):
+        for hotspot, score, position, feature in zip(hotspots, rel_scores, hotpsot_pos, hotspot_features, strict=True):
             interaction_type = C.INTERACTION_LIST[int(hotspot[3])]
             hotspot_infos.append(
                 {
@@ -220,9 +208,8 @@ class PharmacoNet:
             extension = os.path.splitext(ref_ligand_path)[1]
             assert extension in [".sdf", ".pdb", ".mol2"]
             ref_ligand = next(pybel.readfile(extension[1:], str(ref_ligand_path)))
-            x, y, z = np.mean(
-                [atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32
-            ).tolist()
+            center = np.mean([atom.coords for atom in ref_ligand.atoms], axis=0, dtype=np.float32)
+            x, y, z = center.tolist()
         return float(x), float(y), float(z)
 
     @torch.no_grad()
@@ -237,20 +224,12 @@ class PharmacoNet:
             "debug",
             f"Protein-based Pharmacophore Modeling... (device: {self.device})",
         )
-        multi_scale_features = self.model.forward_feature(
-            protein_image.unsqueeze(0)
-        )  # List[[1, D, H, W, F]]
-        token_scores, token_features = self.model.forward_token_prediction(
-            multi_scale_features[-1], [tokens]
-        )
+        multi_scale_features = self.model.forward_feature(protein_image.unsqueeze(0))  # List[[1, D, H, W, F]]
+        token_scores, token_features = self.model.forward_token_prediction(multi_scale_features[-1], [tokens])
         token_scores = token_scores[0].sigmoid()  # [Ntoken,]
         token_features = token_features[0]  # [Ntoken, F]
-        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(
-            multi_scale_features[-1]
-        )
-        cavity_narrow = (
-            cavity_narrow[0].sigmoid() > self.focus_threshold
-        )  # [1, D, H, W]
+        cavity_narrow, cavity_wide = self.model.forward_cavity_extraction(multi_scale_features[-1])
+        cavity_narrow = cavity_narrow[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
         cavity_wide = cavity_wide[0].sigmoid() > self.focus_threshold  # [1, D, H, W]
 
         num_tokens = tokens.shape[0]
@@ -260,12 +239,7 @@ class PharmacoNet:
             x, y, z, typ = tokens[i].tolist()
             # NOTE: Check the token score
             absolute_score = token_scores[i].item()
-            relative_score = float(
-                (
-                    self.score_distributions[C.INTERACTION_LIST[int(typ)]]
-                    < absolute_score
-                ).mean()
-            )
+            relative_score = float((self.score_distributions[C.INTERACTION_LIST[int(typ)]] < absolute_score).mean())
             if relative_score < self.score_threshold[C.INTERACTION_LIST[int(typ)]]:
                 continue
             # NOTE: Check the token exists in cavity
@@ -277,9 +251,7 @@ class PharmacoNet:
                     continue
             indices.append(i)
             rel_scores.append(relative_score)
-        selected_indices = torch.tensor(
-            indices, device=self.device, dtype=torch.long
-        )  # [Ntoken',]
+        selected_indices = torch.tensor(indices, device=self.device, dtype=torch.long)  # [Ntoken',]
         hotspots = tokens[selected_indices]  # [Ntoken',]
         hotpsot_pos = token_pos[selected_indices]  # [Ntoken', 3]
         hotspot_features = token_features[selected_indices]  # [Ntoken', F]
@@ -297,12 +269,8 @@ class PharmacoNet:
             disable=(self.logger is None),
         ) as pbar:
             for idx in range(0, hotspots.size(0), step):
-                _hotspots, _hotspot_features = [hotspots[idx : idx + step]], [
-                    hotspot_features[idx : idx + step]
-                ]
-                density_maps = self.model.forward_segmentation(
-                    multi_scale_features, _hotspots, _hotspot_features
-                )[0]
+                _hotspots, _hotspot_features = [hotspots[idx : idx + step]], [hotspot_features[idx : idx + step]]
+                density_maps = self.model.forward_segmentation(multi_scale_features, _hotspots, _hotspot_features)[0]
                 density_maps = density_maps[0].sigmoid()  # [4, D, H, W]
                 density_maps_list.append(density_maps)
                 pbar.update(len(_hotspots))
@@ -310,9 +278,7 @@ class PharmacoNet:
         density_maps = torch.cat(density_maps_list, dim=0)  # [Ntoken', D, H, W]
 
         box_area = token_inference.get_box_area(hotspots)
-        box_area = torch.from_numpy(box_area).to(
-            device=self.device, dtype=torch.bool
-        )  # [Ntoken', D, H, W]
+        box_area = torch.from_numpy(box_area).to(device=self.device, dtype=torch.bool)  # [Ntoken', D, H, W]
         unavailable_area = ~(box_area & mask & cavity_narrow)  # [Ntoken', D, H, W]
 
         # NOTE: masking should be performed before smoothing - masked area is not trained.
@@ -322,9 +288,7 @@ class PharmacoNet:
         density_maps[density_maps < self.box_threshold] = 0.0
 
         hotspot_infos = []
-        for hotspot, score, position, map in zip(
-            hotspots, rel_scores, hotpsot_pos, density_maps, strict=True
-        ):
+        for hotspot, score, position, map in zip(hotspots, rel_scores, hotpsot_pos, density_maps, strict=True):
             if torch.all(map < 1e-6):
                 continue
             interaction_type = C.INTERACTION_LIST[int(hotspot[3])]

@@ -1,6 +1,5 @@
 from pmnet_appl.sbddreward import SBDDReward_Proxy
 
-
 docking = "UniDock_Vina"
 train_dataset = "ZINC"
 proxy = SBDDReward_Proxy.load(docking, train_dataset, None, "cuda")

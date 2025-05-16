@@ -1,25 +1,23 @@
 from __future__ import annotations
 
-import pickle
 import json
 import os
-import numpy as np
-from openbabel import pybel
+import pickle
+from collections.abc import Iterable
 from pathlib import Path
 
-from collections.abc import Iterable
+import numpy as np
 from numpy.typing import NDArray
+from openbabel import pybel
 
+from pmnet.scoring.graph_match import GraphMatcher
+from pmnet.scoring.ligand import Ligand
 from pmnet.utils.density_map import (
+    DensityMapEdge,
     DensityMapGraph,
     DensityMapNode,
     DensityMapNodeCluster,
-    DensityMapEdge,
 )
-
-from pmnet.scoring.ligand import Ligand
-from pmnet.scoring.graph_match import GraphMatcher
-
 
 INTERACTION_TO_PHARMACOPHORE = {
     "Hydrophobic": "Hydrophobic",
@@ -123,7 +121,12 @@ class PharmacophoreModel:
         graph = DensityMapGraph(center, resolution, size)
         for node in hotspot_infos:
             x, y, z = tuple(node["hotspot_position"].tolist())
-            graph.add_node(node["nci_type"], (x, y, z), float(node["hotspot_score"]), node["point_map"])
+            graph.add_node(
+                node["nci_type"],
+                (x, y, z),
+                float(node["hotspot_score"]),
+                node["point_map"],
+            )
         graph.setup()
 
         model = cls()

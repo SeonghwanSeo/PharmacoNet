@@ -1,7 +1,5 @@
-from torch import nn
-from torch import Tensor
-
 import torch_geometric.nn as gnn
+from torch import Tensor, nn
 from torch_geometric.data import Batch, Data
 
 

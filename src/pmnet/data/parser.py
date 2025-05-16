@@ -2,21 +2,25 @@ import os
 import tempfile
 from pathlib import Path
 
-import torch
 import numpy as np
-from openbabel import pybel
-
-from pmnet.data import token_inference, pointcloud
-from pmnet.data.objects import Protein
-from pmnet.data.extract_pocket import extract_pocket
-
-from molvoxel import create_voxelizer, BaseVoxelizer
-from torch import Tensor
+import torch
+from molvoxel import Voxelizer, create_voxelizer
 from numpy.typing import NDArray
+from openbabel import pybel
+from torch import Tensor
+
+from pmnet.data import pointcloud, token_inference
+from pmnet.data.extract_pocket import extract_pocket
+from pmnet.data.objects import Protein
 
 
 class ProteinParser:
-    def __init__(self, center_noise: float = 0.0, pocket_extract: bool = True, molvoxel_library: str = "numpy"):
+    def __init__(
+        self,
+        center_noise: float = 0.0,
+        pocket_extract: bool = True,
+        molvoxel_library: str = "numpy",
+    ):
         """
         center_noise: for data augmentation
         pocket_extract: if True, we read pocket instead of entire protein. (faster)
@@ -64,7 +68,7 @@ class ProteinParser:
 
 
 def parse_protein(
-    voxelizer: BaseVoxelizer,
+    voxelizer: Voxelizer,
     protein_pdb_path: str | Path,
     center: NDArray[np.float32] | tuple[float, float, float],
     center_noise: float = 0.0,
@@ -89,7 +93,8 @@ def parse_protein(
 
     protein_positions, protein_features = pointcloud.get_protein_pointcloud(protein_obj)
     protein_image = np.asarray(
-        voxelizer.forward_features(protein_positions, center, protein_features, radii=1.5), np.float32
+        voxelizer.forward_features(protein_positions, center, protein_features, radii=1.5),
+        np.float32,
     )
     mask = np.logical_not(np.asarray(voxelizer.forward_single(protein_positions, center, radii=1.0), np.bool_))
     del protein_obj

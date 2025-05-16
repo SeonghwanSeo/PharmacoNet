@@ -1,7 +1,6 @@
 from src.config import Config
 from src.trainer import Trainer
 
-
 config = Config()
 config.data.protein_dir = "./dataset/protein/"
 config.data.train_protein_code_path = "./dataset/train_key.txt"

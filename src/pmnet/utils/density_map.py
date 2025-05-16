@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import numpy as np
-import math
 import itertools
-
+import math
 from collections.abc import Iterator
+
+import numpy as np
 from numpy.typing import NDArray
 
 from pmnet.data.constant import INTERACTION_LIST
-
 
 OVERLAP_DISTANCE = 1.5
 CLUSTER_DISTANCE = 3.0
@@ -27,7 +26,12 @@ def coords_to_position(coords, center, resolution, size) -> tuple[float, float, 
 
 
 class DensityMapGraph:
-    def __init__(self, center: tuple[float, float, float], resolution: float = 0.5, size: int = 64):
+    def __init__(
+        self,
+        center: tuple[float, float, float],
+        resolution: float = 0.5,
+        size: int = 64,
+    ):
         self.center: tuple[float, float, float] = center
         self.resolution: float = resolution
         self.size: int = size
@@ -48,7 +52,7 @@ class DensityMapGraph:
         node_type: str,
         hotspot_position: tuple[float, float, float],
         score: float,
-        mask: NDArray[np.float_],
+        mask: NDArray[np.float64],
     ) -> list[DensityMapNode]:
         new_node_list = []
         for grids, grid_scores in self.__extract_pharmacophores(mask):
@@ -207,7 +211,7 @@ class DensityMapNode:
         node_type: str,
         score: float,
         grids: NDArray[np.int_],
-        grid_scores: NDArray[np.float_],
+        grid_scores: NDArray[np.float64],
     ):
         self.graph: DensityMapGraph = graph
         self.index: int = len(self.graph.nodes)

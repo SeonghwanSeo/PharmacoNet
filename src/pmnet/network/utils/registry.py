@@ -1,6 +1,6 @@
-from typing import Any
-from collections.abc import MutableMapping
 import copy
+from collections.abc import MutableMapping
+from typing import Any
 
 
 def convert_dict_key_to_lower_case(dictionary: MutableMapping) -> dict:
@@ -47,10 +47,12 @@ class Registry:
 
     def register(self, module: Any | None = None) -> Any:
         if module is None:
+
             def deco(_module: Any) -> Any:
                 name = _module.__name__
                 self._do_register(name, _module)
                 return _module
+
             return deco
         else:
             name = module.__name__
@@ -64,7 +66,7 @@ class Registry:
         registry_key: str,
         module_key: str,
         convert_key_to_lower_case: bool = True,
-        safe_build: bool = True
+        safe_build: bool = True,
     ):
         _config = config
         _registry_key = registry_key
@@ -77,8 +79,8 @@ class Registry:
             config = copy.deepcopy(_config)
         else:
             config = _config
-        assert registry_key in config, f'registry key ({_registry_key}) not in config (keys: {set(_config.keys())})'
-        assert module_key in config, f'module key ({_module_key}) not in config ({set(_config.keys())})'
+        assert registry_key in config, f"registry key ({_registry_key}) not in config (keys: {set(_config.keys())})"
+        assert module_key in config, f"module key ({_module_key}) not in config ({set(_config.keys())})"
         return cls._do_build_from_config(config, registry_key, module_key)
 
     @classmethod

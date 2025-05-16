@@ -1,10 +1,9 @@
-import numpy as np
 import math
-
-from openbabel.pybel import ob
-
 from collections.abc import Sequence
+
+import numpy as np
 from numpy.typing import NDArray
+from openbabel.pybel import ob
 
 
 def check_in_cutoff(coords, neighbor_coords_list, cutoff: float):
@@ -48,8 +47,7 @@ def normalize(vec: NDArray) -> NDArray:
     return vec / norm
 
 
-def projection(point: Sequence[float] | NDArray, origin: Sequence[float] | NDArray,
-               normal: NDArray) -> NDArray:
+def projection(point: Sequence[float] | NDArray, origin: Sequence[float] | NDArray, normal: NDArray) -> NDArray:
     """
     point: point to be projected
     normal, orig: normal vector & origin of projection plane

@@ -1,7 +1,6 @@
-from torch import nn
-
 from collections.abc import Sequence
-from torch import Tensor
+
+from torch import Tensor, nn
 
 from .builder import EMBEDDING
 
@@ -43,9 +42,7 @@ class FeaturePyramidNetwork(nn.Module):
         """
         bottom_up_features: Sequence[Tensor] = self.backbone(in_image)
         if self.feature_indices is not None:
-            bottom_up_features = [
-                bottom_up_features[index] for index in self.feature_indices
-            ]
+            bottom_up_features = [bottom_up_features[index] for index in self.feature_indices]
         if self.input_is_bottom:
             bottom_up_features = [in_image, *bottom_up_features]
         if self.with_neck:
