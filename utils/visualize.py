@@ -5,7 +5,7 @@ import tempfile
 import pymol
 from pymol import cmd
 
-from pmnet import PharmacophoreModel
+from pmnet.pharmacophore_model import PharmacophoreModel
 
 
 class Visualize_ArgParser(argparse.ArgumentParser):
