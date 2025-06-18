@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor, nn
 
-from pmnet.api.typing import HotspotInfo, MultiScaleFeature
+from pmnet.typing import PMNetAttr
 
 
 class PharmacophoreEncoder(nn.Module):
@@ -30,7 +30,7 @@ class PharmacophoreEncoder(nn.Module):
 
         self.apply(_init_weight)
 
-    def forward(self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]) -> tuple[Tensor, Tensor, Tensor]:
+    def forward(self, pmnet_attr: PMNetAttr) -> tuple[Tensor, Tensor, Tensor]:
         """
         Out:
           - hotspot_features: FloatTensor (V, Fh)
@@ -38,13 +38,13 @@ class PharmacophoreEncoder(nn.Module):
           - pocket_features: FloatTensor (Fh,)
         """
 
-        multi_scale_features, hotspot_infos = pmnet_attr
+        multi_scale_features, hotspots = pmnet_attr.multi_scale_features, pmnet_attr.hotspots
         dev = multi_scale_features[0].device
 
         # NOTE: Node features
-        if len(hotspot_infos) > 0:
-            hotspot_positions = torch.tensor([info["hotspot_position"] for info in hotspot_infos], device=dev)
-            hotspot_features = torch.stack([info["hotspot_feature"] for info in hotspot_infos])
+        if len(hotspots) > 0:
+            hotspot_positions = torch.tensor([node.position for node in hotspots], device=dev)
+            hotspot_features = torch.stack([node.features for node in hotspots])
             hotspot_features = self.hotspot_mlp(hotspot_features)
         else:
             hotspot_positions = torch.zeros((0, 3), device=dev)

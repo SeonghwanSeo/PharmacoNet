@@ -3,6 +3,8 @@ import argparse
 import torch
 
 from pmnet.api import get_pmnet_dev
+from pmnet.module import PharmacoNet
+from pmnet.typing import PMNetAttr
 
 
 class ArgParser(argparse.ArgumentParser):
@@ -65,9 +67,12 @@ def main(args):
     ]
     """
     device = "cuda" if args.cuda else "cpu"
-    module = get_pmnet_dev(device)
-    multi_scale_features, hotspot_infos = module.feature_extraction(args.protein, args.ref_ligand, args.center)
-    torch.save([multi_scale_features, hotspot_infos], args.out)
+    module: PharmacoNet = get_pmnet_dev(device)
+    pmnet_attr: PMNetAttr = module.feature_extraction(args.protein, args.ref_ligand, args.center)
+    state = pmnet_attr.to_state()
+    torch.save(state, args.out)
+
+    pmnet_attr = PMNetAttr.from_state(state)
 
 
 if __name__ == "__main__":

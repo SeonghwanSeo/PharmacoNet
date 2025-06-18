@@ -6,7 +6,7 @@ result/
 examples/library/
 nogit/
 maintain_test/
-uv.lock
+typings/
 
 
 # Byte-compiled / optimized / DLL files

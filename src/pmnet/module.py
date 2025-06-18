@@ -4,7 +4,6 @@ import logging
 import os
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import torch
@@ -24,6 +23,7 @@ from pmnet.pharmacophore_model import (
     INTERACTION_TO_PHARMACOPHORE,
     PharmacophoreModel,
 )
+from pmnet.typing import HotspotInfo, MultiScaleFeature, PMNetAttr
 from pmnet.utils.download_weight import download_pretrained_model
 from pmnet.utils.smoothing import GaussianSmoothing
 
@@ -41,9 +41,6 @@ DEFAULT_SCORE_THRESHOLD = {
     "HBond_pdon": 0.85,
     "Hydrophobic": 0.85,
 }
-
-MultiScaleFeature = tuple[Tensor, Tensor, Tensor, Tensor, Tensor]
-HotspotInfo = dict[str, Any]
 
 
 class PharmacoNet:
@@ -70,10 +67,10 @@ class PharmacoNet:
         self.parser: ProteinParser = ProteinParser(molvoxel_library=molvoxel_library)
 
         # download model
-        running_path = Path(__file__)
         if weight_path is None:
-            weight_path = running_path.parent / "weights" / "model.tar"
+            weight_path = Path.home() / ".local" / "share" / "pmnet" / "pmnet.tar"
             if not weight_path.exists():
+                weight_path.parent.mkdir(exist_ok=True, parents=True)
                 download_pretrained_model(weight_path, verbose)
         else:
             weight_path = Path(weight_path)
@@ -130,21 +127,21 @@ class PharmacoNet:
         protein_pdb_path: str | Path,
         ref_ligand_path: str | Path | None = None,
         center: tuple[float, float, float] | NDArray | None = None,
-    ) -> tuple[MultiScaleFeature, list[HotspotInfo]]:
+    ) -> PMNetAttr:
         protein_data = self.parser.parse(protein_pdb_path, ref_ligand_path, center)
         return self.run_extraction(protein_data)
 
     @torch.no_grad()
-    def run_extraction(
-        self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]
-    ) -> tuple[MultiScaleFeature, list[HotspotInfo]]:
+    def run_extraction(self, protein_data: tuple[Tensor, Tensor, Tensor, Tensor]) -> PMNetAttr:
         protein_image, mask, token_pos, tokens = protein_data
         protein_image = protein_image.to(device=self.device)
         token_pos = token_pos.to(device=self.device)
         tokens = tokens.to(device=self.device)
         mask = mask.to(device=self.device)
 
-        multi_scale_features = self.model.forward_feature(protein_image.unsqueeze(0))  # List[[1, D, H, W, F]]
+        multi_scale_features: MultiScaleFeature = self.model.forward_feature(
+            protein_image.unsqueeze(0)
+        )  # List[[1, D, H, W, F]]
         token_scores, token_features = self.model.forward_token_prediction(multi_scale_features[-1], [tokens])
         token_scores = token_scores[0].sigmoid()  # [Ntoken,]
         token_features = token_features[0]  # [Ntoken, F]
@@ -172,20 +169,20 @@ class PharmacoNet:
         hotspot_features = token_features[indices]  # [Ntoken', F]
         del protein_image, mask, token_pos, tokens
 
-        hotspot_infos = []
-        for hotspot, score, position, feature in zip(hotspots, rel_scores, hotpsot_pos, hotspot_features, strict=True):
+        hotspot_infos: list[HotspotInfo] = []
+        for hotspot, score, position, features in zip(hotspots, rel_scores, hotpsot_pos, hotspot_features, strict=True):
             interaction_type = C.INTERACTION_LIST[int(hotspot[3])]
             hotspot_infos.append(
-                {
-                    "nci_type": interaction_type,
-                    "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
-                    "hotspot_feature": feature,
-                    "hotspot_position": tuple(position.tolist()),
-                    "hotspot_score": float(score),
-                    "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
-                }
+                HotspotInfo(
+                    type=INTERACTION_TO_HOTSPOT[interaction_type],
+                    score=float(score),
+                    features=features,
+                    position=tuple(position.tolist()),
+                    nci_type=interaction_type,
+                    density_type=INTERACTION_TO_PHARMACOPHORE[interaction_type],
+                )
             )
-        return multi_scale_features, hotspot_infos
+        return PMNetAttr(multi_scale_features, hotspot_infos)
 
     def print_log(self, level, log):
         if self.logger is None:
@@ -288,19 +285,22 @@ class PharmacoNet:
         density_maps[density_maps < self.box_threshold] = 0.0
 
         hotspot_infos = []
-        for hotspot, score, position, map in zip(hotspots, rel_scores, hotpsot_pos, density_maps, strict=True):
+        for hotspot, score, position, features, map in zip(
+            hotspots, rel_scores, hotpsot_pos, hotspot_features, density_maps, strict=True
+        ):
             if torch.all(map < 1e-6):
                 continue
             interaction_type = C.INTERACTION_LIST[int(hotspot[3])]
             hotspot_infos.append(
-                {
-                    "nci_type": interaction_type,
-                    "hotspot_type": INTERACTION_TO_HOTSPOT[interaction_type],
-                    "hotspot_position": position,
-                    "hotspot_score": score,
-                    "point_type": INTERACTION_TO_PHARMACOPHORE[interaction_type],
-                    "point_map": map.cpu().numpy(),
-                }
+                HotspotInfo(
+                    type=INTERACTION_TO_HOTSPOT[interaction_type],
+                    features=features.cpu(),
+                    position=tuple(position.tolist()),
+                    score=score,
+                    nci_type=interaction_type,
+                    density_type=INTERACTION_TO_PHARMACOPHORE[interaction_type],
+                    density_map=map.cpu(),
+                )
             )
         self.print_log(
             "debug",

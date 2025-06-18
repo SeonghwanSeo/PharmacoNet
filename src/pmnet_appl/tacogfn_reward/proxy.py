@@ -29,7 +29,7 @@ import torch_geometric.nn as pygnn
 from torch import Tensor, nn
 from torch_scatter import scatter_mean, scatter_sum
 
-from pmnet.api.typing import HotspotInfo, MultiScaleFeature
+from pmnet.typing import PMNetAttr
 from pmnet_appl.base.proxy import BaseProxy
 from pmnet_appl.tacogfn_reward.data import smi2graph
 
@@ -37,7 +37,7 @@ Cache = tuple[Tensor, Tensor]
 
 
 class TacoGFN_Proxy(BaseProxy):
-    root_dir = Path(__file__).parent
+    root_dir = Path.home() / ".local" / "share" / "pmnet" / "tacogfn_proxy"
     cache_gdrive_link: dict[tuple[str, str], str] = {
         ("QVina-ZINCDock15M", "train"): "1VibvAjhir5oXx5cmzfE0F2UVTSDsGH3v",
         ("QVina-ZINCDock15M", "test"): "1F05JjkJuc6FwU4h8MLUEan34ovewGPLz",
@@ -56,10 +56,10 @@ class TacoGFN_Proxy(BaseProxy):
         ckpt = torch.load(ckpt_path, map_location=self.device)
         self.model.load_state_dict(ckpt["model"])
 
-    def _get_cache(self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]) -> Cache:
-        multi_scale_features, hotspot_infos = pmnet_attr
-        if len(hotspot_infos) > 0:
-            hotspot_features = torch.stack([info["hotspot_feature"] for info in hotspot_infos])
+    def _get_cache(self, pmnet_attr: PMNetAttr) -> Cache:
+        multi_scale_features, hotspots = pmnet_attr.multi_scale_features, pmnet_attr.hotspots
+        if len(hotspots) > 0:
+            hotspot_features = torch.stack([node.features for node in hotspots])
         else:
             hotspot_features = torch.zeros((0, 192), device=self.device)
         pocket_features_list, hotspot_features_list = self.model.ready_to_calculate(

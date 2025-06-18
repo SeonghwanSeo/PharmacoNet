@@ -6,7 +6,7 @@ Example scripts to use PharmacoNet's protein pharmacophore representation, which
 # construct conda environment; pymol-open-source is not required.
 conda create -n pmnet-dev python=3.10 openbabel=3.1.1
 conda activate pmnet-dev
-# install PharmacoNet & torch_geometric & wandb & tensorboard
+# install PharmacoNet & torch_geometric & wandb
 pip install -e '.[dev]' --find-links https://data.pyg.org/whl/torch-2.3.1+cu121.html
 ```
 

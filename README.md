@@ -195,27 +195,31 @@ For deep learning researcher who want to use PharmacoNet as pre-trained model fo
 
 ```python
 from pmnet.api import PharmacoNet, get_pmnet_dev, ProteinParser
+from pmnet.typing import PMNetAttr
+
 module: PharmacoNet = get_pmnet_dev('cuda') # default: score_threshold=0.5 (less threshold: more features)
 
 # End-to-End calculation
+pmnet_attr: PMNetAttr
 pmnet_attr = module.feature_extraction(<PROTEIN_PATH>, ref_ligand_path=<REF_LIGAND_PATH>)
 pmnet_attr = module.feature_extraction(<PROTEIN_PATH>, center=(<CENTER_X>, <CENTER_Y>, <CENTER_Z>))
 
 # Step-wise calculation
 ## In Dataset
 parser = ProteinParser(center_noise=<CENTER_NOISE>) # center_noise: for data augmentation
-## In Model (freezed, method is decorated by torch.no_grad())
 pmnet_attr = module.run_extraction(protein_data)
 
 """
-pmnet_attr = (multi_scale_features, hotspot_infos)
+pmnet_attr: PMNetAttr
 - multi_scale_features: tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
     - [96, 4, 4, 4], [96, 8, 8, 8], [96, 16, 16, 16], [96, 32, 32, 32], [96, 64, 64, 64]
-- hotspot_infos: list[hotspot_info]
-    hotspot_info: dict[str, Any]
-      - hotspot_feature: Tensor [192,]
-      - hotspot_position: tuple[float, float, float] - (x, y, z)
-      - hotspot_score: float in [0, 1]
+- hotspots:
+    hotspot_info: HotspotInfo
+      - type: str (7 types)
+          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion', 'Halogen', 'HBond_donor', 'HBond_acceptor'}
+      - features: Tensor [192,]
+      - position: tuple[float, float, float] - (x, y, z)
+      - score: float in [0, 1]
       - nci_type: str (10 types)
           'Hydrophobic': Hydrophobic interaction
           'PiStacking_P': PiStacking (Parallel)
@@ -227,14 +231,8 @@ pmnet_attr = (multi_scale_features, hotspot_infos)
           'XBond': Halogen Bond
           'HBond_pdon': Hydrogen Bond btw Protein Donor & Ligand Acceptor
           'HBond_ldon': Hydrogen Bond btw Protein Acceptor & Ligand Donor
-
-      # Features obtained from `nci_type`, i.e. `nci_type` is all you need.
-      - hotspot_type: str (7 types)
-          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
-           'Halogen', 'HBond_donor', 'HBond_acceptor'}
-      - point_type: str (7 types)
-          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion',
-           'Halogen', 'HBond_donor', 'HBond_acceptor'}
+      - density_type: str (7 types)
+          {'Hydrophobic', 'Aromatic', 'Cation', 'Anion', 'Halogen', 'HBond_donor', 'HBond_acceptor'}
 """
 ```
 
