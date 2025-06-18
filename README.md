@@ -69,7 +69,7 @@ python feature_extraction.py --protein <PROTEIN_PATH> --center <X> <Y> <Z> --out
   pip install molvoxel # Molecular voxelization tools with minimal dependencies (https://github.com/SeonghwanSeo/molvoxel.git)
   ```
 
-- Installation for Proxy Model (For DL developer)
+- Installation for feature extractions (For Deep learning developer)
 
   ```bash
   # in your project
@@ -252,6 +252,7 @@ Implementation List:
 Related Works:
 
 - RxnFlow: Generative Flows on Synthetic Pathway for Drug Design [[paper](https://arxiv.org/abs/2410.04542)]
+- CGFlow: Compositional Flows for 3D Molecule and Synthesis Pathway Co-design [[paper](https://arxiv.org/abs/2504.08051)]
 
 ## Citation
 
