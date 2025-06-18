@@ -37,7 +37,7 @@ Cache = tuple[Tensor, Tensor]
 
 
 class TacoGFN_Proxy(BaseProxy):
-    root_dir = Path(__file__).parent
+    root_dir = Path.home() / ".local" / "share" / "pmnet" / "tacogfn_proxy"
     cache_gdrive_link: dict[tuple[str, str], str] = {
         ("QVina-ZINCDock15M", "train"): "1VibvAjhir5oXx5cmzfE0F2UVTSDsGH3v",
         ("QVina-ZINCDock15M", "test"): "1F05JjkJuc6FwU4h8MLUEan34ovewGPLz",
