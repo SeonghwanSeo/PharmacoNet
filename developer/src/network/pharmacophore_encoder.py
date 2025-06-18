@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor, nn
 
-from pmnet.typing import HotspotInfo, MultiScaleFeature
+from pmnet.typing import PMNetAttr
 
 
 class PharmacophoreEncoder(nn.Module):
@@ -30,7 +30,7 @@ class PharmacophoreEncoder(nn.Module):
 
         self.apply(_init_weight)
 
-    def forward(self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]) -> tuple[Tensor, Tensor, Tensor]:
+    def forward(self, pmnet_attr: PMNetAttr) -> tuple[Tensor, Tensor, Tensor]:
         """
         Out:
           - hotspot_features: FloatTensor (V, Fh)
@@ -38,7 +38,7 @@ class PharmacophoreEncoder(nn.Module):
           - pocket_features: FloatTensor (Fh,)
         """
 
-        multi_scale_features, hotspots = pmnet_attr
+        multi_scale_features, hotspots = pmnet_attr.multi_scale_features, pmnet_attr.hotspots
         dev = multi_scale_features[0].device
 
         # NOTE: Node features
