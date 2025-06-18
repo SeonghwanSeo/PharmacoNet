@@ -52,7 +52,7 @@ class DensityMapGraph:
         node_type: str,
         hotspot_position: tuple[float, float, float],
         score: float,
-        mask: NDArray[np.float64],
+        mask: NDArray[np.float32 | np.float64],
     ) -> list[DensityMapNode]:
         new_node_list = []
         for grids, grid_scores in self.__extract_pharmacophores(mask):

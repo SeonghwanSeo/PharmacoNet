@@ -37,7 +37,7 @@ class MaskHead(nn.Module):
 
     def forward(
         self,
-        multi_scale_features: Tensor,
+        multi_scale_features: Sequence[Tensor],
         tokens_list: Sequence[Tensor],
         token_features_list: Sequence[Tensor],
         return_aux: bool = False,

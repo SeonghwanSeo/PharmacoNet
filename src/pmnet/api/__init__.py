@@ -6,8 +6,6 @@ import torch
 from pmnet.data.parser import ProteinParser
 from pmnet.module import PharmacoNet
 
-from . import typing
-
 
 def get_pmnet_dev(
     device: str | torch.device = "cpu",

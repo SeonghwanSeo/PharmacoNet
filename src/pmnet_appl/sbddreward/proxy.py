@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch_geometric.data as gd
 from torch import Tensor
 
-from pmnet.api.typing import HotspotInfo, MultiScaleFeature
+from pmnet.typing import HotspotInfo, MultiScaleFeature
 from pmnet_appl.base.proxy import BaseProxy
 from pmnet_appl.sbddreward.data import NUM_ATOM_FEATURES, NUM_BOND_FEATURES, smi2graph
 from pmnet_appl.sbddreward.network import (

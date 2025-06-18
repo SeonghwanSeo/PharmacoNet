@@ -12,6 +12,7 @@ from openbabel import pybel
 
 from pmnet.scoring.graph_match import GraphMatcher
 from pmnet.scoring.ligand import Ligand
+from pmnet.typing import HotspotInfo
 from pmnet.utils.density_map import (
     DensityMapEdge,
     DensityMapGraph,
@@ -19,7 +20,7 @@ from pmnet.utils.density_map import (
     DensityMapNodeCluster,
 )
 
-INTERACTION_TO_PHARMACOPHORE = {
+INTERACTION_TO_PHARMACOPHORE: dict[str, str] = {
     "Hydrophobic": "Hydrophobic",
     "PiStacking_P": "Aromatic",
     "PiStacking_T": "Aromatic",
@@ -33,7 +34,7 @@ INTERACTION_TO_PHARMACOPHORE = {
 }
 
 
-INTERACTION_TO_HOTSPOT = {
+INTERACTION_TO_HOTSPOT: dict[str, str] = {
     "Hydrophobic": "Hydrophobic",
     "PiStacking_P": "Aromatic",
     "PiStacking_T": "Aromatic",
@@ -110,7 +111,7 @@ class PharmacophoreModel:
         cls,
         pdbblock: str,
         center: tuple[float, float, float] | NDArray,
-        hotspot_infos: list[dict],
+        hotspot_infos: list[HotspotInfo],
         resolution: float = 0.5,
         size: int = 64,
     ):
@@ -120,12 +121,13 @@ class PharmacophoreModel:
             center = (x, y, z)
         graph = DensityMapGraph(center, resolution, size)
         for node in hotspot_infos:
-            x, y, z = tuple(node["hotspot_position"].tolist())
+            x, y, z = node.position
+            assert node.density_map is not None, "Density map must be provided for each hotspot."
             graph.add_node(
-                node["nci_type"],
+                node.nci_type,
                 (x, y, z),
-                float(node["hotspot_score"]),
-                node["point_map"],
+                float(node.score),
+                node.density_map.numpy(),
             )
         graph.setup()
 

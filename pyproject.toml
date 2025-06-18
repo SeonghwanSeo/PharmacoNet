@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pharmaconet"
-version = "2.1.2"
+version = "2.2.0"
 description = "PharmacoNet: Open-Source Software for Protein-based Pharmacophore Modeling and Virtual Screening"
 authors = [{ name = "Seonghwan Seo", email = "shwan0106@kaist.ac.kr" }]
 license = { text = "MIT" }
@@ -49,15 +49,9 @@ dev = [
   "torch-sparse>=0.6.18",
   "torch-cluster>=1.6.3",
   "wandb",
-  "tensorboard",
 ]
 [project.urls]
 Repository = "https://github.com/SeonghwanSeo/PharmacoNet"
-
-# CODING
-[tool.black]
-line-length = 120
-target-version = ["py310"]
 
 [tool.ruff]
 target-version = "py310"

@@ -8,7 +8,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.multiprocessing
-import torch.utils.tensorboard
 import wandb
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
@@ -34,8 +33,6 @@ class Trainer:
         self.dictconfig = OmegaConf.create(config.to_dict())
         OmegaConf.save(self.dictconfig, self.log_dir / "config.yaml")
         self.logger = create_logger(logfile=self.log_dir / "train.log")
-        if wandb.run is None:
-            self._summary_writer = torch.utils.tensorboard.SummaryWriter(self.log_dir)
 
         self.model = AffinityModel(config)
         self.model.to(device)
@@ -87,9 +84,6 @@ class Trainer:
         info.update({"step": index, "epoch": epoch})
         if wandb.run is not None:
             wandb.log({f"{key}/{k}": v for k, v in info.items()}, step=index)
-        else:
-            for k, v in info.items():
-                self._summary_writer.add_scalar(f"{key}/{k}", v, index)
 
     def train_batch(self, batch) -> dict[str, float]:
         loss = self.model.forward_train(batch)

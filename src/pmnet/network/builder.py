@@ -1,5 +1,3 @@
-from torch import nn
-
 from pmnet.network.backbones.swinv2 import SwinTransformerV2
 from pmnet.network.cavity_head import CavityHead
 from pmnet.network.decoders.fpn_decoder import FPNDecoder
@@ -9,7 +7,7 @@ from pmnet.network.mask_head import MaskHead
 from pmnet.network.token_head import TokenHead
 
 
-def build_model(config: dict) -> nn.Module:
+def build_model(config: dict) -> PharmacoNetModel:
     # embedding
     embedding = FeaturePyramidNetwork(
         backbone=SwinTransformerV2(

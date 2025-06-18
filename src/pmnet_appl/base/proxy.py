@@ -24,13 +24,12 @@ from numpy.typing import NDArray
 from torch import Tensor
 
 from pmnet.api import PharmacoNet, get_pmnet_dev
-from pmnet.api.typing import HotspotInfo, MultiScaleFeature
+from pmnet.typing import PMNetAttr
 
 Cache = Any
 
 
 class BaseProxy(nn.Module):
-    root_dir: Path = Path(__file__).parent
     cache_gdrive_link: dict[tuple[str, str], str] = {}
     model_gdrive_link: dict[str, str] = {}
 
@@ -62,21 +61,22 @@ class BaseProxy(nn.Module):
     def _scoring_list(self, cache: Cache, smiles_list: list[str]) -> Tensor:
         raise NotImplementedError
 
-    def _get_cache(self, pmnet_attr: tuple[MultiScaleFeature, list[HotspotInfo]]) -> Cache:
+    def _get_cache(self, pmnet_attr: PMNetAttr) -> Cache:
         raise NotImplementedError
 
     @classmethod
     def _download_model(cls, suffix: str):
-        weight_dir = cls.root_dir / "weights"
+        weight_dir = Path.home() / ".local" / "share" / "pmnet" / "proxy"
         weight_dir.mkdir(parents=True, exist_ok=True)
-        model_path = weight_dir / f"model-{suffix}.pth"
+        model_path = weight_dir / f"model-{suffix}.ckpt"
         if not model_path.exists():
             id = cls.model_gdrive_link[suffix]
             gdown.download(f"https://drive.google.com/uc?id={id}", str(model_path))
 
     @classmethod
     def _download_cache(cls, suffix: str, label: str):
-        weight_dir = cls.root_dir / "weights"
+        weight_dir = Path.home() / ".local" / "share" / "pmnet" / "proxy"
+        weight_dir.mkdir(parents=True, exist_ok=True)
         cache_path = weight_dir / f"cache-{label}-{suffix}.pt"
         if not cache_path.exists():
             id = cls.cache_gdrive_link[(suffix, label)]
