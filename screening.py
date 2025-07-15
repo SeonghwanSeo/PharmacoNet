@@ -3,7 +3,7 @@ import multiprocessing
 from functools import partial
 from pathlib import Path
 
-from pmnet import PharmacophoreModel
+from pmnet.pharmacophore_model import PharmacophoreModel
 
 
 class Screening_ArgParser(argparse.ArgumentParser):

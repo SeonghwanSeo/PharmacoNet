@@ -77,7 +77,6 @@ class BaseProxy(nn.Module):
     @classmethod
     def _download_cache(cls, suffix: str, label: str):
         weight_dir = cls.root_dir
-        weight_dir = Path.home() / ".local" / "share" / "pmnet" / "proxy"
         weight_dir.mkdir(parents=True, exist_ok=True)
         cache_path = weight_dir / f"cache-{label}-{suffix}.pt"
         if not cache_path.exists():

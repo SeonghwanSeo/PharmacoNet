@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import pmnet
-from pmnet import PharmacophoreModel
 from pmnet.module import PharmacoNet
+from pmnet.pharmacophore_model import PharmacophoreModel
 from utils import visualize
 from utils.parse_rcsb_pdb import download_pdb, parse_pdb
 
@@ -136,17 +136,17 @@ def main(args):
 
     # NOTE: Case 1 With Custom Autobox Ligand Center
     if args.ref_ligand is not None:
-        assert os.path.exists(
-            args.ref_ligand
-        ), f"Wrong Path!. The arguments for reference ligand does not exist ({args.ref_ligand})"
+        assert os.path.exists(args.ref_ligand), (
+            f"Wrong Path!. The arguments for reference ligand does not exist ({args.ref_ligand})"
+        )
         run_pmnet_ref_ligand(args.ref_ligand)
         return SUCCESS
 
     # NOTE: Case 2: With Custom Center
     if args.center is not None:
-        assert (
-            len(args.center) == 3
-        ), "Wrong Center!. The arguments for center coordinates should be 3. (ex. --center 1.00 2.00 -1.50)"
+        assert len(args.center) == 3, (
+            "Wrong Center!. The arguments for center coordinates should be 3. (ex. --center 1.00 2.00 -1.50)"
+        )
         run_pmnet_center(args.center)
         return SUCCESS
 

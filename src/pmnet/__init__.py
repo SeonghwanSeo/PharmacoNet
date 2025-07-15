@@ -1,6 +1,4 @@
-from .pharmacophore_model import PharmacophoreModel
-
-__version__ = "2.1.2"
+__version__ = "2.2.0"
 __citation_information__ = "Seo, S., & Kim, W. Y. (2024). PharmacoNet: deep learning-guided pharmacophore modeling for ultra-large-scale virtual screening. Chemical Science, 15(46), 19473-19487."
 __maintainer__ = "https://github.com/SeonghwanSeo/PharmacoNet"
 

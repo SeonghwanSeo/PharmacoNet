@@ -49,7 +49,6 @@ class Point3D(Sequence):
 
 @dataclass
 class BaseInteractablePart:
-
     @property
     def small(self):
         if self.__small is None:
