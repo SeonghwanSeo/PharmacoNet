@@ -63,7 +63,7 @@ def get_docking_proxy(
     elif model == "SBDDReward":
         from pmnet_appl.sbddreward import SBDDReward_Proxy
 
-        assert docking in ["UniDock_Vina"], f
+        assert docking in ["UniDock_Vina"], f"docking({docking}) is not allowed"
         assert train_dataset in ["ZINC"], f"train_dataset({train_dataset}) is not allowed"
         return SBDDReward_Proxy.load(docking, train_dataset, db, device)
     else:
