@@ -100,8 +100,8 @@ class TacoGFN_Proxy(BaseProxy):
         device : str | torch.device
             cuda | spu
         """
-        assert docking in ["QVina", "QuickVina"]
-        assert train_dataset in ["ZINCDock15M", "CrossDocked2020"]
+        assert docking in ["QVina", "QuickVina"], f"Unsupported docking program: {docking}"
+        assert train_dataset in ["ZINCDock15M", "CrossDocked2020"], f"Unsupported train dataset: {train_dataset}"
         return super().load("QVina", train_dataset, db, device)
 
 
